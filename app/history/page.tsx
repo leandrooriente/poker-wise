@@ -106,7 +106,7 @@ export default function HistoryPage() {
         </p>
         <div className="border border-retro-gray rounded-retro p-8 text-center">
           <p className="text-retro-gray">No matches yet.</p>
-          <p className="text-sm mt-2">Start a new match from the "New Match" tab to see history here.</p>
+          <p className="text-sm mt-2">Start a new match from the &quot;New Match&quot; tab to see history here.</p>
         </div>
       </div>
     );

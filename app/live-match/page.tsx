@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
 import { getMatchWithPlayers, updateMatch } from "@/db/matches";
 import { calculateSettlement } from "@/lib/settlement";
 
-export default function LiveMatchPage() {
+function LiveMatchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const matchId = searchParams.get("match");
@@ -110,7 +110,7 @@ export default function LiveMatchPage() {
                     Buy‑ins: <span className="font-pixel">{buyIns}</span>
                   </p>
                   <p className="text-retro-gray text-sm">
-                    Total paid: {(buyIns * match.buyInAmount / 100).toFixed(2)} EUR
+                     Total paid: {(buyIns * match.buyInAmount / 100).toFixed(2)} EUR
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -134,7 +134,7 @@ export default function LiveMatchPage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-retro-light">Buy‑in each</span>
-                <span className="font-pixel">{(match.buyInAmount / 100).toFixed(2)} EUR</span>
+                 <span className="font-pixel">{(match.buyInAmount / 100).toFixed(2)} EUR</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Total buy‑ins</span>
@@ -142,7 +142,7 @@ export default function LiveMatchPage() {
               </div>
               <div className="flex justify-between border-t border-retro-gray pt-3">
                 <span className="text-retro-light">Total pot</span>
-                <span className="font-pixel text-retro-green">{(totalPot / 100).toFixed(2)} EUR</span>
+                 <span className="font-pixel text-retro-green">{(totalPot / 100).toFixed(2)} EUR</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Started</span>
@@ -180,5 +180,17 @@ export default function LiveMatchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LiveMatchPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-retro-green font-pixel">Loading match...</div>
+      </div>
+    }>
+      <LiveMatchContent />
+    </Suspense>
   );
 }

@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
 import { getMatchWithPlayers } from "@/db/matches";
 import { calculateSettlement } from "@/lib/settlement";
 
-export default function ResultsPage() {
+function ResultsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const matchId = searchParams.get("match");
@@ -206,5 +206,17 @@ export default function ResultsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-retro-green font-pixel">Loading results...</div>
+      </div>
+    }>
+      <ResultsContent />
+    </Suspense>
   );
 }
