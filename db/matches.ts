@@ -1,6 +1,7 @@
 import { getPlayers } from "@/db/players";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
+import { generateId } from "@/lib/uuid";
 
 const STORAGE_KEY = "poker-wise-matches";
 
@@ -27,7 +28,7 @@ export async function saveMatches(matches: Match[]): Promise<void> {
 export async function addMatch(match: Omit<Match, "id" | "createdAt">): Promise<Match> {
   const newMatch: Match = {
     ...match,
-    id: crypto.randomUUID(),
+    id: generateId(),
     createdAt: new Date().toISOString(),
   };
   const matches = await getMatches();

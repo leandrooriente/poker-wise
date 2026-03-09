@@ -6,6 +6,7 @@ import AddPlayerForm from "@/components/AddPlayerForm";
 import PlayerCard from "@/components/PlayerCard";
 import { getPlayers, savePlayers } from "@/db/players";
 import { Player } from "@/types/player";
+import { generateId } from "@/lib/uuid";
 
 export default function PlayersPage() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -29,7 +30,7 @@ export default function PlayersPage() {
   const handleAddPlayer = (player: Omit<Player, "id" | "createdAt">) => {
     const newPlayer: Player = {
       ...player,
-      id: crypto.randomUUID(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
     };
     const updated = [...players, newPlayer];
