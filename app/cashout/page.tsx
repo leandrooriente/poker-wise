@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
 import { getMatchWithPlayers, updateMatch } from "@/db/matches";
 import { calculateSettlement, validateTotals } from "@/lib/settlement";
 
-export default function CashoutPage() {
+function CashoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const matchId = searchParams.get("match");
@@ -237,5 +237,17 @@ export default function CashoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CashoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-retro-green font-pixel">Loading cashout...</div>
+      </div>
+    }>
+      <CashoutContent />
+    </Suspense>
   );
 }
