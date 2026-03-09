@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
 import { getMatchWithPlayers, updateMatch } from "@/db/matches";
-import { calculateSettlement } from "@/lib/settlement";
+
 
 function LiveMatchContent() {
   const router = useRouter();

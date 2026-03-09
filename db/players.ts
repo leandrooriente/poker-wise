@@ -1,5 +1,5 @@
-import { Player } from "@/types/player";
 import { generateId } from "@/lib/uuid";
+import { Player } from "@/types/player";
 
 const STORAGE_KEY = "poker-wise-players";
 

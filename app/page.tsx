@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import AddPlayerForm from "@/components/AddPlayerForm";
 import PlayerCard from "@/components/PlayerCard";
 import { getPlayers, savePlayers } from "@/db/players";
-import { Player } from "@/types/player";
 import { generateId } from "@/lib/uuid";
+import { Player } from "@/types/player";
 
 export default function PlayersPage() {
   const [players, setPlayers] = useState<Player[]>([]);

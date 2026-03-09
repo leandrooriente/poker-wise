@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
 import { getMatchWithPlayers, updateMatch } from "@/db/matches";
-import { calculateSettlement, validateTotals } from "@/lib/settlement";
+import { validateTotals } from "@/lib/settlement";
 
 function CashoutContent() {
   const router = useRouter();
@@ -89,8 +89,8 @@ function CashoutContent() {
       endedAt: match.endedAt || new Date().toISOString(),
     };
     await updateMatch(updatedMatch);
-    // Compute settlement
-    const settlement = calculateSettlement(updatedPlayers, match.buyInAmount);
+    // Compute settlement (computed again in results page)
+    // const settlement = calculateSettlement(updatedPlayers, match.buyInAmount);
     // Navigate to results with settlement data (we can store in match or pass via query)
     // For simplicity, store settlement in match as derived field (not persisted)
     // We'll pass match ID and compute again in results page.
