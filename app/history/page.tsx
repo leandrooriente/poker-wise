@@ -131,6 +131,7 @@ export default function HistoryPage() {
             <div
               key={match.id}
               className="border border-retro-gray rounded-retro p-4 bg-retro-darker hover:border-retro-green transition-colors cursor-pointer"
+              data-testid="match-entry"
               onClick={() => toggleExpand(match.id)}
             >
               <div className="flex justify-between items-center">

@@ -138,6 +138,7 @@ export default function NewMatchPage() {
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans"
                   placeholder="e.g., Friday Night Poker"
+                  data-testid="match-title-input"
                 />
               </div>
               <div>
@@ -153,6 +154,7 @@ export default function NewMatchPage() {
                     setBuyInAmount(Math.round(parseFloat(e.target.value) * 100))
                   }
                   className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans"
+                  data-testid="buy-in-amount-input"
                 />
                 <p className="text-retro-gray text-sm mt-2">
                   Each player starts with one buy‑in. Rebuys can be added during the match.

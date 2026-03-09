@@ -103,6 +103,7 @@ function LiveMatchContent() {
               <div
                 key={player.id}
                 className="border border-retro-gray rounded-retro p-4 flex justify-between items-center bg-retro-dark hover:border-retro-green transition-colors"
+                data-testid="player-row"
               >
                 <div>
                   <h4 className="text-xl font-pixel text-retro-green">{player.name}</h4>

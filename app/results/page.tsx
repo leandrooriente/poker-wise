@@ -140,6 +140,7 @@ function ResultsContent() {
                     <div
                       key={idx}
                       className="border border-retro-gray rounded-retro p-4 bg-retro-dark"
+                      data-testid="transfer-item"
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">

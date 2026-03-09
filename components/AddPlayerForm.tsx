@@ -33,44 +33,47 @@ export default function AddPlayerForm({ onAdd }: AddPlayerFormProps) {
           <label className="block text-retro-light text-sm mb-2 font-pixel">
             PLAYER NAME *
           </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans focus:border-retro-green focus:outline-none"
-            placeholder="e.g., Max"
-            required
-          />
+           <input
+             type="text"
+             value={name}
+             onChange={(e) => setName(e.target.value)}
+             className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans focus:border-retro-green focus:outline-none"
+             placeholder="e.g., Max"
+             required
+             data-testid="player-name-input"
+           />
         </div>
         <div>
           <label className="block text-retro-light text-sm mb-2 font-pixel">
             PREFERRED BUY-IN (EUR)
           </label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={preferredBuyIn !== undefined ? preferredBuyIn / 100 : ""}
-            onChange={(e) =>
-              setPreferredBuyIn(
-                e.target.value === "" ? undefined : Math.round(parseFloat(e.target.value) * 100)
-              )
-            }
-            className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans focus:border-retro-green focus:outline-none"
-            placeholder="10.00 (default)"
-          />
+           <input
+             type="number"
+             step="0.01"
+             min="0"
+             value={preferredBuyIn !== undefined ? preferredBuyIn / 100 : ""}
+             onChange={(e) =>
+               setPreferredBuyIn(
+                 e.target.value === "" ? undefined : Math.round(parseFloat(e.target.value) * 100)
+               )
+             }
+             className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans focus:border-retro-green focus:outline-none"
+             placeholder="10.00 (default)"
+             data-testid="player-preferred-buyin-input"
+           />
         </div>
         <div>
           <label className="block text-retro-light text-sm mb-2 font-pixel">
             NOTES
           </label>
-          <input
-            type="text"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans focus:border-retro-green focus:outline-none"
-            placeholder="Optional"
-          />
+           <input
+             type="text"
+             value={notes}
+             onChange={(e) => setNotes(e.target.value)}
+             className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans focus:border-retro-green focus:outline-none"
+             placeholder="Optional"
+             data-testid="player-notes-input"
+           />
         </div>
       </div>
       <div className="flex justify-between items-center">

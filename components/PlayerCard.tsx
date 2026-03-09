@@ -32,7 +32,7 @@ export default function PlayerCard({ player, onUpdate, onDelete }: PlayerCardPro
   };
 
   return (
-    <div className="border border-retro-gray rounded-retro p-4 bg-retro-dark hover:border-retro-green transition-colors">
+    <div className="border border-retro-gray rounded-retro p-4 bg-retro-dark hover:border-retro-green transition-colors" data-testid="player-card">
       {editing ? (
         <div className="space-y-3">
           <input
