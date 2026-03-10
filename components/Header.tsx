@@ -33,11 +33,7 @@ export default function Header() {
         </nav>
       </div>
 
-      <div className="mt-4 text-center text-retro-gray text-sm">
-        <p>
-          Fixed buy‑ins • Rebuys anytime • Final chip value entry • Auto‑settlement
-        </p>
-      </div>
+
     </header>
   );
 }

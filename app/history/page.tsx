@@ -90,7 +90,7 @@ export default function HistoryPage() {
   if (loading) {
     return (
       <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
-        <h2 className="text-2xl font-pixel text-retro-green mb-4">MATCH HISTORY</h2>
+        <h2 className="text-2xl font-pixel text-retro-green mb-6">MATCH HISTORY</h2>
         <div className="flex justify-center items-center h-64">
           <div className="text-retro-green font-pixel">Loading matches...</div>
         </div>
@@ -101,10 +101,8 @@ export default function HistoryPage() {
   if (matches.length === 0) {
     return (
       <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
-        <h2 className="text-2xl font-pixel text-retro-green mb-4">MATCH HISTORY</h2>
-        <p className="text-retro-light mb-6">
-          Browse past matches stored locally in your browser.
-        </p>
+        <h2 className="text-2xl font-pixel text-retro-green mb-6">MATCH HISTORY</h2>
+
         <div className="border border-retro-gray rounded-retro p-8 text-center">
           <p className="text-retro-gray">No matches yet.</p>
           <p className="text-sm mt-2">Start a new match from the &quot;New Match&quot; tab to see history here.</p>
@@ -115,10 +113,8 @@ export default function HistoryPage() {
 
   return (
     <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
-      <h2 className="text-2xl font-pixel text-retro-green mb-4">MATCH HISTORY</h2>
-      <p className="text-retro-light mb-6">
-        Browse past matches stored locally in your browser.
-      </p>
+      <h2 className="text-2xl font-pixel text-retro-green mb-6">MATCH HISTORY</h2>
+
 
       <div className="space-y-6">
         {matches.map((match) => {

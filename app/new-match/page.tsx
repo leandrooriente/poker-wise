@@ -153,9 +153,7 @@ export default function NewMatchPage() {
                   className="w-full"
                   data-testid="buy-in-amount-input"
                 />
-                <p className="text-retro-gray text-sm mt-2">
-                  Each player starts with one buy‑in. Rebuys can be added during the match.
-                </p>
+
               </div>
             </div>
           </div>

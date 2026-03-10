@@ -90,12 +90,11 @@ export default function PlayerCard({ player, onUpdate, onDelete }: PlayerCardPro
               </button>
             </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-retro-gray text-xs text-retro-gray">
-            <p>Added: {new Date(player.createdAt).toLocaleDateString()}</p>
-            {player.preferredBuyIn && (
-               <p>Preferred buy-in: <MoneyDisplay cents={player.preferredBuyIn} /></p>
-            )}
-          </div>
+           {player.preferredBuyIn && (
+             <div className="mt-4 pt-3 border-t border-retro-gray text-xs text-retro-gray">
+                <p>Preferred buy-in: <MoneyDisplay cents={player.preferredBuyIn} /></p>
+             </div>
+           )}
         </>
       )}
     </div>

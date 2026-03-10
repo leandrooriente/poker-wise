@@ -54,17 +54,14 @@ export default function AddPlayerForm({ onAdd }: AddPlayerFormProps) {
           />
         </div>
       </div>
-      <div className="flex justify-between items-center">
-        <p className="text-retro-gray text-sm">
-          Player will be saved locally in your browser.
-        </p>
-         <button
-           type="submit"
-           className="px-6 py-3 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 hover:shadow-retro-outset transition-all"
-         >
-          ADD PLAYER
-        </button>
-      </div>
+       <div className="flex justify-end">
+          <button
+            type="submit"
+            className="px-6 py-3 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 hover:shadow-retro-outset transition-all"
+          >
+           ADD PLAYER
+         </button>
+       </div>
     </form>
   );
 }

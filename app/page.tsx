@@ -66,9 +66,7 @@ export default function PlayersPage() {
         <h2 className="text-2xl font-pixel text-retro-green mb-4">
           PLAYER MANAGEMENT
         </h2>
-        <p className="text-retro-light mb-6">
-          Add regular poker players. These will appear when starting a new match.
-        </p>
+
 
         <AddPlayerForm onAdd={handleAddPlayer} />
 

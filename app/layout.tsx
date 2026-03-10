@@ -46,10 +46,9 @@ export default function RootLayout({
         <div className="relative max-w-4xl mx-auto p-4">
           <Header />
           <main className="mt-6">{children}</main>
-          <footer className="mt-12 text-center text-retro-gray text-sm border-t border-retro-gray pt-4">
-             <p>Poker Wise © 2026 — Poker match settlement</p>
-             <p className="text-xs mt-1">No backend • No tracking</p>
-          </footer>
+           <footer className="mt-12 text-center text-retro-gray text-sm border-t border-retro-gray pt-4">
+              <p>Poker Wise © 2026 — Poker match settlement</p>
+           </footer>
         </div>
       </body>
     </html>
