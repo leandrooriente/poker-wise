@@ -8,7 +8,11 @@ import { useActiveGroup } from "@/lib/active-group";
 import { Group } from "@/types/group";
 
 export default function Header() {
-  const { activeGroupId, setActiveGroupId, isLoading: activeGroupLoading } = useActiveGroup();
+  const {
+    activeGroupId,
+    setActiveGroupId,
+    isLoading: activeGroupLoading,
+  } = useActiveGroup();
   const [groups, setGroups] = useState<Group[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(true);
 
@@ -38,30 +42,34 @@ export default function Header() {
   };
 
   return (
-    <header className="border-retro border-retro-width p-4 rounded-retro bg-retro-dark shadow-retro-outset">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-retro-green to-retro-blue flex items-center justify-center">
-            <span className="text-retro-dark font-pixel text-lg">P</span>
+    <header className="border-retro border-retro-width rounded-retro bg-retro-dark shadow-retro-outset p-4">
+      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <div className="flex items-center gap-3">
+            <div className="from-retro-green to-retro-blue flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br">
+              <span className="text-retro-dark font-pixel text-lg">P</span>
+            </div>
+            <h1 className="font-pixel text-retro-green text-xl sm:text-2xl">
+              POKER<span className="text-retro-yellow">WISE</span>
+            </h1>
           </div>
-          <h1 className="text-2xl font-pixel text-retro-green">
-            POKER<span className="text-retro-yellow">WISE</span>
-          </h1>
 
           {/* Group selector */}
-          <div className="ml-4">
-            <label htmlFor="group-select" className="sr-only">Select group</label>
+          <div className="ml-0 w-full max-w-xs sm:ml-4 sm:w-auto">
+            <label htmlFor="group-select" className="sr-only">
+              Select group
+            </label>
             <select
               id="group-select"
               value={activeGroupId || ""}
               onChange={handleGroupChange}
               disabled={activeGroupLoading || groupsLoading}
-              className="px-3 py-2 border border-retro-gray rounded-retro bg-retro-dark text-retro-light hover:bg-retro-green hover:text-retro-dark hover:border-retro-green transition-all duration-200 font-pixel text-sm"
+              className="border-retro-gray rounded-retro bg-retro-dark text-retro-light hover:bg-retro-green hover:text-retro-dark hover:border-retro-green font-pixel w-full border px-3 py-2 text-sm transition-all duration-200"
             >
-              <option value="">-- Select group --</option>
+              <option value="">Select group</option>
               {groups.map((group) => (
                 <option key={group.id} value={group.id}>
-                   {group.name}
+                  {group.name}
                 </option>
               ))}
             </select>
@@ -73,7 +81,7 @@ export default function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="px-3 py-2 border border-retro-gray rounded-retro bg-retro-dark text-retro-light hover:bg-retro-green hover:text-retro-dark hover:border-retro-green transition-all duration-200 font-pixel text-sm"
+              className="border-retro-gray rounded-retro bg-retro-dark text-retro-light hover:bg-retro-green hover:text-retro-dark hover:border-retro-green font-pixel border px-3 py-2 text-sm transition-all duration-200"
             >
               {item.label}
             </Link>
