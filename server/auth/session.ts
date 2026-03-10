@@ -2,6 +2,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { compare } from "bcryptjs";
+import { getEnv } from "@/server/env";
 import { db } from "@/server/db";
 import { admins } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
@@ -13,11 +14,11 @@ export interface SessionData {
 }
 
 export const sessionOptions = {
-  password: process.env.AUTH_SECRET!,
+  password: getEnv().AUTH_SECRET,
   cookieName: "poker-wise-admin-session",
   // secure: true should be used in production (HTTPS) but can be false in development
   cookieOptions: {
-    secure: process.env.NODE_ENV === "production",
+    secure: getEnv().NODE_ENV === "production",
   },
 };
 
