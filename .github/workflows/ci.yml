@@ -69,50 +69,10 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
-  e2e-setup:
-    name: E2E Setup (Database Reset)
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
-          POSTGRES_DB: db
-          PGPASSWORD: pass
-        options: >-
-          --health-cmd "pg_isready -U user -d db"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    env:
-      POSTGRES_URL: postgresql://user:pass@localhost:5432/db
-      ADMIN_EMAIL: admin@example.com
-      ADMIN_PASSWORD: changeme
-      AUTH_SECRET: "auth-secret-01234567890123456789012345678901"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Reset and seed database
-        run: npm run db:reset
-
   e2e-chromium-matrix:
     name: E2E Tests (Chromium) - Shard ${{ matrix.shard_part }}/2
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: e2e-setup
     services:
       postgres:
         image: postgres:16-alpine
@@ -149,6 +109,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+
+      - name: Reset and seed database
+        run: npm run db:reset
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
