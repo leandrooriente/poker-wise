@@ -123,6 +123,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.shard }}
+          name: playwright-report-${{ matrix.shard | replace('/', '-') }}
           path: playwright-report/
           retention-days: 7
