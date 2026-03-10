@@ -69,6 +69,35 @@
 - Fixed selectors: `getByPlaceholder` for player name input, `getByLabel` for final value (after adding `htmlFor`/`id`), `getByRole('heading')` for player names in results/history.
 - Transfer verification uses class‑based locator filtered by player names and amount.
 
+## 2026‑03‑10 – Vercel Auto‑Deployment Setup
+
+### Requirements
+- Enable automatic deployments to Vercel on every push to `main`.
+- Ensure code quality gates (lint, typecheck, tests, build) pass before merging.
+- Provide missing PWA assets for proper installability.
+- Pin Node.js version for consistent builds across environments.
+
+### Implementation
+- **GitHub Actions CI workflow** (`.github/workflows/ci.yml`):
+  - Runs lint, typecheck, unit tests, build, and Chromium-only E2E tests on push and pull requests.
+  - Uses Node.js 20 (specified in `.nvmrc` and `package.json` engines).
+  - Jobs run in parallel for faster feedback.
+- **PWA assets**: Generated `icon‑192.png` and `icon‑512.png` using a simple SVG‑based script (`scripts/generate‑icons.js`); copied `favicon.ico` to `public/`.
+- **Node version pinning**: Added `engines` field (`node: ">=20"`) and `.nvmrc` file.
+- **Documentation**: Updated README with deployment section; added this decision log entry.
+
+### Branch Protection
+- The `main` branch should be protected via GitHub repository settings:
+  - Require status checks to pass before merging (typecheck, lint, unit‑tests, build, e2e).
+  - Require a pull request (at least zero approvals) and disallow direct pushes.
+- This ensures that only validated changes are deployed.
+
+### Next Steps for Deployment
+1. Connect the GitHub repository to Vercel (project settings → Git Integration).
+2. Configure environment variables if needed (none required for this local‑first MVP).
+3. Enable branch protection rules as described above.
+4. Merge this branch (`opencode/kimaki-vercel-auto-deploy`) into `main` to activate the CI pipeline.
+
 ## Open Questions / Future Work
 - **Export/import**: Not in MVP, but could be added later via JSON download/upload.
 - **Multiple devices**: Sync would require a backend; out of scope for MVP.

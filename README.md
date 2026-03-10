@@ -63,6 +63,22 @@ npm start
 
 The built app is a fully functional PWA that can be installed on supported devices.
 
+### Deployment
+
+This project is set up for automatic deployment to **Vercel** on every push to the `main` branch.
+
+**CI/CD Pipeline**:
+- GitHub Actions runs lint, type checking, unit tests, build, and E2E tests on every push and pull request.
+- All checks must pass before merging into `main`.
+- The `main` branch is protected; direct pushes are blocked.
+
+**Vercel Integration**:
+- Connect your GitHub repository to Vercel for automatic deployments.
+- The project includes `next.config.ts` with PWA configuration and `public/manifest.json` for installability.
+- Ensure environment variables (if any) are set in the Vercel project settings.
+
+**Node Version**: The project requires Node.js >=20 (specified in `.nvmrc` and `package.json` engines).
+
 ## Project Structure
 
 ```
