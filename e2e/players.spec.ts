@@ -1,12 +1,16 @@
 import { test } from "@playwright/test";
 
-import { addPlayer, expect, seedLocalStorage } from "./helpers";
+import { addPlayer, expect, seedLocalStorage, loginAdmin, createGroup } from "./helpers";
 
 test.describe("Player Management", () => {
   test.beforeEach(async ({ page }) => {
-    // Seed default group and migration marker
+    // Seed default group and migration marker (still needed for migration)
     await seedLocalStorage(page, {});
-    await page.goto("/");
+    // Log in as admin (required for server-backed groups)
+    await loginAdmin(page);
+    // Create default group with unique slug via UI (since server groups are empty)
+    const uniqueSlug = `home-game-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    await createGroup(page, uniqueSlug, 'Home Game');
   });
 
   test("add player", async ({ page }) => {

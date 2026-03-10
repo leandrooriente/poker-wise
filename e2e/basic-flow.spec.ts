@@ -1,12 +1,16 @@
 /* eslint-disable */
 import { test, expect } from '@playwright/test';
-import { seedLocalStorage } from './helpers';
+import { seedLocalStorage, loginAdmin, createGroup } from './helpers';
 
 test.describe('Basic poker match flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Seed default group and migration marker
+    // Seed default group and migration marker (still needed for migration)
     await seedLocalStorage(page, {});
-    await page.goto('/');
+    // Log in as admin (required for server-backed groups)
+    await loginAdmin(page);
+    // Create default group with unique slug via UI (since server groups are empty)
+    const uniqueSlug = `home-game-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    await createGroup(page, uniqueSlug, 'Home Game');
     // Capture console logs from the page
     page.on('console', msg => console.log(`[page] ${msg.text()}`));
   });

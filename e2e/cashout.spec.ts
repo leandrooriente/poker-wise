@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { test } from '@playwright/test';
 
-import { expect, seedLocalStorage, fillCashoutValues } from './helpers';
+import { expect, seedLocalStorage, fillCashoutValues, loginAdmin, createGroup } from './helpers';
 
 test.describe('Cashout', () => {
   test.beforeEach(async ({ page }) => {
@@ -13,6 +13,11 @@ test.describe('Cashout', () => {
       // Set migration marker to true to prevent migration from running with empty data
       window.localStorage.setItem('poker-wise-migration-v1-done', 'true');
     });
+    // Log in as admin (required for server-backed groups)
+    await loginAdmin(page);
+    // Create default group with unique slug via UI (since server groups are empty)
+    const uniqueSlug = `home-game-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    await createGroup(page, uniqueSlug, 'Home Game');
     await page.goto('about:blank');
     // Capture console logs from the page
     page.on('console', msg => console.log(`[page] ${msg.text()}`));

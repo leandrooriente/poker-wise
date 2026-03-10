@@ -19,6 +19,8 @@ export const sessionOptions = {
   // secure: true should be used in production (HTTPS) but can be false in development
   cookieOptions: {
     secure: getEnv().NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
   },
 };
 
@@ -49,7 +51,9 @@ export async function logout() {
 
 export async function requireAdmin() {
   const session = await getSession();
+  console.log("[requireAdmin] session:", session);
   if (!session.isLoggedIn) {
+    console.log("[requireAdmin] not logged in, redirecting");
     redirect("/login");
   }
   return session;

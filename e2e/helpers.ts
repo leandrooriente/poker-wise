@@ -1,6 +1,33 @@
 /* eslint-disable */
 import { Page } from '@playwright/test';
 
+/**
+ * Log in as admin via UI.
+ */
+export async function loginAdmin(page: Page) {
+  await page.goto('/login');
+  await page.getByLabel('EMAIL').fill('admin@example.com');
+  await page.getByLabel('PASSWORD').fill('changeme');
+  await page.getByRole('button', { name: 'LOGIN' }).click();
+  // Wait for redirect to home page (groups page)
+  await page.waitForURL('/');
+  // Also wait for group management heading to be visible
+  await page.waitForSelector('h2:has-text("GROUP MANAGEMENT")');
+}
+
+/**
+ * Create a group via UI (must be on groups page).
+ */
+export async function createGroup(page: Page, id: string, name: string) {
+  await page.getByLabel('Group Name *').fill(name);
+  if (id) {
+    await page.getByLabel('Group ID (optional)').fill(id);
+  }
+  await page.getByRole('button', { name: 'CREATE GROUP' }).click();
+  // Wait for group to appear in list (first heading with group name)
+  await expect(page.getByRole('heading', { name }).first()).toBeVisible();
+}
+
 export interface PlayerData {
   name: string;
   notes?: string;
