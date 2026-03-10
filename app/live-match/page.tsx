@@ -170,15 +170,7 @@ function LiveMatchContent() {
             </div>
           </div>
 
-          <div className="border-t border-retro-gray pt-6">
-            <h3 className="text-xl font-pixel text-retro-red mb-4">SETTLEMENT PREVIEW</h3>
-            <p className="text-retro-light text-sm">
-              After cashout, the app will calculate net results and show exactly who pays whom.
-            </p>
-            <div className="mt-4 p-3 border border-retro-gray rounded-retro bg-retro-dark text-center">
-              <span className="text-retro-gray">Ready for cashout</span>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>

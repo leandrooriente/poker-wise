@@ -18,7 +18,7 @@ const retroFont = Courier_Prime({
 
 export const metadata: Metadata = {
   title: "Poker Wise",
-  description: "Local-first poker match organizer with 16-bit style",
+  description: "Poker match organizer and settlement app",
   themeColor: "#006600",
   manifest: "/manifest.json",
   appleWebApp: {
@@ -47,8 +47,8 @@ export default function RootLayout({
           <Header />
           <main className="mt-6">{children}</main>
           <footer className="mt-12 text-center text-retro-gray text-sm border-t border-retro-gray pt-4">
-            <p>Poker Wise © 2026 — Local-first poker match settlement</p>
-            <p className="text-xs mt-1">16-bit style • No backend • No tracking</p>
+             <p>Poker Wise © 2026 — Poker match settlement</p>
+             <p className="text-xs mt-1">No backend • No tracking</p>
           </footer>
         </div>
       </body>

@@ -95,27 +95,7 @@ export default function PlayersPage() {
         </div>
       </div>
 
-      <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark">
-        <h3 className="text-xl font-pixel text-retro-blue mb-3">How it works</h3>
-        <ul className="space-y-2 text-retro-light">
-          <li className="flex items-start gap-2">
-            <span className="text-retro-green font-pixel">▶</span>
-            <span>Players are stored locally in your browser.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-retro-green font-pixel">▶</span>
-            <span>Each player can be edited or removed anytime.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-retro-green font-pixel">▶</span>
-            <span>Start a new match from the &quot;New Match&quot; tab.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-retro-green font-pixel">▶</span>
-            <span>Buy-in amount is configurable (default: 10 EUR).</span>
-          </li>
-        </ul>
-      </div>
+
     </div>
   );
 }

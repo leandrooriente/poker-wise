@@ -17,11 +17,7 @@ export default function Header() {
           <h1 className="text-2xl font-pixel text-retro-green">
             POKER<span className="text-retro-yellow">WISE</span>
           </h1>
-          <div className="hidden md:block text-retro-gray text-sm ml-4">
-            <span className="px-2 py-1 bg-retro-dark border border-retro-gray rounded">
-              Local-first • 16-bit • Texas Hold&apos;em
-            </span>
-          </div>
+
         </div>
 
         <nav className="flex flex-wrap gap-2">
