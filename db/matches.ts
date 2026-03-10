@@ -69,6 +69,13 @@ export async function getMatchesByGroup(groupId: string): Promise<Match[]> {
   return matches.filter(m => m.groupId === groupId);
 }
 
+export async function deleteMatchesByGroup(groupId: string): Promise<void> {
+  await ensureMigration();
+  const matches = await getMatches();
+  const filtered = matches.filter(m => m.groupId !== groupId);
+  await saveMatches(filtered);
+}
+
 export async function getMatchWithUsers(id: string): Promise<{
   match: Match;
   players: Array<{

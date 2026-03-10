@@ -19,7 +19,7 @@ async function ensureDefaultGroup(): Promise<void> {
   let defaultGroup = groups.find(g => g.id === DEFAULT_GROUP_ID);
   if (!defaultGroup) {
     console.log('[players] Default group not found, creating it');
-    defaultGroup = await addGroup({ id: DEFAULT_GROUP_ID });
+    defaultGroup = await addGroup({ id: DEFAULT_GROUP_ID, name: "Home Game" });
     console.log('[players] Default group created:', defaultGroup);
   } else {
     console.log('[players] Default group exists:', defaultGroup.id);
@@ -44,6 +44,21 @@ export async function getPlayers(): Promise<Player[]> {
     name: user.name,
     createdAt: user.createdAt,
     // notes and preferredBuyIn are omitted (undefined)
+  }));
+}
+
+export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
+  console.log('[players] getPlayersForGroup called for group:', groupId);
+  const users = await getUsers();
+  const members = await getGroupMembers();
+  const groupMembers = members.filter(m => m.groupId === groupId);
+  const memberUserIds = new Set(groupMembers.map(m => m.userId));
+  const filtered = users.filter(u => memberUserIds.has(u.id));
+  // Convert users to legacy Player format (notes/preferredBuyIn omitted)
+  return filtered.map(user => ({
+    id: user.id,
+    name: user.name,
+    createdAt: user.createdAt,
   }));
 }
 

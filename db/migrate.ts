@@ -42,7 +42,7 @@ export async function runMigrationIfNeeded(): Promise<void> {
     const groups = await getGroups();
     let defaultGroup = groups.find(g => g.id === "home-game");
     if (!defaultGroup) {
-      defaultGroup = await addGroup({ id: "home-game" });
+      defaultGroup = await addGroup({ id: "home-game", name: "Home Game" });
     }
 
     // Step 2: Migrate legacy players to global users

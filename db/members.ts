@@ -48,6 +48,13 @@ export async function removeGroupMember(groupId: string, userId: string): Promis
   await saveGroupMembers(filtered);
 }
 
+export async function removeAllGroupMembersForGroup(groupId: string): Promise<void> {
+  await ensureMigration();
+  const members = await getGroupMembers();
+  const filtered = members.filter(m => m.groupId !== groupId);
+  await saveGroupMembers(filtered);
+}
+
 export async function getGroupMembersForGroup(groupId: string): Promise<GroupMember[]> {
   await ensureMigration();
   const members = await getGroupMembers();

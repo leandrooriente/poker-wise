@@ -4,14 +4,16 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { addMatch } from "@/db/matches";
-import { getPlayers } from "@/db/players";
+import { getPlayersForGroup } from "@/db/players";
 import { getSettings } from "@/db/settings";
 import { Player } from "@/types/player";
 import MoneyInput from "@/components/MoneyInput";
 import MoneyDisplay from "@/components/MoneyDisplay";
+import { useActiveGroup } from "@/lib/active-group";
 
 export default function NewMatchPage() {
   const router = useRouter();
+  const { activeGroupId } = useActiveGroup();
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [buyInAmount, setBuyInAmount] = useState<number>(1000); // cents
@@ -20,12 +22,17 @@ export default function NewMatchPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [activeGroupId]);
 
   const loadData = async () => {
     try {
+      if (!activeGroupId) {
+        setPlayers([]);
+        setLoading(false);
+        return;
+      }
       const [playerList, settings] = await Promise.all([
-        getPlayers(),
+        getPlayersForGroup(activeGroupId),
         getSettings(),
       ]);
       setPlayers(playerList);
@@ -44,6 +51,10 @@ export default function NewMatchPage() {
   };
 
   const handleStartMatch = async () => {
+    if (!activeGroupId) {
+      alert("Please select a group first.");
+      return;
+    }
     if (selectedPlayerIds.length === 0) {
       alert("Select at least one player.");
       return;
@@ -54,7 +65,7 @@ export default function NewMatchPage() {
       finalValue: 0, // will be set at cashout
     }));
     const match = {
-      groupId: "home-game", // TODO: replace with active group from URL
+      groupId: activeGroupId,
       title: title.trim() || undefined,
       buyInAmount,
       players: matchPlayers,
@@ -68,6 +79,20 @@ export default function NewMatchPage() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-retro-green font-pixel">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!activeGroupId) {
+    return (
+      <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
+        <h2 className="text-2xl font-pixel text-retro-green mb-4">NEW MATCH SETUP</h2>
+        <div className="text-center py-8">
+          <p className="text-retro-gray">No group selected.</p>
+          <p className="text-sm text-retro-gray mt-2">
+            Please select a group from the header dropdown or create one on the Groups page.
+          </p>
+        </div>
       </div>
     );
   }
