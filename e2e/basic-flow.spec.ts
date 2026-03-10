@@ -48,7 +48,9 @@ test.describe('Basic poker match flow', () => {
     await expect(page.getByRole('heading', { name: 'SETTLEMENT RESULTS' })).toBeVisible();
 
     // 9. Verify net result is zero (player broke even)
-    await expect(page.getByText('+0.00 EUR')).toBeVisible();
+    const playerHeading = page.getByRole('heading', { name: 'Test Player' });
+    const playerBalance = playerHeading.locator('../..'); // move up to container
+    await expect(playerBalance.locator('.text-3xl.font-pixel')).toHaveText('0.00 EUR');
     await expect(page.getByText('No transfers needed')).toBeVisible();
 
     // 10. Go to History and verify match appears
@@ -95,9 +97,13 @@ test.describe('Basic poker match flow', () => {
 
     // Verify net results: Alice +5, Bob -5
     await expect(page.getByRole('heading', { name: 'Alice' })).toBeVisible();
-    await expect(page.getByText('+5.00 EUR')).toBeVisible();
+    const aliceHeading = page.getByRole('heading', { name: 'Alice' });
+    const aliceBalance = aliceHeading.locator('../..');
+    await expect(aliceBalance.locator('.text-3xl.font-pixel')).toHaveText('5.00 EUR');
     await expect(page.getByRole('heading', { name: 'Bob' })).toBeVisible();
-    await expect(page.getByText('-5.00 EUR')).toBeVisible();
+    const bobHeading = page.getByRole('heading', { name: 'Bob' });
+    const bobBalance = bobHeading.locator('../..');
+    await expect(bobBalance.locator('.text-3xl.font-pixel')).toHaveText('-5.00 EUR');
 
     // Verify transfer: Bob → Alice 5 EUR
     const transfer = page.locator('.border.border-retro-gray.rounded-retro.p-4.bg-retro-dark').filter({ hasText: 'Bob' }).filter({ hasText: 'Alice' });

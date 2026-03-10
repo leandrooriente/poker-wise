@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
 import { getMatchWithPlayers, updateMatch } from "@/db/matches";
-import { calculateSettlement } from "@/lib/settlement";
+import MoneyDisplay from "@/components/MoneyDisplay";
 
-export default function LiveMatchPage() {
+
+function LiveMatchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const matchId = searchParams.get("match");
@@ -103,6 +104,7 @@ export default function LiveMatchPage() {
               <div
                 key={player.id}
                 className="border border-retro-gray rounded-retro p-4 flex justify-between items-center bg-retro-dark hover:border-retro-green transition-colors"
+                data-testid="player-row"
               >
                 <div>
                   <h4 className="text-xl font-pixel text-retro-green">{player.name}</h4>
@@ -110,7 +112,7 @@ export default function LiveMatchPage() {
                     Buy‑ins: <span className="font-pixel">{buyIns}</span>
                   </p>
                   <p className="text-retro-gray text-sm">
-                    Total paid: {(buyIns * match.buyInAmount / 100).toFixed(2)} EUR
+                      Total paid: <MoneyDisplay cents={buyIns * match.buyInAmount} />
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -134,7 +136,7 @@ export default function LiveMatchPage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-retro-light">Buy‑in each</span>
-                <span className="font-pixel">{(match.buyInAmount / 100).toFixed(2)} EUR</span>
+                  <MoneyDisplay cents={match.buyInAmount} />
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Total buy‑ins</span>
@@ -142,7 +144,7 @@ export default function LiveMatchPage() {
               </div>
               <div className="flex justify-between border-t border-retro-gray pt-3">
                 <span className="text-retro-light">Total pot</span>
-                <span className="font-pixel text-retro-green">{(totalPot / 100).toFixed(2)} EUR</span>
+                  <MoneyDisplay cents={totalPot} className="font-pixel text-retro-green" />
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Started</span>
@@ -180,5 +182,17 @@ export default function LiveMatchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LiveMatchPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-retro-green font-pixel">Loading match...</div>
+      </div>
+    }>
+      <LiveMatchContent />
+    </Suspense>
   );
 }

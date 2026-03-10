@@ -6,12 +6,12 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     include: ['**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['node_modules', '.next', 'dist'],
+    exclude: ['node_modules', '.next', 'dist', 'e2e'],
     setupFiles: ['./test/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules', '.next', 'dist', 'test'],
+      exclude: ['node_modules', '.next', 'dist', 'test', 'e2e'],
     },
   },
 })

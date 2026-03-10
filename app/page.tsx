@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import AddPlayerForm from "@/components/AddPlayerForm";
 import PlayerCard from "@/components/PlayerCard";
 import { getPlayers, savePlayers } from "@/db/players";
+import { generateId } from "@/lib/uuid";
 import { Player } from "@/types/player";
 
 export default function PlayersPage() {
@@ -29,7 +30,7 @@ export default function PlayersPage() {
   const handleAddPlayer = (player: Omit<Player, "id" | "createdAt">) => {
     const newPlayer: Player = {
       ...player,
-      id: crypto.randomUUID(),
+      id: generateId(),
       createdAt: new Date().toISOString(),
     };
     const updated = [...players, newPlayer];

@@ -7,6 +7,8 @@ import { addMatch } from "@/db/matches";
 import { getPlayers } from "@/db/players";
 import { getSettings } from "@/db/settings";
 import { Player } from "@/types/player";
+import MoneyInput from "@/components/MoneyInput";
+import MoneyDisplay from "@/components/MoneyDisplay";
 
 export default function NewMatchPage() {
   const router = useRouter();
@@ -110,7 +112,7 @@ export default function NewMatchPage() {
                     </div>
                     {player.preferredBuyIn && (
                       <p className="text-sm text-retro-gray mt-1">
-                         Prefers {(player.preferredBuyIn / 100).toFixed(2)} EUR
+                          Prefers <MoneyDisplay cents={player.preferredBuyIn} />
                       </p>
                     )}
                   </button>
@@ -138,21 +140,18 @@ export default function NewMatchPage() {
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans"
                   placeholder="e.g., Friday Night Poker"
+                  data-testid="match-title-input"
                 />
               </div>
               <div>
                 <label className="block text-retro-light text-sm mb-2 font-pixel">
                   BUY‑IN AMOUNT (EUR)
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={buyInAmount / 100}
-                  onChange={(e) =>
-                    setBuyInAmount(Math.round(parseFloat(e.target.value) * 100))
-                  }
-                  className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans"
+                <MoneyInput
+                  value={buyInAmount}
+                  onChange={setBuyInAmount}
+                  className="w-full"
+                  data-testid="buy-in-amount-input"
                 />
                 <p className="text-retro-gray text-sm mt-2">
                   Each player starts with one buy‑in. Rebuys can be added during the match.
@@ -170,13 +169,11 @@ export default function NewMatchPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Buy-in each</span>
-                <span className="font-pixel">{(buyInAmount / 100).toFixed(2)} EUR</span>
+                 <MoneyDisplay cents={buyInAmount} />
               </div>
               <div className="flex justify-between border-t border-retro-gray pt-3">
                 <span className="text-retro-light">Total pot</span>
-                <span className="font-pixel text-retro-green">
-                  {(selectedPlayerIds.length * (buyInAmount / 100)).toFixed(2)} EUR
-                </span>
+                 <MoneyDisplay cents={selectedPlayerIds.length * buyInAmount} className="font-pixel text-retro-green" />
               </div>
             </div>
             <button

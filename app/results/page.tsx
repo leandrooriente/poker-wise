@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
 import { getMatchWithPlayers } from "@/db/matches";
 import { calculateSettlement } from "@/lib/settlement";
+import MoneyDisplay from "@/components/MoneyDisplay";
 
-export default function ResultsPage() {
+function ResultsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const matchId = searchParams.get("match");
@@ -99,13 +100,13 @@ export default function ResultsPage() {
                     <div>
                       <h4 className="text-2xl font-pixel text-retro-green">{player?.name || "Unknown"}</h4>
                       <p className="text-retro-light">
-                        Paid in: <span className="font-pixel">{(balance.paidIn / 100).toFixed(2)} EUR</span>
+                         Paid in: <MoneyDisplay cents={balance.paidIn} />
                         {" • "}
-                        Final value: <span className="font-pixel">{(balance.finalValue / 100).toFixed(2)} EUR</span>
+                         Final value: <MoneyDisplay cents={balance.finalValue} />
                       </p>
                     </div>
                     <div className={`text-3xl font-pixel ${net >= 0 ? "text-retro-green" : "text-retro-red"}`}>
-                      {net >= 0 ? "+" : ""}{(net / 100).toFixed(2)} EUR
+                       <MoneyDisplay cents={net} />
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-retro-gray text-retro-light">
@@ -140,6 +141,7 @@ export default function ResultsPage() {
                     <div
                       key={idx}
                       className="border border-retro-gray rounded-retro p-4 bg-retro-dark"
+                      data-testid="transfer-item"
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -148,7 +150,7 @@ export default function ResultsPage() {
                           <div className="text-retro-green font-pixel">{to?.name}</div>
                         </div>
                         <div className="text-xl font-pixel text-retro-yellow">
-                          {(transfer.amount / 100).toFixed(2)} EUR
+                           <MoneyDisplay cents={transfer.amount} />
                         </div>
                       </div>
                       <p className="text-retro-gray text-sm mt-2">
@@ -166,7 +168,7 @@ export default function ResultsPage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-retro-light">Total pot</span>
-                <span className="font-pixel">{(settlement.totalPot / 100).toFixed(2)} EUR</span>
+                 <MoneyDisplay cents={settlement.totalPot} />
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Total buy‑ins</span>
@@ -206,5 +208,17 @@ export default function ResultsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-retro-green font-pixel">Loading results...</div>
+      </div>
+    }>
+      <ResultsContent />
+    </Suspense>
   );
 }

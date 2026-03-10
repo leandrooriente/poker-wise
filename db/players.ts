@@ -1,3 +1,4 @@
+import { generateId } from "@/lib/uuid";
 import { Player } from "@/types/player";
 
 const STORAGE_KEY = "poker-wise-players";
@@ -25,7 +26,7 @@ export async function savePlayers(players: Player[]): Promise<void> {
 export async function addPlayer(player: Omit<Player, "id" | "createdAt">): Promise<Player> {
   const newPlayer: Player = {
     ...player,
-    id: crypto.randomUUID(),
+    id: generateId(),
     createdAt: new Date().toISOString(),
   };
   const players = await getPlayers();
