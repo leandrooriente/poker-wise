@@ -32,8 +32,8 @@ test.describe('History Page', () => {
           id: 'match-old',
           buyInAmount: 1000,
           players: [
-            { playerId: 'p1', buyIns: 1, finalValue: 1000 },
-            { playerId: 'p2', buyIns: 1, finalValue: 1000 },
+            { userId: 'p1', buyIns: 1, finalValue: 1000 },
+            { userId: 'p2', buyIns: 1, finalValue: 1000 },
           ],
           startedAt: oldMatch,
           createdAt: oldMatch,
@@ -42,7 +42,7 @@ test.describe('History Page', () => {
           id: 'match-middle',
           buyInAmount: 1500,
           players: [
-            { playerId: 'p1', buyIns: 2, finalValue: 3000 },
+            { userId: 'p1', buyIns: 2, finalValue: 3000 },
           ],
           startedAt: middleMatch,
           createdAt: middleMatch,
@@ -51,8 +51,8 @@ test.describe('History Page', () => {
           id: 'match-newest',
           buyInAmount: 1000,
           players: [
-            { playerId: 'p1', buyIns: 1, finalValue: 2000 },
-            { playerId: 'p2', buyIns: 1, finalValue: 0 },
+            { userId: 'p1', buyIns: 1, finalValue: 2000 },
+            { userId: 'p2', buyIns: 1, finalValue: 0 },
           ],
           startedAt: newestMatch,
           createdAt: newestMatch,
@@ -93,8 +93,8 @@ test.describe('History Page', () => {
           id: 'test-match',
           buyInAmount: 1000,
           players: [
-            { playerId: 'p1', buyIns: 1, finalValue: 1500 },
-            { playerId: 'p2', buyIns: 1, finalValue: 500 },
+            { userId: 'p1', buyIns: 1, finalValue: 1500 },
+            { userId: 'p2', buyIns: 1, finalValue: 500 },
           ],
           startedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -128,8 +128,8 @@ test.describe('History Page', () => {
           id: 'test-match',
           buyInAmount: 1000,
           players: [
-            { playerId: 'p1', buyIns: 1, finalValue: 1500 },
-            { playerId: 'p2', buyIns: 1, finalValue: 500 },
+            { userId: 'p1', buyIns: 1, finalValue: 1500 },
+            { userId: 'p2', buyIns: 1, finalValue: 500 },
           ],
           startedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -229,8 +229,8 @@ test.describe('History Page', () => {
           id: 'old',
           buyInAmount: 1000,
           players: [
-            { playerId: 'p1', buyIns: 1, finalValue: 1000 },
-            { playerId: 'p2', buyIns: 1, finalValue: 1000 },
+            { userId: 'p1', buyIns: 1, finalValue: 1000 },
+            { userId: 'p2', buyIns: 1, finalValue: 1000 },
           ],
           startedAt: oldMatch,
           createdAt: oldMatch,
@@ -239,7 +239,7 @@ test.describe('History Page', () => {
           id: 'new',
           buyInAmount: 1500,
           players: [
-            { playerId: 'p1', buyIns: 2, finalValue: 3000 },
+            { userId: 'p1', buyIns: 2, finalValue: 3000 },
           ],
           startedAt: newMatch,
           createdAt: newMatch,

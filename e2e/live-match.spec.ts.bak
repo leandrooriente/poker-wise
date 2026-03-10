@@ -22,7 +22,7 @@ test.describe('Live Match', () => {
           title: 'Test Match',
           buyInAmount: 1000, // 10.00 EUR
           players: [
-            { userId: 'p1', buyIns: 1, finalValue: 0 },
+            { playerId: 'p1', buyIns: 1, finalValue: 0 },
           ],
           startedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -62,9 +62,9 @@ test.describe('Live Match', () => {
           title: 'Three Player Match',
           buyInAmount: 1000,
           players: [
-            { userId: 'p1', buyIns: 1, finalValue: 0 },
-            { userId: 'p2', buyIns: 1, finalValue: 0 },
-            { userId: 'p3', buyIns: 1, finalValue: 0 },
+            { playerId: 'p1', buyIns: 1, finalValue: 0 },
+            { playerId: 'p2', buyIns: 1, finalValue: 0 },
+            { playerId: 'p3', buyIns: 1, finalValue: 0 },
           ],
           startedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -102,8 +102,8 @@ test.describe('Live Match', () => {
           id: matchId,
           buyInAmount: 500, // 5.00 EUR (custom buy-in)
           players: [
-            { userId: 'p1', buyIns: 1, finalValue: 0 },
-            { userId: 'p2', buyIns: 1, finalValue: 0 },
+            { playerId: 'p1', buyIns: 1, finalValue: 0 },
+            { playerId: 'p2', buyIns: 1, finalValue: 0 },
           ],
           startedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -143,8 +143,8 @@ test.describe('Live Match', () => {
           id: matchId,
           buyInAmount: 1000,
           players: [
-            { userId: 'p1', buyIns: 1, finalValue: 0 },
-            { userId: 'p2', buyIns: 1, finalValue: 0 },
+            { playerId: 'p1', buyIns: 1, finalValue: 0 },
+            { playerId: 'p2', buyIns: 1, finalValue: 0 },
           ],
           startedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -186,7 +186,7 @@ test.describe('Live Match', () => {
           id: matchId,
           buyInAmount: 1000,
           players: [
-            { userId: 'p1', buyIns: 1, finalValue: 0 },
+            { playerId: 'p1', buyIns: 1, finalValue: 0 },
           ],
           startedAt,
           createdAt: startedAt,

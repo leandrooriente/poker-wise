@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
-import { getMatchWithPlayers } from "@/db/matches";
+import { getMatchWithUsers } from "@/db/matches";
 import { calculateSettlement } from "@/lib/settlement";
 import MoneyDisplay from "@/components/MoneyDisplay";
 
@@ -24,7 +24,7 @@ function ResultsContent() {
 
   const loadMatch = async (id: string) => {
     try {
-      const data = await getMatchWithPlayers(id);
+      const data = await getMatchWithUsers(id);
       if (!data) {
         setError("Match not found");
         return;
@@ -89,11 +89,11 @@ function ResultsContent() {
           <h3 className="text-xl font-pixel text-retro-yellow mb-4">PLAYER BALANCES</h3>
           <div className="space-y-4">
             {settlement.playerBalances.map((balance: any) => {
-              const player = players.find((p) => p.player.id === balance.playerId)?.player;
+               const player = players.find((p) => p.user.id === balance.userId)?.user;
               const net = balance.net;
               return (
                 <div
-                  key={balance.playerId}
+                   key={balance.userId}
                   className="border border-retro-gray rounded-retro p-6 bg-retro-dark hover:border-retro-green transition-colors"
                 >
                   <div className="flex justify-between items-center">
@@ -111,9 +111,9 @@ function ResultsContent() {
                   </div>
                   <div className="mt-4 pt-4 border-t border-retro-gray text-retro-light">
                     {net > 0 ? (
-                      <span className="text-retro-green">Receives {settlement.transfers.filter((t: any) => t.toPlayerId === balance.playerId).length} payment(s)</span>
+                       <span className="text-retro-green">Receives {settlement.transfers.filter((t: any) => t.toPlayerId === balance.userId).length} payment(s)</span>
                     ) : net < 0 ? (
-                      <span className="text-retro-red">Pays {settlement.transfers.filter((t: any) => t.fromPlayerId === balance.playerId).length} payment(s)</span>
+                       <span className="text-retro-red">Pays {settlement.transfers.filter((t: any) => t.fromPlayerId === balance.userId).length} payment(s)</span>
                     ) : (
                       <span className="text-retro-gray">Breaks even</span>
                     )}
@@ -135,8 +135,8 @@ function ResultsContent() {
             ) : (
               <div className="space-y-4">
                 {settlement.transfers.map((transfer: any, idx: number) => {
-                  const from = players.find((p) => p.player.id === transfer.fromPlayerId)?.player;
-                  const to = players.find((p) => p.player.id === transfer.toPlayerId)?.player;
+                   const from = players.find((p) => p.user.id === transfer.fromPlayerId)?.user;
+                   const to = players.find((p) => p.user.id === transfer.toPlayerId)?.user;
                   return (
                     <div
                       key={idx}

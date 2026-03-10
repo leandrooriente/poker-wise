@@ -2,7 +2,7 @@ import { MatchPlayer, SettlementTransfer } from "@/types/match";
 import { formatMoney } from "./money";
 
 export interface PlayerBalance {
-  playerId: string;
+  userId: string; // renamed from playerId to match MatchPlayer.userId
   paidIn: number; // cents
   finalValue: number; // cents
   net: number; // cents: finalValue - paidIn
@@ -31,7 +31,7 @@ export function calculateSettlement(
   const playerBalances: PlayerBalance[] = players.map((p) => {
     const paidIn = p.buyIns * buyInAmount;
     const net = p.finalValue - paidIn;
-    return { playerId: p.playerId, paidIn, finalValue: p.finalValue, net };
+    return { userId: p.userId, paidIn, finalValue: p.finalValue, net };
   });
 
   const totalPaidIn = playerBalances.reduce((sum, b) => sum + b.paidIn, 0);
@@ -64,11 +64,11 @@ export function calculateSettlement(
  */
 function computeMinimizedTransfers(balances: PlayerBalance[]): SettlementTransfer[] {
   const debtors = balances.filter((b) => b.net < 0).map((b) => ({
-    playerId: b.playerId,
+    userId: b.userId,
     amount: -b.net, // positive amount they owe
   }));
   const creditors = balances.filter((b) => b.net > 0).map((b) => ({
-    playerId: b.playerId,
+    userId: b.userId,
     amount: b.net, // positive amount they are owed
   }));
 
@@ -86,8 +86,8 @@ function computeMinimizedTransfers(balances: PlayerBalance[]): SettlementTransfe
     const transferAmount = Math.min(debtor.amount, creditor.amount);
 
     transfers.push({
-      fromPlayerId: debtor.playerId,
-      toPlayerId: creditor.playerId,
+      fromPlayerId: debtor.userId,
+      toPlayerId: creditor.userId,
       amount: transferAmount,
       description: `${formatMoney(transferAmount)}`,
     });

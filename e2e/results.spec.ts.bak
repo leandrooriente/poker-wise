@@ -22,8 +22,8 @@ test.describe('Results Page', () => {
           id: matchId,
           buyInAmount: 1000, // 10.00 EUR
           players: [
-            { userId: 'p1', buyIns: 1, finalValue: 1000 }, // 10.00
-            { userId: 'p2', buyIns: 1, finalValue: 1000 },
+            { playerId: 'p1', buyIns: 1, finalValue: 1000 }, // 10.00
+            { playerId: 'p2', buyIns: 1, finalValue: 1000 },
           ],
           startedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -61,8 +61,8 @@ test.describe('Results Page', () => {
           id: matchId,
           buyInAmount: 1000,
           players: [
-            { userId: 'p1', buyIns: 1, finalValue: 2000 }, // paid 10, final 20 → net +10
-            { userId: 'p2', buyIns: 1, finalValue: 0 },    // paid 10, final 0 → net -10
+            { playerId: 'p1', buyIns: 1, finalValue: 2000 }, // paid 10, final 20 → net +10
+            { playerId: 'p2', buyIns: 1, finalValue: 0 },    // paid 10, final 0 → net -10
           ],
           startedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
@@ -107,9 +107,9 @@ test.describe('Results Page', () => {
           id: matchId,
           buyInAmount: 1000,
           players: [
-            { userId: 'p1', buyIns: 2, finalValue: 3500 }, // paid 20, final 35 → net +15
-            { userId: 'p2', buyIns: 1, finalValue: 0 },    // paid 10, final 0 → net -10
-            { userId: 'p3', buyIns: 1, finalValue: 500 },  // paid 10, final 5 → net -5
+            { playerId: 'p1', buyIns: 2, finalValue: 3500 }, // paid 20, final 35 → net +15
+            { playerId: 'p2', buyIns: 1, finalValue: 0 },    // paid 10, final 0 → net -10
+            { playerId: 'p3', buyIns: 1, finalValue: 500 },  // paid 10, final 5 → net -5
           ],
           startedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),

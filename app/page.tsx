@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 import AddPlayerForm from "@/components/AddPlayerForm";
 import PlayerCard from "@/components/PlayerCard";
-import { getPlayers, savePlayers } from "@/db/players";
+import { getPlayers, addPlayer, updatePlayer, deletePlayer } from "@/db/players";
 import { generateId } from "@/lib/uuid";
 import { Player } from "@/types/player";
 
@@ -27,29 +27,25 @@ export default function PlayersPage() {
     }
   };
 
-  const handleAddPlayer = (player: Omit<Player, "id" | "createdAt">) => {
-    const newPlayer: Player = {
-      ...player,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-    };
+  const handleAddPlayer = async (player: Omit<Player, "id" | "createdAt">) => {
+    const newPlayer = await addPlayer(player);
     const updated = [...players, newPlayer];
     setPlayers(updated);
-    savePlayers(updated);
+    // Note: addPlayer already persists to storage
   };
 
-  const handleUpdatePlayer = (updatedPlayer: Player) => {
+  const handleUpdatePlayer = async (updatedPlayer: Player) => {
+    await updatePlayer(updatedPlayer);
     const updated = players.map((p) =>
       p.id === updatedPlayer.id ? updatedPlayer : p
     );
     setPlayers(updated);
-    savePlayers(updated);
   };
 
-  const handleDeletePlayer = (id: string) => {
+  const handleDeletePlayer = async (id: string) => {
+    await deletePlayer(id);
     const updated = players.filter((p) => p.id !== id);
     setPlayers(updated);
-    savePlayers(updated);
   };
 
   if (loading) {

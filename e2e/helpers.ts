@@ -3,7 +3,6 @@ import { Page } from '@playwright/test';
 export interface PlayerData {
   name: string;
   notes?: string;
-  preferredBuyIn?: number; // cents
 }
 
 export interface MatchSetup {
@@ -18,12 +17,6 @@ export interface MatchSetup {
 export async function addPlayer(page: Page, data: PlayerData) {
   await page.goto('/');
   await page.getByTestId('player-name-input').fill(data.name);
-  
-
-  
-  if (data.preferredBuyIn !== undefined) {
-    await page.getByTestId('player-preferred-buyin-input').fill((data.preferredBuyIn / 100).toFixed(2));
-  }
   
   await page.getByRole('button', { name: 'ADD PLAYER' }).click();
   await expect(page.getByText(data.name)).toBeVisible();
@@ -87,6 +80,8 @@ export async function fillCashoutValues(page: Page, valuesByPlayerName: Record<s
   for (const [playerName, amount] of Object.entries(valuesByPlayerName)) {
     // Find the player's border container by heading
     const heading = page.getByRole('heading', { name: playerName });
+    // Wait for at least one matching heading to be attached
+    await heading.first().waitFor({ state: 'attached' });
     const playerSection = heading.locator('..').locator('..').locator('..');
     const input = playerSection.getByLabel('FINAL VALUE (EUR)');
     await input.fill(amount.toFixed(2));
@@ -116,15 +111,51 @@ export async function seedLocalStorage(
   }
 ) {
   await page.addInitScript((opts) => {
+    // Seed users in new storage key (poker-wise-users)
     if (opts.players) {
+      const users = opts.players.map(p => ({
+        id: p.id,
+        name: p.name,
+        createdAt: p.createdAt,
+      }));
+      localStorage.setItem('poker-wise-users', JSON.stringify(users));
+      // Also seed legacy key for backward compatibility in tests
       localStorage.setItem('poker-wise-players', JSON.stringify(opts.players));
     }
+    // Ensure default group exists
+    const groups = [{ id: 'home-game', createdAt: new Date().toISOString() }];
+    localStorage.setItem('poker-wise-groups', JSON.stringify(groups));
+    
+    // Ensure group memberships exist for seeded users
+    if (opts.players) {
+      const members = opts.players.map(p => ({
+        groupId: 'home-game',
+        userId: p.id,
+        joinedAt: new Date().toISOString(),
+      }));
+      localStorage.setItem('poker-wise-group-members', JSON.stringify(members));
+    }
+    
     if (opts.matches) {
-      localStorage.setItem('poker-wise-matches', JSON.stringify(opts.matches));
+      // Convert legacy playerId to userId and add groupId if missing
+      const convertedMatches = opts.matches.map(match => ({
+        ...match,
+        groupId: match.groupId || 'home-game',
+        players: match.players.map((mp: any) => {
+          const { playerId, ...rest } = mp;
+          return {
+            ...rest,
+            userId: mp.userId || mp.playerId,
+          };
+        }),
+      }));
+      localStorage.setItem('poker-wise-matches', JSON.stringify(convertedMatches));
     }
     if (opts.settings) {
       localStorage.setItem('poker-wise-settings', JSON.stringify(opts.settings));
     }
+    // Set migration marker to true to skip migration (since we seeded new format directly)
+    localStorage.setItem('poker-wise-migration-v1-done', 'true');
   }, options);
 }
 

@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
-import { getMatchWithPlayers, updateMatch } from "@/db/matches";
+import { getMatchWithUsers, updateMatch } from "@/db/matches";
 import MoneyDisplay from "@/components/MoneyDisplay";
 
 
@@ -23,7 +23,7 @@ function LiveMatchContent() {
 
   const loadMatch = async (id: string) => {
     try {
-      const data = await getMatchWithPlayers(id);
+      const data = await getMatchWithUsers(id);
       if (!data) {
         setError("Match not found");
         return;
@@ -41,13 +41,13 @@ function LiveMatchContent() {
   const handleRebuy = async (playerId: string) => {
     if (!match) return;
     const updatedPlayers = match.players.map((mp: any) =>
-      mp.playerId === playerId ? { ...mp, buyIns: mp.buyIns + 1 } : mp
+       mp.userId === playerId ? { ...mp, buyIns: mp.buyIns + 1 } : mp
     );
     const updatedMatch = { ...match, players: updatedPlayers };
     await updateMatch(updatedMatch);
     setMatch(updatedMatch);
     // Refresh players list
-    const data = await getMatchWithPlayers(match.id);
+    const data = await getMatchWithUsers(match.id);
     if (data) setPlayers(data.players);
   };
 
@@ -100,14 +100,14 @@ function LiveMatchContent() {
         <div className="lg:col-span-2">
           <h3 className="text-xl font-pixel text-retro-yellow mb-4">PLAYERS</h3>
           <div className="space-y-4">
-            {players.map(({ player, buyIns }) => (
+             {players.map(({ user, buyIns }) => (
               <div
-                key={player.id}
+                 key={user.id}
                 className="border border-retro-gray rounded-retro p-4 flex justify-between items-center bg-retro-dark hover:border-retro-green transition-colors"
                 data-testid="player-row"
               >
                 <div>
-                  <h4 className="text-xl font-pixel text-retro-green">{player.name}</h4>
+                   <h4 className="text-xl font-pixel text-retro-green">{user.name}</h4>
                   <p className="text-retro-light">
                     Buy‑ins: <span className="font-pixel">{buyIns}</span>
                   </p>
@@ -118,7 +118,7 @@ function LiveMatchContent() {
                 <div className="flex items-center gap-4">
                   <span className="text-2xl font-pixel text-retro-yellow">{buyIns}</span>
                   <button
-                    onClick={() => handleRebuy(player.id)}
+                     onClick={() => handleRebuy(user.id)}
                      className="px-6 py-3 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 transition-colors"
                   >
                     REBUY

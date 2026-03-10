@@ -10,8 +10,8 @@ describe("settlement", () => {
   describe("validateTotals", () => {
     it("returns valid when totals match", () => {
       const players: MatchPlayer[] = [
-        { playerId: "1", buyIns: 2, finalValue: 2000 },
-        { playerId: "2", buyIns: 1, finalValue: 1000 },
+        { userId: "1", buyIns: 2, finalValue: 2000 },
+        { userId: "2", buyIns: 1, finalValue: 1000 },
       ];
       const result = validateTotals(players, buyInAmount);
       expect(result.isValid).toBe(true);
@@ -22,8 +22,8 @@ describe("settlement", () => {
 
     it("returns invalid when totals mismatch", () => {
       const players: MatchPlayer[] = [
-        { playerId: "1", buyIns: 2, finalValue: 2500 },
-        { playerId: "2", buyIns: 1, finalValue: 1000 },
+        { userId: "1", buyIns: 2, finalValue: 2500 },
+        { userId: "2", buyIns: 1, finalValue: 1000 },
       ];
       const result = validateTotals(players, buyInAmount);
       expect(result.isValid).toBe(false);
@@ -34,8 +34,8 @@ describe("settlement", () => {
   describe("calculateSettlement", () => {
     it("calculates correct balances and transfers", () => {
       const players: MatchPlayer[] = [
-        { playerId: "max", buyIns: 2, finalValue: 1400 },
-        { playerId: "ana", buyIns: 1, finalValue: 1600 },
+        { userId: "max", buyIns: 2, finalValue: 1400 },
+        { userId: "ana", buyIns: 1, finalValue: 1600 },
       ];
       const result = calculateSettlement(players, buyInAmount);
 
@@ -43,8 +43,8 @@ describe("settlement", () => {
       expect(result.totalPaidIn).toBe(3000);
       expect(result.totalFinalValue).toBe(3000);
 
-      const max = result.playerBalances.find((b) => b.playerId === "max");
-      const ana = result.playerBalances.find((b) => b.playerId === "ana");
+       const max = result.playerBalances.find((b) => b.userId === "max");
+       const ana = result.playerBalances.find((b) => b.userId === "ana");
 
       expect(max?.paidIn).toBe(2000);
       expect(max?.finalValue).toBe(1400);
@@ -64,11 +64,11 @@ describe("settlement", () => {
     });
 
     it("handles multiple debtors and creditors with minimized transfers", () => {
-      const players: MatchPlayer[] = [
-        { playerId: "a", buyIns: 1, finalValue: 500 },  // owes 500
-        { playerId: "b", buyIns: 1, finalValue: 1500 }, // owed 500
-        { playerId: "c", buyIns: 2, finalValue: 1000 }, // owes 1000
-        { playerId: "d", buyIns: 1, finalValue: 2000 }, // owed 1000
+       const players: MatchPlayer[] = [
+        { userId: "a", buyIns: 1, finalValue: 500 },  // owes 500
+        { userId: "b", buyIns: 1, finalValue: 1500 }, // owed 500
+        { userId: "c", buyIns: 2, finalValue: 1000 }, // owes 1000
+        { userId: "d", buyIns: 1, finalValue: 2000 }, // owed 1000
       ];
       const result = calculateSettlement(players, buyInAmount);
 
@@ -88,9 +88,9 @@ describe("settlement", () => {
     });
 
     it("returns error when totals do not match", () => {
-      const players: MatchPlayer[] = [
-        { playerId: "1", buyIns: 1, finalValue: 1200 },
-        { playerId: "2", buyIns: 1, finalValue: 900 },
+       const players: MatchPlayer[] = [
+        { userId: "1", buyIns: 1, finalValue: 1200 },
+        { userId: "2", buyIns: 1, finalValue: 900 },
       ];
       const result = calculateSettlement(players, buyInAmount);
       expect(result.isValid).toBe(false);
@@ -99,10 +99,10 @@ describe("settlement", () => {
     });
 
     it("handles zero‑net player (no transfers)", () => {
-      const players: MatchPlayer[] = [
-        { playerId: "1", buyIns: 2, finalValue: 2000 },
-        { playerId: "2", buyIns: 1, finalValue: 1000 },
-        { playerId: "3", buyIns: 1, finalValue: 1000 },
+       const players: MatchPlayer[] = [
+        { userId: "1", buyIns: 2, finalValue: 2000 },
+        { userId: "2", buyIns: 1, finalValue: 1000 },
+        { userId: "3", buyIns: 1, finalValue: 1000 },
       ];
       const result = calculateSettlement(players, buyInAmount);
       expect(result.isValid).toBe(true);

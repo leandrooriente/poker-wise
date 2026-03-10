@@ -48,12 +48,13 @@ export default function NewMatchPage() {
       alert("Select at least one player.");
       return;
     }
-    const matchPlayers = selectedPlayerIds.map((playerId) => ({
-      playerId,
+    const matchPlayers = selectedPlayerIds.map((userId) => ({
+      userId,
       buyIns: 1, // each player starts with one buy-in
       finalValue: 0, // will be set at cashout
     }));
     const match = {
+      groupId: "home-game", // TODO: replace with active group from URL
       title: title.trim() || undefined,
       buyInAmount,
       players: matchPlayers,
@@ -110,11 +111,7 @@ export default function NewMatchPage() {
                         <span className="text-retro-green font-pixel">✓</span>
                       )}
                     </div>
-                    {player.preferredBuyIn && (
-                      <p className="text-sm text-retro-gray mt-1">
-                          Prefers <MoneyDisplay cents={player.preferredBuyIn} />
-                      </p>
-                    )}
+
                   </button>
                 );
               })}

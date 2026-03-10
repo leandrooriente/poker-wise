@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { Player } from "@/types/player";
-import MoneyInput from "./MoneyInput";
+
 
 interface AddPlayerFormProps {
   onAdd: (_player: Omit<Player, "id" | "createdAt">) => void;  
@@ -11,22 +11,20 @@ interface AddPlayerFormProps {
 
 export default function AddPlayerForm({ onAdd }: AddPlayerFormProps) {
   const [name, setName] = useState("");
-  const [preferredBuyIn, setPreferredBuyIn] = useState<number | undefined>(undefined);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() === "") return;
     onAdd({
       name: name.trim(),
-      preferredBuyIn,
     });
     setName("");
-    setPreferredBuyIn(undefined);
+
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="block text-retro-light text-sm mb-2 font-pixel">
             PLAYER NAME *
@@ -41,18 +39,7 @@ export default function AddPlayerForm({ onAdd }: AddPlayerFormProps) {
              data-testid="player-name-input"
            />
         </div>
-        <div>
-          <label className="block text-retro-light text-sm mb-2 font-pixel">
-            PREFERRED BUY-IN (EUR)
-          </label>
-          <MoneyInput
-            value={preferredBuyIn ?? 0}
-            onChange={(cents) => setPreferredBuyIn(cents === 0 ? undefined : cents)}
-            className="w-full"
-            placeholder="10.00 (default)"
-            data-testid="player-preferred-buyin-input"
-          />
-        </div>
+
       </div>
        <div className="flex justify-end">
           <button
