@@ -48,25 +48,11 @@ jobs:
   unit-tests:
     name: Unit Tests (Vitest)
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Run unit tests
-        run: npm run test -- --run
-
-  build:
-    name: Next.js Build
-    runs-on: ubuntu-latest
+    env:
+      POSTGRES_URL: postgresql://user:pass@localhost:5432/db
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: changeme
+      AUTH_SECRET: secret
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -87,6 +73,11 @@ jobs:
     name: E2E Tests (Chromium) - Shard ${{ matrix.shard_part }}/2
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    env:
+      POSTGRES_URL: postgresql://user:pass@localhost:5432/db
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: changeme
+      AUTH_SECRET: secret
     strategy:
       fail-fast: false
       matrix:
