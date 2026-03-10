@@ -66,8 +66,8 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Build the application
-        run: npm run build
+      - name: Run unit tests
+        run: npm run test
 
   e2e-chromium-matrix:
     name: E2E Tests (Chromium) - Shard ${{ matrix.shard_part }}/2
