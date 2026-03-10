@@ -1,11 +1,12 @@
 import { generateId } from "@/lib/uuid";
-import { getPlayers } from "@/db/players";
+import { getUser } from "@/db/users";
 import { Match } from "@/types/match";
-import { Player } from "@/types/player";
+import { ensureMigration } from "./migrate";
 
 const STORAGE_KEY = "poker-wise-matches";
 
 export async function getMatches(): Promise<Match[]> {
+  await ensureMigration();
   if (typeof window === "undefined") return [];
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -17,6 +18,7 @@ export async function getMatches(): Promise<Match[]> {
 }
 
 export async function saveMatches(matches: Match[]): Promise<void> {
+  await ensureMigration();
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(matches));
@@ -26,6 +28,7 @@ export async function saveMatches(matches: Match[]): Promise<void> {
 }
 
 export async function addMatch(match: Omit<Match, "id" | "createdAt">): Promise<Match> {
+  await ensureMigration();
   const newMatch: Match = {
     ...match,
     id: generateId(),
@@ -38,6 +41,7 @@ export async function addMatch(match: Omit<Match, "id" | "createdAt">): Promise<
 }
 
 export async function updateMatch(updatedMatch: Match): Promise<void> {
+  await ensureMigration();
   const matches = await getMatches();
   const index = matches.findIndex((m) => m.id === updatedMatch.id);
   if (index >= 0) {
@@ -47,34 +51,48 @@ export async function updateMatch(updatedMatch: Match): Promise<void> {
 }
 
 export async function deleteMatch(id: string): Promise<void> {
+  await ensureMigration();
   const matches = await getMatches();
   const filtered = matches.filter((m) => m.id !== id);
   await saveMatches(filtered);
 }
 
 export async function getMatch(id: string): Promise<Match | undefined> {
+  await ensureMigration();
   const matches = await getMatches();
   return matches.find((m) => m.id === id);
 }
 
-export async function getMatchWithPlayers(id: string): Promise<{
+export async function getMatchesByGroup(groupId: string): Promise<Match[]> {
+  await ensureMigration();
+  const matches = await getMatches();
+  return matches.filter(m => m.groupId === groupId);
+}
+
+export async function getMatchWithUsers(id: string): Promise<{
   match: Match;
   players: Array<{
-    player: Player;
+    user: any; // TODO: replace with User type when we have it imported
     buyIns: number;
     finalValue: number;
   }>;
 } | null> {
+  await ensureMigration();
   const match = await getMatch(id);
   if (!match) return null;
-  const playerList = await getPlayers();
-  const players = match.players.map((mp) => {
-    const player = playerList.find((p) => p.id === mp.playerId);
-    return {
-      player: player!,
-      buyIns: mp.buyIns,
-      finalValue: mp.finalValue,
-    };
-  }).filter((p) => p.player);
-  return { match, players };
+  console.log('[getMatchWithUsers] match:', match.id, 'players:', match.players);
+  const playerDetails = await Promise.all(
+    match.players.map(async (mp) => {
+      const user = await getUser(mp.userId);
+      console.log('[getMatchWithUsers] userId:', mp.userId, 'user:', user);
+      return {
+        user: user!,
+        buyIns: mp.buyIns,
+        finalValue: mp.finalValue,
+      };
+    })
+  );
+  const filtered = playerDetails.filter(p => p.user);
+  console.log('[getMatchWithUsers] filtered players:', filtered.length);
+  return { match, players: filtered };
 }

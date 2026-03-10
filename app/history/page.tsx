@@ -38,7 +38,7 @@ export default function HistoryPage() {
 
       const enriched = matchesData.map((match): MatchWithDetails => {
         const playerDetails = match.players.map((mp) => {
-          const player = playersData.find((p) => p.id === mp.playerId);
+           const player = playersData.find((p) => p.id === mp.userId);
           return {
             player: player!,
             buyIns: mp.buyIns,
@@ -164,11 +164,11 @@ export default function HistoryPage() {
                         <ul className="space-y-1">
                           {match.settlement.playerBalances.map((balance) => {
                             const player = match.playerDetails.find(
-                              (pd) => pd.player.id === balance.playerId
+                               (pd) => pd.player.id === balance.userId
                             );
                             const netColor = balance.net >= 0 ? "text-retro-green" : "text-retro-red";
                             return (
-                              <li key={balance.playerId} className="flex justify-between">
+                               <li key={balance.userId} className="flex justify-between">
                                 <span className="text-retro-light">{player?.player.name || "Unknown"}</span>
                                 <span className={`font-pixel ${netColor}`}>
                                    <MoneyDisplay cents={balance.net} />
@@ -214,7 +214,7 @@ export default function HistoryPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {match.playerDetails.map((pd) => {
                         const balance = match.settlement.playerBalances.find(
-                          (b) => b.playerId === pd.player.id
+                           (b) => b.userId === pd.player.id
                         );
                         return (
                           <div

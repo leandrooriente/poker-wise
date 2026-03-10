@@ -1,13 +1,13 @@
-import { Player } from "./player";
-
+// MatchPlayer now references userId (global user) not playerId (legacy player)
 export interface MatchPlayer {
-  playerId: string;
+  userId: string; // renamed from playerId to reflect global user reference
   buyIns: number; // number of buy-ins purchased during the match
   finalValue: number; // in cents, total value of chips at cashout
 }
 
 export interface Match {
   id: string;
+  groupId: string; // added: which group this match belongs to
   title?: string;
   createdAt: string;
   startedAt?: string;
@@ -20,15 +20,17 @@ export interface Match {
 }
 
 export interface SettlementTransfer {
-  fromPlayerId: string;
-  toPlayerId: string;
+  fromPlayerId: string; // still userId
+  toPlayerId: string; // still userId
   amount: number; // in cents
   description?: string;
 }
 
+// Note: MatchSummary may need revision after Player type is removed.
+// Temporarily kept for compatibility; will be updated when Player type is removed.
 export interface MatchSummary extends Match {
-  playerDetails: (Player & MatchPlayer)[];
+  playerDetails: any[]; // placeholder: will be updated later
   totalBuyIns: number;
   totalValue: number;
-  netResults: Record<string, number>; // playerId -> net result in cents
+  netResults: Record<string, number>; // userId -> net result in cents
 }

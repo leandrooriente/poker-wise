@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
-import { getMatchWithPlayers, updateMatch } from "@/db/matches";
+import { getMatchWithUsers, updateMatch } from "@/db/matches";
 import { validateTotals } from "@/lib/settlement";
 import MoneyInput from "@/components/MoneyInput";
 import MoneyDisplay from "@/components/MoneyDisplay";
@@ -31,7 +31,7 @@ function CashoutContent() {
 
   const loadMatch = async (id: string) => {
     try {
-      const data = await getMatchWithPlayers(id);
+      const data = await getMatchWithUsers(id);
       if (!data) {
         setError("Match not found");
         return;
@@ -41,14 +41,14 @@ function CashoutContent() {
       // Initialize finalValues with existing finalValue or zero
       const initialValues: Record<string, number> = {};
       data.players.forEach((p: any) => {
-        initialValues[p.player.id] = p.finalValue || 0;
+        initialValues[p.user.id] = p.finalValue || 0;
       });
       setFinalValues(initialValues);
       // Compute validation
       const matchPlayers = data.match.players.map((mp: any) => ({
-        playerId: mp.playerId,
+        userId: mp.userId,
         buyIns: mp.buyIns,
-        finalValue: initialValues[mp.playerId] || 0,
+        finalValue: initialValues[mp.userId] || 0,
       }));
       const validationResult = validateTotals(matchPlayers, data.match.buyInAmount);
       setValidation(validationResult);
@@ -65,9 +65,9 @@ function CashoutContent() {
     setFinalValues(newValues);
     if (match) {
       const matchPlayers = match.players.map((mp: any) => ({
-        playerId: mp.playerId,
+        userId: mp.userId,
         buyIns: mp.buyIns,
-        finalValue: newValues[mp.playerId] || 0,
+        finalValue: newValues[mp.userId] || 0,
       }));
       const validationResult = validateTotals(matchPlayers, match.buyInAmount);
       setValidation(validationResult);
@@ -82,7 +82,7 @@ function CashoutContent() {
     // Update match with final values
     const updatedPlayers = match.players.map((mp: any) => ({
       ...mp,
-      finalValue: finalValues[mp.playerId] || 0,
+        finalValue: finalValues[mp.userId] || 0,
     }));
     const updatedMatch = {
       ...match,
@@ -136,17 +136,17 @@ function CashoutContent() {
         <div className="lg:col-span-2">
           <h3 className="text-xl font-pixel text-retro-yellow mb-4">FINAL CHIP VALUES</h3>
           <div className="space-y-6">
-            {players.map(({ player, buyIns }) => {
+             {players.map(({ user, buyIns }) => {
               const paidIn = buyIns * match.buyInAmount;
-              const finalValue = finalValues[player.id] || 0;
+               const finalValue = finalValues[user.id] || 0;
               return (
                 <div
-                  key={player.id}
+                   key={user.id}
                   className="border border-retro-gray rounded-retro p-6 bg-retro-dark hover:border-retro-green transition-colors"
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                      <h4 className="text-2xl font-pixel text-retro-green">{player.name}</h4>
+                       <h4 className="text-2xl font-pixel text-retro-green">{user.name}</h4>
                       <p className="text-retro-light">
                         Buy‑ins: <span className="font-pixel">{buyIns}</span> • Paid in:{" "}
                          <MoneyDisplay cents={paidIn} />
@@ -154,15 +154,15 @@ function CashoutContent() {
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                         <label htmlFor={`final-value-${player.id}`} className="block text-retro-light text-sm mb-2 font-pixel">
+                          <label htmlFor={`final-value-${user.id}`} className="block text-retro-light text-sm mb-2 font-pixel">
                            FINAL VALUE (EUR)
                          </label>
                            <MoneyInput
-                             id={`final-value-${player.id}`}
+                              id={`final-value-${user.id}`}
                              value={finalValue}
-                             onChange={(cents) => handleFinalValueChange(player.id, cents)}
+                              onChange={(cents) => handleFinalValueChange(user.id, cents)}
                              className="px-4 py-3 w-40 text-right font-pixel"
-                             data-testid={`final-value-input-${player.id}`}
+                              data-testid={`final-value-input-${user.id}`}
                            />
                       </div>
                       <div className="text-center">

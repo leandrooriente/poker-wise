@@ -117,30 +117,7 @@ test.describe('New Match Setup', () => {
     await expect(startButton).toBeDisabled();
   });
 
-  test('preferred buy-in appears on player buttons', async ({ page }) => {
-    await seedLocalStorage(page, {
-      players: [
-        { 
-          id: '1', 
-          name: 'Alice', 
-          preferredBuyIn: 1250, // 12.50 EUR
-          createdAt: new Date().toISOString() 
-        },
-        { 
-          id: '2', 
-          name: 'Bob', 
-          preferredBuyIn: 800, // 8.00 EUR
-          createdAt: new Date().toISOString() 
-        },
-      ],
-    });
-    
-    await page.goto('/new-match');
-    
-    // Verify preferred buy-in text appears
-    await expect(page.locator('button', { hasText: 'Alice' }).getByText('12.50')).toBeVisible();
-    await expect(page.locator('button', { hasText: 'Bob' }).getByText('8.00')).toBeVisible();
-  });
+
 
   test('complete match setup flow', async ({ page }) => {
     await seedLocalStorage(page, {

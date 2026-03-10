@@ -5,8 +5,11 @@ test.describe('Basic poker match flow', () => {
     // Clear localStorage before each test
     await page.addInitScript(() => {
       window.localStorage.clear();
+      window.localStorage.setItem('poker-wise-migration-v1-done', 'true');
     });
     await page.goto('/');
+    // Capture console logs from the page
+    page.on('console', msg => console.log(`[page] ${msg.text()}`));
   });
 
   test('complete match flow: add player, start match, rebuy, cashout, settle', async ({ page }) => {

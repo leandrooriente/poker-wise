@@ -8,37 +8,33 @@ test.describe('Player Management', () => {
     await page.evaluate(() => window.localStorage.clear());
   });
 
-  test('add player with preferred buy-in', async ({ page }) => {
+  test('add player', async ({ page }) => {
     await addPlayer(page, {
       name: 'Alice',
-      preferredBuyIn: 1250, // 12.50 EUR
     });
 
-    // Verify player card shows all details
+    // Verify player card shows name
     const playerCard = page.locator('div', { has: page.getByText('Alice') });
     await expect(playerCard.getByText('Alice')).toBeVisible();
-    await expect(playerCard.getByText('12.50')).toBeVisible();
     
     // Verify the player count updates
     await expect(page.getByText('REGULAR PLAYERS (1)')).toBeVisible();
   });
 
-  test('edit player name and notes', async ({ page }) => {
+  test('edit player name', async ({ page }) => {
     await addPlayer(page, { name: 'Bob' });
     
     // Click Edit button
     const playerCard = page.getByTestId('player-card').first();
     await playerCard.getByRole('button', { name: 'Edit' }).click();
     
-    // Update name and notes
+    // Update name
     await expect(playerCard.getByPlaceholder('Player name')).toBeVisible();
     await playerCard.getByPlaceholder('Player name').fill('Robert');
-    await playerCard.getByPlaceholder('Optional notes').fill('New notes');
     await playerCard.getByRole('button', { name: 'Save' }).click();
     
     // Verify updates
     await expect(playerCard.getByText('Robert')).toBeVisible();
-    await expect(playerCard.getByText('New notes')).toBeVisible();
     await expect(page.getByText('Bob')).not.toBeVisible();
   });
 
@@ -62,15 +58,13 @@ test.describe('Player Management', () => {
   test('player data persists after reload', async ({ page }) => {
     await addPlayer(page, {
       name: 'Eve',
-      preferredBuyIn: 800, // 8.00 EUR
     });
     
     // Reload page
     await page.reload();
     
-    // Verify player still exists with all details
+    // Verify player still exists
     await expect(page.getByText('Eve')).toBeVisible();
-    await expect(page.getByText('8.00')).toBeVisible();
   });
 
   test('empty state when no players', async ({ page }) => {
