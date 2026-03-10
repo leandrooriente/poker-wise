@@ -84,13 +84,13 @@ jobs:
         run: npm run build
 
   e2e-chromium-matrix:
-    name: E2E Tests (Chromium) - Shard ${{ matrix.shard }}
+    name: E2E Tests (Chromium) - Shard ${{ matrix.shard_part }}/2
     runs-on: ubuntu-latest
     timeout-minutes: 8
     strategy:
       fail-fast: false
       matrix:
-        shard: [1/2, 2/2]
+        shard_part: [1, 2]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -117,12 +117,12 @@ jobs:
         run: npm run build
 
       - name: Run E2E tests with sharding
-        run: npm run e2e -- --project=chromium --shard=${{ matrix.shard }}
+        run: npm run e2e -- --project=chromium --shard=${{ matrix.shard_part }}/2
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.shard | replace('/', '-') }}
+          name: playwright-report-${{ matrix.shard_part }}-2
           path: playwright-report/
           retention-days: 7
