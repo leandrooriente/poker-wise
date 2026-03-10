@@ -276,7 +276,9 @@ test.describe('Cashout', () => {
     const balancesSection = page.getByRole('heading', { name: 'Balances' }).locator('..');
     await expect(balancesSection.getByText('Winner')).toBeVisible();
     await expect(balancesSection.getByText('Loser')).toBeVisible();
-    await expect(balancesSection.getByText('+5.00 EUR')).toBeVisible(); // Winner net
-    await expect(balancesSection.getByText('-5.00 EUR')).toBeVisible(); // Loser net
+    const winnerBalance = page.getByRole('heading', { name: 'Winner' }).locator('../..');
+    await expect(winnerBalance.locator('.text-3xl.font-pixel')).toHaveText('5.00 EUR');
+    const loserBalance = page.getByRole('heading', { name: 'Loser' }).locator('../..');
+    await expect(loserBalance.locator('.text-3xl.font-pixel')).toHaveText('-5.00 EUR');
   });
 });
