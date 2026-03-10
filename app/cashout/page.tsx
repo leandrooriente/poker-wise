@@ -3,10 +3,10 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
+import MoneyDisplay from "@/components/MoneyDisplay";
+import MoneyInput from "@/components/MoneyInput";
 import { getMatchWithUsers, updateMatch } from "@/db/matches";
 import { validateTotals } from "@/lib/settlement";
-import MoneyInput from "@/components/MoneyInput";
-import MoneyDisplay from "@/components/MoneyDisplay";
 
 function CashoutContent() {
   const router = useRouter();
@@ -52,8 +52,7 @@ function CashoutContent() {
       }));
       const validationResult = validateTotals(matchPlayers, data.match.buyInAmount);
       setValidation(validationResult);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Failed to load match");
     } finally {
       setLoading(false);

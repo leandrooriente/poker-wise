@@ -3,9 +3,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
+import MoneyDisplay from "@/components/MoneyDisplay";
 import { getMatchWithUsers } from "@/db/matches";
 import { calculateSettlement } from "@/lib/settlement";
-import MoneyDisplay from "@/components/MoneyDisplay";
 
 function ResultsContent() {
   const router = useRouter();
@@ -37,8 +37,7 @@ function ResultsContent() {
         data.match.buyInAmount
       );
       setSettlement(settlementResult);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Failed to load match");
     } finally {
       setLoading(false);

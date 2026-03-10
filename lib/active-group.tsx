@@ -20,6 +20,7 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
     // Load from localStorage on mount
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveGroupIdState(stored);
       setIsLoading(false);
 

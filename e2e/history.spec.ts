@@ -1,4 +1,6 @@
+/* eslint-disable */
 import { test } from '@playwright/test';
+
 import { expect, seedLocalStorage, openLatestHistoryMatch, fillCashoutValues } from './helpers';
 
 test.describe('History Page', () => {

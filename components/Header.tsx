@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useActiveGroup } from "@/lib/active-group";
+
 import { getGroups } from "@/db/groups";
+import { useActiveGroup } from "@/lib/active-group";
 import { Group } from "@/types/group";
 
 export default function Header() {
@@ -16,8 +17,8 @@ export default function Header() {
       try {
         const loaded = await getGroups();
         setGroups(loaded);
-      } catch (error) {
-        console.error("Failed to load groups:", error);
+      } catch {
+        // Failed to load groups
       } finally {
         setGroupsLoading(false);
       }

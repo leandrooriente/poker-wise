@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Press_Start_2P, Courier_Prime } from "next/font/google";
 
 import "./globals.css";
-import Header from "@/components/Header";
 import { Providers } from "./providers";
+
+import Header from "@/components/Header";
 
 const pixelFont = Press_Start_2P({
   weight: "400",

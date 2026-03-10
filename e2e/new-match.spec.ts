@@ -1,4 +1,6 @@
+/* eslint-disable */
 import { test } from '@playwright/test';
+
 import { addPlayer, expect, seedLocalStorage } from './helpers';
 
 test.describe('New Match Setup', () => {

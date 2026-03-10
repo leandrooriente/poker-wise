@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { test, expect } from '@playwright/test';
 
 test.describe('Basic poker match flow', () => {

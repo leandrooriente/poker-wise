@@ -1,5 +1,6 @@
-import { MatchPlayer, SettlementTransfer } from "@/types/match";
 import { formatMoney } from "./money";
+
+import { MatchPlayer, SettlementTransfer } from "@/types/match";
 
 export interface PlayerBalance {
   userId: string; // renamed from playerId to match MatchPlayer.userId

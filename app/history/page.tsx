@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 
+import MoneyDisplay from "@/components/MoneyDisplay";
 import { getMatchesByGroup } from "@/db/matches";
 import { getPlayersForGroup } from "@/db/players";
+import { useActiveGroup } from "@/lib/active-group";
 import { calculateSettlement } from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
-import MoneyDisplay from "@/components/MoneyDisplay";
-import { useActiveGroup } from "@/lib/active-group";
 
 interface MatchWithDetails extends Match {
   playerDetails: Array<{
@@ -28,58 +28,58 @@ export default function HistoryPage() {
   const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
 
   useEffect(() => {
+    const loadMatches = async () => {
+      try {
+        if (!activeGroupId) {
+          setMatches([]);
+          setLoading(false);
+          return;
+        }
+        const [matchesData, playersData] = await Promise.all([
+          getMatchesByGroup(activeGroupId),
+          getPlayersForGroup(activeGroupId),
+        ]);
+
+        const enriched = matchesData.map((match): MatchWithDetails => {
+          const playerDetails = match.players.map((mp) => {
+             const player = playersData.find((p) => p.id === mp.userId);
+            return {
+              player: player!,
+              buyIns: mp.buyIns,
+              finalValue: mp.finalValue,
+            };
+          }).filter((pd) => pd.player);
+
+          const totalBuyIns = playerDetails.reduce((sum, pd) => sum + pd.buyIns, 0);
+          const totalValue = playerDetails.reduce((sum, pd) => sum + pd.finalValue, 0);
+
+          const settlement = calculateSettlement(
+            match.players,
+            match.buyInAmount
+          );
+
+          return {
+            ...match,
+            playerDetails,
+            totalBuyIns,
+            totalValue,
+            settlement,
+          };
+        });
+
+        // Sort by date descending (newest first)
+        enriched.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        setMatches(enriched);
+      } catch {
+        // Failed to load matches
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadMatches();
   }, [activeGroupId]);
-
-  const loadMatches = async () => {
-    try {
-      if (!activeGroupId) {
-        setMatches([]);
-        setLoading(false);
-        return;
-      }
-      const [matchesData, playersData] = await Promise.all([
-        getMatchesByGroup(activeGroupId),
-        getPlayersForGroup(activeGroupId),
-      ]);
-
-      const enriched = matchesData.map((match): MatchWithDetails => {
-        const playerDetails = match.players.map((mp) => {
-           const player = playersData.find((p) => p.id === mp.userId);
-          return {
-            player: player!,
-            buyIns: mp.buyIns,
-            finalValue: mp.finalValue,
-          };
-        }).filter((pd) => pd.player);
-
-        const totalBuyIns = playerDetails.reduce((sum, pd) => sum + pd.buyIns, 0);
-        const totalValue = playerDetails.reduce((sum, pd) => sum + pd.finalValue, 0);
-
-        const settlement = calculateSettlement(
-          match.players,
-          match.buyInAmount
-        );
-
-        return {
-          ...match,
-          playerDetails,
-          totalBuyIns,
-          totalValue,
-          settlement,
-        };
-      });
-
-      // Sort by date descending (newest first)
-      enriched.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-      setMatches(enriched);
-    } catch (error) {
-      console.error("Failed to load matches:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const toggleExpand = (matchId: string) => {
     setExpandedMatchId(expandedMatchId === matchId ? null : matchId);

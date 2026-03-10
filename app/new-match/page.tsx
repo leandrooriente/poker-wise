@@ -3,13 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
+import MoneyDisplay from "@/components/MoneyDisplay";
+import MoneyInput from "@/components/MoneyInput";
 import { addMatch } from "@/db/matches";
 import { getPlayersForGroup } from "@/db/players";
 import { getSettings } from "@/db/settings";
-import { Player } from "@/types/player";
-import MoneyInput from "@/components/MoneyInput";
-import MoneyDisplay from "@/components/MoneyDisplay";
 import { useActiveGroup } from "@/lib/active-group";
+import { Player } from "@/types/player";
 
 export default function NewMatchPage() {
   const router = useRouter();
@@ -21,28 +21,28 @@ export default function NewMatchPage() {
   const [title, setTitle] = useState("");
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        if (!activeGroupId) {
+          setPlayers([]);
+          setLoading(false);
+          return;
+        }
+        const [playerList, settings] = await Promise.all([
+          getPlayersForGroup(activeGroupId),
+          getSettings(),
+        ]);
+        setPlayers(playerList);
+        setBuyInAmount(settings.defaultBuyIn);
+      } catch {
+        // Failed to load data
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadData();
   }, [activeGroupId]);
-
-  const loadData = async () => {
-    try {
-      if (!activeGroupId) {
-        setPlayers([]);
-        setLoading(false);
-        return;
-      }
-      const [playerList, settings] = await Promise.all([
-        getPlayersForGroup(activeGroupId),
-        getSettings(),
-      ]);
-      setPlayers(playerList);
-      setBuyInAmount(settings.defaultBuyIn);
-    } catch (error) {
-      console.error("Failed to load data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const togglePlayer = (id: string) => {
     setSelectedPlayerIds((prev) =>

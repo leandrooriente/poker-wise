@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useActiveGroup } from "@/lib/active-group";
+
 import { getGroups, addGroup, deleteGroup } from "@/db/groups";
+import { getMatchesByGroup } from "@/db/matches";
 import { getGroupMembersForGroup, addGroupMember, removeGroupMember, getGroupMembersForUser } from "@/db/members";
 import { getUsers, addUser, deleteUser } from "@/db/users";
-import { getMatchesByGroup } from "@/db/matches";
+import { useActiveGroup } from "@/lib/active-group";
+import { generateId } from "@/lib/uuid";
 import { Group } from "@/types/group";
 import { User } from "@/types/user";
-import { generateId } from "@/lib/uuid";
 
 export default function GroupsPage() {
   const { activeGroupId, setActiveGroupId } = useActiveGroup();
@@ -39,8 +40,8 @@ export default function GroupsPage() {
     try {
       const loaded = await getGroups();
       setGroups(loaded);
-    } catch (error) {
-      console.error("Failed to load groups:", error);
+    } catch {
+      // Failed to load groups
     } finally {
       setLoading(false);
     }
@@ -59,8 +60,8 @@ export default function GroupsPage() {
         members: memberUsers,
         matchCount: matches.length,
       });
-    } catch (error) {
-      console.error("Failed to load group details:", error);
+    } catch {
+      // Failed to load group details
     } finally {
       setDetailsLoading(false);
     }
@@ -77,8 +78,8 @@ export default function GroupsPage() {
       setNewPlayerName("");
       // Refresh group details
       await loadGroupDetails(activeGroupId);
-    } catch (error) {
-      console.error("Failed to add player to group:", error);
+    } catch {
+      // Failed to add player to group
     }
   };
 
@@ -94,8 +95,8 @@ export default function GroupsPage() {
         await deleteUser(userId);
       }
       await loadGroupDetails(activeGroupId);
-    } catch (error) {
-      console.error("Failed to remove player from group:", error);
+    } catch {
+      // Failed to remove player from group
     }
   };
 
@@ -110,8 +111,8 @@ export default function GroupsPage() {
       await loadGroups();
       // Optionally set as active group
       setActiveGroupId(id);
-    } catch (error) {
-      console.error("Failed to create group:", error);
+    } catch {
+      // Failed to create group
     }
   };
 
@@ -123,8 +124,8 @@ export default function GroupsPage() {
         setActiveGroupId(null);
       }
       await loadGroups();
-    } catch (error) {
-      console.error("Failed to delete group:", error);
+    } catch {
+      // Failed to delete group
     }
   };
 

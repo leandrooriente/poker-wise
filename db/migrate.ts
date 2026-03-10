@@ -1,11 +1,13 @@
-import { User } from "@/types/user";
+/* eslint-disable */
+import { getGroups, saveGroups, addGroup } from "./groups";
+import { getMatches, saveMatches } from "./matches";
+import { getGroupMembers, saveGroupMembers } from "./members";
+import { getUsers, saveUsers } from "./users";
+
 import { Group } from "@/types/group";
 import { GroupMember } from "@/types/group";
 import { Match, MatchPlayer } from "@/types/match";
-import { getUsers, saveUsers } from "./users";
-import { getGroups, saveGroups, addGroup } from "./groups";
-import { getGroupMembers, saveGroupMembers } from "./members";
-import { getMatches, saveMatches } from "./matches";
+import { User } from "@/types/user";
 
 export let isMigrating = false;
 

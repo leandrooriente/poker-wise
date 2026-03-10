@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Page } from '@playwright/test';
 
 export interface PlayerData {

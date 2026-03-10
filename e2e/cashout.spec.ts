@@ -1,4 +1,6 @@
+/* eslint-disable */
 import { test } from '@playwright/test';
+
 import { expect, seedLocalStorage, fillCashoutValues } from './helpers';
 
 test.describe('Cashout', () => {

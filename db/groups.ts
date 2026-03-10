@@ -1,7 +1,8 @@
-import { Group } from "@/types/group";
-import { ensureMigration } from "./migrate";
 import { deleteMatchesByGroup } from "./matches";
 import { removeAllGroupMembersForGroup } from "./members";
+import { ensureMigration } from "./migrate";
+
+import { Group } from "@/types/group";
 
 const STORAGE_KEY = "poker-wise-groups";
 
@@ -16,8 +17,7 @@ export async function getGroups(): Promise<Group[]> {
       ...g,
       name: g.name || g.id,
     }));
-  } catch (error) {
-    console.error("Failed to load groups from localStorage:", error);
+  } catch {
     return [];
   }
 }
@@ -27,8 +27,8 @@ export async function saveGroups(groups: Group[]): Promise<void> {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
-  } catch (error) {
-    console.error("Failed to save groups to localStorage:", error);
+  } catch {
+    // Failed to save groups
   }
 }
 

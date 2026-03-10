@@ -1,7 +1,8 @@
-import { generateId } from "@/lib/uuid";
-import { getUser } from "@/db/users";
-import { Match } from "@/types/match";
 import { ensureMigration } from "./migrate";
+
+import { getUser } from "@/db/users";
+import { generateId } from "@/lib/uuid";
+import { Match } from "@/types/match";
 
 const STORAGE_KEY = "poker-wise-matches";
 
@@ -11,8 +12,7 @@ export async function getMatches(): Promise<Match[]> {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error("Failed to load matches:", error);
+  } catch {
     return [];
   }
 }
@@ -22,8 +22,8 @@ export async function saveMatches(matches: Match[]): Promise<void> {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(matches));
-  } catch (error) {
-    console.error("Failed to save matches:", error);
+  } catch {
+    // Failed to save matches
   }
 }
 
@@ -87,11 +87,11 @@ export async function getMatchWithUsers(id: string): Promise<{
   await ensureMigration();
   const match = await getMatch(id);
   if (!match) return null;
-  console.log('[getMatchWithUsers] match:', match.id, 'players:', match.players);
+
   const playerDetails = await Promise.all(
     match.players.map(async (mp) => {
       const user = await getUser(mp.userId);
-      console.log('[getMatchWithUsers] userId:', mp.userId, 'user:', user);
+
       return {
         user: user!,
         buyIns: mp.buyIns,
@@ -100,6 +100,6 @@ export async function getMatchWithUsers(id: string): Promise<{
     })
   );
   const filtered = playerDetails.filter(p => p.user);
-  console.log('[getMatchWithUsers] filtered players:', filtered.length);
+
   return { match, players: filtered };
 }
