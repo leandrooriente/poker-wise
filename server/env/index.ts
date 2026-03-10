@@ -23,7 +23,9 @@ export function getEnv() {
       // For non‑production builds, provide fallback values to allow the build to succeed.
       // This is useful for Vercel preview deployments where env vars may not be set.
       const nodeEnv = process.env.NODE_ENV || "development";
-      if (nodeEnv === "production") {
+      const vercelEnv = process.env.VERCEL_ENV;
+      const isProduction = nodeEnv === "production" && vercelEnv !== "preview";
+      if (isProduction) {
         // In production we insist on valid environment variables.
         throw new Error(
           `Invalid environment configuration: ${result.error.issues
