@@ -15,6 +15,7 @@ export async function resetDatabase() {
   await db.execute(sql`DROP TABLE IF EXISTS admins CASCADE`);
 
   // Enable UUID extension
+  await db.execute(sql`DROP EXTENSION IF EXISTS "uuid-ossp" CASCADE`);
   await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
 
   // Create tables
