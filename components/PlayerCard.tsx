@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Player } from "@/types/player";
+import MoneyDisplay from "./MoneyDisplay";
 
 interface PlayerCardProps {
   player: Player;
@@ -92,7 +93,7 @@ export default function PlayerCard({ player, onUpdate, onDelete }: PlayerCardPro
           <div className="mt-4 pt-3 border-t border-retro-gray text-xs text-retro-gray">
             <p>Added: {new Date(player.createdAt).toLocaleDateString()}</p>
             {player.preferredBuyIn && (
-              <p>Preferred buy-in: {(player.preferredBuyIn / 100).toFixed(2)} EUR</p>
+               <p>Preferred buy-in: <MoneyDisplay cents={player.preferredBuyIn} /></p>
             )}
           </div>
         </>

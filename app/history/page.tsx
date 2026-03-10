@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 
 import { getMatches } from "@/db/matches";
 import { getPlayers } from "@/db/players";
-import { calculateSettlement, formatCents } from "@/lib/settlement";
+import { calculateSettlement } from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
+import MoneyDisplay from "@/components/MoneyDisplay";
 
 interface MatchWithDetails extends Match {
   playerDetails: Array<{
@@ -123,8 +124,7 @@ export default function HistoryPage() {
         {matches.map((match) => {
           const isExpanded = expandedMatchId === match.id;
           const dateStr = formatDate(match.createdAt);
-          const buyInStr = formatCents(match.buyInAmount);
-          const totalPotStr = formatCents(match.settlement.totalPot);
+
           const playerCount = match.playerDetails.length;
 
           return (
@@ -142,13 +142,13 @@ export default function HistoryPage() {
                   </h3>
                   <div className="text-retro-light mt-1">
                     <span className="inline-block mr-4">
-                      <span className="text-retro-blue">Buy‑in:</span> {buyInStr}
+                       <span className="text-retro-blue">Buy‑in:</span> <MoneyDisplay cents={match.buyInAmount} />
                     </span>
                     <span className="inline-block mr-4">
                       <span className="text-retro-blue">Players:</span> {playerCount}
                     </span>
                     <span className="inline-block">
-                      <span className="text-retro-blue">Pot:</span> {totalPotStr}
+                       <span className="text-retro-blue">Pot:</span> <MoneyDisplay cents={match.settlement.totalPot} />
                     </span>
                   </div>
                 </div>
@@ -175,7 +175,7 @@ export default function HistoryPage() {
                               <li key={balance.playerId} className="flex justify-between">
                                 <span className="text-retro-light">{player?.player.name || "Unknown"}</span>
                                 <span className={`font-pixel ${netColor}`}>
-                                  {formatCents(balance.net)}
+                                   <MoneyDisplay cents={balance.net} />
                                 </span>
                               </li>
                             );
@@ -201,7 +201,7 @@ export default function HistoryPage() {
                                     {fromPlayer?.player.name || "Unknown"} → {toPlayer?.player.name || "Unknown"}
                                   </span>
                                   <span className="font-pixel text-retro-yellow">
-                                    {formatCents(t.amount)}
+                                     <MoneyDisplay cents={t.amount} />
                                   </span>
                                 </li>
                               );
@@ -235,16 +235,16 @@ export default function HistoryPage() {
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-retro-light">Final value:</span>
-                                <span className="font-pixel">{formatCents(pd.finalValue)}</span>
+                                 <MoneyDisplay cents={pd.finalValue} />
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-retro-light">Paid in:</span>
-                                <span className="font-pixel">{formatCents(pd.buyIns * match.buyInAmount)}</span>
+                                 <MoneyDisplay cents={pd.buyIns * match.buyInAmount} />
                               </div>
                               <div className="flex justify-between border-t border-retro-gray pt-1 mt-1">
                                 <span className="text-retro-light">Net result:</span>
                                 <span className={`font-pixel ${balance?.net && balance.net >= 0 ? "text-retro-green" : "text-retro-red"}`}>
-                                  {balance ? formatCents(balance.net) : "—"}
+                                   {balance ? <MoneyDisplay cents={balance.net} /> : "—"}
                                 </span>
                               </div>
                             </div>

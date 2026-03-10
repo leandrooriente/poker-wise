@@ -1,4 +1,5 @@
 import { MatchPlayer, SettlementTransfer } from "@/types/match";
+import { formatMoney } from "./money";
 
 export interface PlayerBalance {
   playerId: string;
@@ -41,7 +42,7 @@ export function calculateSettlement(
   let error: string | undefined;
   if (!isValid) {
     const diff = totalFinalValue - totalPaidIn;
-    error = `Total final value (${(totalFinalValue / 100).toFixed(2)} EUR) does not match total paid-in (${(totalPaidIn / 100).toFixed(2)} EUR). Difference: ${(diff / 100).toFixed(2)} EUR.`;
+    error = `Total final value (${formatMoney(totalFinalValue)}) does not match total paid-in (${formatMoney(totalPaidIn)}). Difference: ${formatMoney(diff)}.`;
   }
 
   const transfers = isValid ? computeMinimizedTransfers(playerBalances) : [];
@@ -88,7 +89,7 @@ function computeMinimizedTransfers(balances: PlayerBalance[]): SettlementTransfe
       fromPlayerId: debtor.playerId,
       toPlayerId: creditor.playerId,
       amount: transferAmount,
-      description: `${(transferAmount / 100).toFixed(2)} EUR`,
+      description: `${formatMoney(transferAmount)}`,
     });
 
     debtor.amount -= transferAmount;
@@ -117,7 +118,8 @@ export function validateTotals(
 
 /**
  * Format cents to euros with two decimal places and EUR symbol.
+ * @deprecated Use formatMoney from '@/lib/money' instead.
  */
 export function formatCents(cents: number): string {
-  return `${(cents / 100).toFixed(2)} EUR`;
+  return formatMoney(cents);
 }

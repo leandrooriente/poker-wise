@@ -5,6 +5,7 @@ import { useState, useEffect, Suspense } from "react";
 
 import { getMatchWithPlayers } from "@/db/matches";
 import { calculateSettlement } from "@/lib/settlement";
+import MoneyDisplay from "@/components/MoneyDisplay";
 
 function ResultsContent() {
   const router = useRouter();
@@ -99,13 +100,13 @@ function ResultsContent() {
                     <div>
                       <h4 className="text-2xl font-pixel text-retro-green">{player?.name || "Unknown"}</h4>
                       <p className="text-retro-light">
-                        Paid in: <span className="font-pixel">{(balance.paidIn / 100).toFixed(2)} EUR</span>
+                         Paid in: <MoneyDisplay cents={balance.paidIn} />
                         {" • "}
-                        Final value: <span className="font-pixel">{(balance.finalValue / 100).toFixed(2)} EUR</span>
+                         Final value: <MoneyDisplay cents={balance.finalValue} />
                       </p>
                     </div>
                     <div className={`text-3xl font-pixel ${net >= 0 ? "text-retro-green" : "text-retro-red"}`}>
-                      {net >= 0 ? "+" : ""}{(net / 100).toFixed(2)} EUR
+                       <MoneyDisplay cents={net} />
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-retro-gray text-retro-light">
@@ -149,7 +150,7 @@ function ResultsContent() {
                           <div className="text-retro-green font-pixel">{to?.name}</div>
                         </div>
                         <div className="text-xl font-pixel text-retro-yellow">
-                          {(transfer.amount / 100).toFixed(2)} EUR
+                           <MoneyDisplay cents={transfer.amount} />
                         </div>
                       </div>
                       <p className="text-retro-gray text-sm mt-2">
@@ -167,7 +168,7 @@ function ResultsContent() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-retro-light">Total pot</span>
-                <span className="font-pixel">{(settlement.totalPot / 100).toFixed(2)} EUR</span>
+                 <MoneyDisplay cents={settlement.totalPot} />
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Total buy‑ins</span>

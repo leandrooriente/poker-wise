@@ -38,7 +38,10 @@ test.describe('Results Page', () => {
     // Both players show net zero
     await expect(page.getByText('Alice')).toBeVisible();
     await expect(page.getByText('Bob')).toBeVisible();
-    await expect(page.getByText('+0.00 EUR')).toHaveCount(2);
+    const aliceBalance = page.getByRole('heading', { name: 'Alice' }).locator('../..');
+    await expect(aliceBalance.locator('.text-3xl.font-pixel')).toHaveText('0.00 EUR');
+    const bobBalance = page.getByRole('heading', { name: 'Bob' }).locator('../..');
+    await expect(bobBalance.locator('.text-3xl.font-pixel')).toHaveText('0.00 EUR');
 
     // No transfers section shows empty message
     await expect(page.getByText('No transfers needed — all players break even.')).toBeVisible();
@@ -71,9 +74,11 @@ test.describe('Results Page', () => {
 
     // Verify player balances display correct net amounts
     await expect(page.getByRole('heading', { name: 'Alice' })).toBeVisible();
-    await expect(page.getByText('+10.00 EUR')).toBeVisible(); // profit
+    const aliceBalance = page.getByRole('heading', { name: 'Alice' }).locator('../..');
+    await expect(aliceBalance.locator('.text-3xl.font-pixel')).toHaveText('10.00 EUR');
     await expect(page.getByRole('heading', { name: 'Bob' })).toBeVisible();
-    await expect(page.getByText('-10.00 EUR')).toBeVisible(); // loss
+    const bobBalance = page.getByRole('heading', { name: 'Bob' }).locator('../..');
+    await expect(bobBalance.locator('.text-3xl.font-pixel')).toHaveText('-10.00 EUR');
 
     // One transfer from Bob to Alice of 10.00 EUR
     await expect(page.getByRole('heading', { name: 'TRANSFERS' })).toBeVisible();
@@ -116,11 +121,14 @@ test.describe('Results Page', () => {
 
     // Verify net amounts
     await expect(page.getByRole('heading', { name: 'Alice' })).toBeVisible();
-    await expect(page.getByText('+15.00 EUR')).toBeVisible();
+    const aliceBalance = page.getByRole('heading', { name: 'Alice' }).locator('../..');
+    await expect(aliceBalance.locator('.text-3xl.font-pixel')).toHaveText('15.00 EUR');
     await expect(page.getByRole('heading', { name: 'Bob' })).toBeVisible();
-    await expect(page.getByText('-10.00 EUR')).toBeVisible();
+    const bobBalance = page.getByRole('heading', { name: 'Bob' }).locator('../..');
+    await expect(bobBalance.locator('.text-3xl.font-pixel')).toHaveText('-10.00 EUR');
     await expect(page.getByRole('heading', { name: 'Charlie' })).toBeVisible();
-    await expect(page.getByText('-5.00 EUR')).toBeVisible();
+    const charlieBalance = page.getByRole('heading', { name: 'Charlie' }).locator('../..');
+    await expect(charlieBalance.locator('.text-3xl.font-pixel')).toHaveText('-5.00 EUR');
 
     // Two transfers, Bob→Alice 10.00 and Charlie→Alice 5.00
     await expect(page.getByRole('heading', { name: 'TRANSFERS' })).toBeVisible();
@@ -178,10 +186,11 @@ test.describe('Results Page', () => {
     // Results page should load
     await expect(page.getByRole('heading', { name: 'SETTLEMENT RESULTS' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Alice' })).toBeVisible();
+    const aliceBalance = page.getByRole('heading', { name: 'Alice' }).locator('../..');
+    await expect(aliceBalance.locator('.text-3xl.font-pixel')).toHaveText('5.00 EUR');
     await expect(page.getByRole('heading', { name: 'Bob' })).toBeVisible();
-    // Alice net +5.00, Bob net -5.00
-    await expect(page.getByText('+5.00 EUR')).toBeVisible();
-    await expect(page.getByText('-5.00 EUR')).toBeVisible();
+    const bobBalance = page.getByRole('heading', { name: 'Bob' }).locator('../..');
+    await expect(bobBalance.locator('.text-3xl.font-pixel')).toHaveText('-5.00 EUR');
     // One transfer Bob → Alice 5.00 EUR
     await expect(page.getByRole('heading', { name: 'TRANSFERS' })).toBeVisible();
     const transferItems = page.getByTestId('transfer-item');

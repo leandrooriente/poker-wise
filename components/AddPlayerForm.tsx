@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Player } from "@/types/player";
+import MoneyInput from "./MoneyInput";
 
 interface AddPlayerFormProps {
   onAdd: (_player: Omit<Player, "id" | "createdAt">) => void;  
@@ -47,20 +48,13 @@ export default function AddPlayerForm({ onAdd }: AddPlayerFormProps) {
           <label className="block text-retro-light text-sm mb-2 font-pixel">
             PREFERRED BUY-IN (EUR)
           </label>
-           <input
-             type="number"
-             step="0.01"
-             min="0"
-             value={preferredBuyIn !== undefined ? preferredBuyIn / 100 : ""}
-             onChange={(e) =>
-               setPreferredBuyIn(
-                 e.target.value === "" ? undefined : Math.round(parseFloat(e.target.value) * 100)
-               )
-             }
-             className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans focus:border-retro-green focus:outline-none"
-             placeholder="10.00 (default)"
-             data-testid="player-preferred-buyin-input"
-           />
+          <MoneyInput
+            value={preferredBuyIn ?? 0}
+            onChange={(cents) => setPreferredBuyIn(cents === 0 ? undefined : cents)}
+            className="w-full"
+            placeholder="10.00 (default)"
+            data-testid="player-preferred-buyin-input"
+          />
         </div>
         <div>
           <label className="block text-retro-light text-sm mb-2 font-pixel">

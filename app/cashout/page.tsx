@@ -5,6 +5,8 @@ import { useState, useEffect, Suspense } from "react";
 
 import { getMatchWithPlayers, updateMatch } from "@/db/matches";
 import { validateTotals } from "@/lib/settlement";
+import MoneyInput from "@/components/MoneyInput";
+import MoneyDisplay from "@/components/MoneyDisplay";
 
 function CashoutContent() {
   const router = useRouter();
@@ -58,9 +60,8 @@ function CashoutContent() {
     }
   };
 
-  const handleFinalValueChange = (playerId: string, value: string) => {
-    const num = Math.round(parseFloat(value) * 100) || 0;
-    const newValues = { ...finalValues, [playerId]: num };
+  const handleFinalValueChange = (playerId: string, cents: number) => {
+    const newValues = { ...finalValues, [playerId]: cents };
     setFinalValues(newValues);
     if (match) {
       const matchPlayers = match.players.map((mp: any) => ({
@@ -148,7 +149,7 @@ function CashoutContent() {
                       <h4 className="text-2xl font-pixel text-retro-green">{player.name}</h4>
                       <p className="text-retro-light">
                         Buy‑ins: <span className="font-pixel">{buyIns}</span> • Paid in:{" "}
-                        <span className="font-pixel">{(paidIn / 100).toFixed(2)} EUR</span>
+                         <MoneyDisplay cents={paidIn} />
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -156,20 +157,18 @@ function CashoutContent() {
                          <label htmlFor={`final-value-${player.id}`} className="block text-retro-light text-sm mb-2 font-pixel">
                            FINAL VALUE (EUR)
                          </label>
-                         <input
-                           id={`final-value-${player.id}`}
-                           type="number"
-                           step="0.01"
-                           min="0"
-                           value={(finalValue / 100).toFixed(2)}
-                           onChange={(e) => handleFinalValueChange(player.id, e.target.value)}
-                           className="px-4 py-3 w-40 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-pixel text-right"
-                         />
+                           <MoneyInput
+                             id={`final-value-${player.id}`}
+                             value={finalValue}
+                             onChange={(cents) => handleFinalValueChange(player.id, cents)}
+                             className="px-4 py-3 w-40 text-right font-pixel"
+                             data-testid={`final-value-input-${player.id}`}
+                           />
                       </div>
                       <div className="text-center">
                         <div className="text-retro-gray text-sm">Net</div>
                         <div className={`text-xl font-pixel ${finalValue - paidIn >= 0 ? "text-retro-green" : "text-retro-red"}`}>
-                          {((finalValue - paidIn) / 100).toFixed(2)} EUR
+                           <MoneyDisplay cents={finalValue - paidIn} />
                         </div>
                       </div>
                     </div>
@@ -187,19 +186,15 @@ function CashoutContent() {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-retro-light">Total paid‑in</span>
-                <span className="font-pixel">{(totalPaidIn / 100).toFixed(2)} EUR</span>
+                 <MoneyDisplay cents={totalPaidIn} />
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Total final value</span>
-                <span className="font-pixel">
-                  {validation ? (validation.totalFinalValue / 100).toFixed(2) : "0.00"} EUR
-                </span>
+                 <MoneyDisplay cents={validation?.totalFinalValue ?? 0} />
               </div>
               <div className={`flex justify-between border-t border-retro-gray pt-4 ${validation?.isValid ? "text-retro-green" : "text-retro-red"}`}>
                 <span className="text-retro-light">Difference</span>
-                <span className="font-pixel">
-                  {validation ? (validation.diff / 100).toFixed(2) : "0.00"} EUR
-                </span>
+                 <MoneyDisplay cents={validation?.diff ?? 0} />
               </div>
               {validation && (
                 <div className={`p-3 border rounded-retro text-center ${validation.isValid ? "border-retro-green bg-retro-green/10 text-retro-green" : "border-retro-red bg-retro-red/10 text-retro-red"}`}>
