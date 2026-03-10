@@ -8,6 +8,8 @@ test.describe('History Page', () => {
     // Navigate to app origin to allow localStorage access, clear, then leave
     await page.goto('/history');
     await page.evaluate(() => window.localStorage.clear());
+    // Seed default group and active group for groups-first UX
+    await seedLocalStorage(page, {});
     await page.goto('about:blank');
   });
 

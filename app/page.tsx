@@ -289,7 +289,7 @@ export default function GroupsPage() {
                   ) : (
                     <ul className="space-y-2">
                       {selectedGroupDetails.members.map(user => (
-                        <li key={user.id} className="flex justify-between items-center">
+                         <li key={user.id} className="flex justify-between items-center" data-testid="player-item">
                           <span className="text-retro-light">{user.name}</span>
                           <button
                             onClick={() => handleRemovePlayerFromGroup(user.id)}
