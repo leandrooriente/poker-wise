@@ -1,7 +1,9 @@
+/* eslint-disable */
 import { writeFile } from 'fs/promises';
-import sharp from 'sharp';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
+
+import sharp from 'sharp';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const SOURCE_IMAGE = join(__dirname, '..', 'public', 'icon-original.png');

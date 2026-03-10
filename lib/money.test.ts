@@ -8,7 +8,6 @@ import {
   digitsToCents,
   centsToDigits,
   formatDigitsForDisplay,
-  type MoneyFormatOptions,
 } from "./money";
 
 describe("money utilities", () => {

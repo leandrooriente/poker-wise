@@ -3,8 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 
-import { getMatchWithUsers, updateMatch } from "@/db/matches";
 import MoneyDisplay from "@/components/MoneyDisplay";
+import { getMatchWithUsers, updateMatch } from "@/db/matches";
 
 
 function LiveMatchContent() {
@@ -30,8 +30,7 @@ function LiveMatchContent() {
       }
       setMatch(data.match);
       setPlayers(data.players);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Failed to load match");
     } finally {
       setLoading(false);

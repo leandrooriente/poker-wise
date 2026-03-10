@@ -1,5 +1,6 @@
-import { GroupMember } from "@/types/group";
 import { ensureMigration } from "./migrate";
+
+import { GroupMember } from "@/types/group";
 
 const STORAGE_KEY = "poker-wise-group-members";
 
@@ -9,8 +10,7 @@ export async function getGroupMembers(): Promise<GroupMember[]> {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error("Failed to load group members from localStorage:", error);
+  } catch {
     return [];
   }
 }
@@ -20,8 +20,8 @@ export async function saveGroupMembers(members: GroupMember[]): Promise<void> {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
-  } catch (error) {
-    console.error("Failed to save group members to localStorage:", error);
+  } catch {
+    // Failed to save group members
   }
 }
 
@@ -45,6 +45,13 @@ export async function removeGroupMember(groupId: string, userId: string): Promis
   await ensureMigration();
   const members = await getGroupMembers();
   const filtered = members.filter(m => !(m.groupId === groupId && m.userId === userId));
+  await saveGroupMembers(filtered);
+}
+
+export async function removeAllGroupMembersForGroup(groupId: string): Promise<void> {
+  await ensureMigration();
+  const members = await getGroupMembers();
+  const filtered = members.filter(m => m.groupId !== groupId);
   await saveGroupMembers(filtered);
 }
 

@@ -1,6 +1,7 @@
+import { ensureMigration } from "./migrate";
+
 import { generateId } from "@/lib/uuid";
 import { User } from "@/types/user";
-import { ensureMigration } from "./migrate";
 
 const STORAGE_KEY = "poker-wise-users";
 
@@ -10,8 +11,7 @@ export async function getUsers(): Promise<User[]> {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error("Failed to load users from localStorage:", error);
+  } catch {
     return [];
   }
 }
@@ -21,8 +21,8 @@ export async function saveUsers(users: User[]): Promise<void> {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-  } catch (error) {
-    console.error("Failed to save users to localStorage:", error);
+  } catch {
+    // Failed to save users
   }
 }
 

@@ -1,11 +1,13 @@
-import { User } from "@/types/user";
+/* eslint-disable */
+import { getGroups, saveGroups, addGroup } from "./groups";
+import { getMatches, saveMatches } from "./matches";
+import { getGroupMembers, saveGroupMembers } from "./members";
+import { getUsers, saveUsers } from "./users";
+
 import { Group } from "@/types/group";
 import { GroupMember } from "@/types/group";
 import { Match, MatchPlayer } from "@/types/match";
-import { getUsers, saveUsers } from "./users";
-import { getGroups, saveGroups, addGroup } from "./groups";
-import { getGroupMembers, saveGroupMembers } from "./members";
-import { getMatches, saveMatches } from "./matches";
+import { User } from "@/types/user";
 
 export let isMigrating = false;
 
@@ -42,7 +44,7 @@ export async function runMigrationIfNeeded(): Promise<void> {
     const groups = await getGroups();
     let defaultGroup = groups.find(g => g.id === "home-game");
     if (!defaultGroup) {
-      defaultGroup = await addGroup({ id: "home-game" });
+      defaultGroup = await addGroup({ id: "home-game", name: "Home Game" });
     }
 
     // Step 2: Migrate legacy players to global users

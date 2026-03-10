@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Press_Start_2P, Courier_Prime } from "next/font/google";
 
 import "./globals.css";
+import { Providers } from "./providers";
+
 import Header from "@/components/Header";
 
 const pixelFont = Press_Start_2P({
@@ -43,13 +45,15 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className="min-h-screen bg-retro-dark text-retro-light font-retro-sans">
-        <div className="relative max-w-4xl mx-auto p-4">
-          <Header />
-          <main className="mt-6">{children}</main>
-           <footer className="mt-12 text-center text-retro-gray text-sm border-t border-retro-gray pt-4">
-              <p>Poker Wise © 2026 — Poker match settlement</p>
-           </footer>
-        </div>
+        <Providers>
+          <div className="relative max-w-4xl mx-auto p-4">
+            <Header />
+            <main className="mt-6">{children}</main>
+             <footer className="mt-12 text-center text-retro-gray text-sm border-t border-retro-gray pt-4">
+                <p>Poker Wise © 2026 — Poker match settlement</p>
+             </footer>
+          </div>
+        </Providers>
       </body>
     </html>
   );

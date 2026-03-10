@@ -1,12 +1,11 @@
+/* eslint-disable */
 import { test, expect } from '@playwright/test';
+import { seedLocalStorage } from './helpers';
 
 test.describe('Basic poker match flow', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage before each test
-    await page.addInitScript(() => {
-      window.localStorage.clear();
-      window.localStorage.setItem('poker-wise-migration-v1-done', 'true');
-    });
+    // Seed default group and migration marker
+    await seedLocalStorage(page, {});
     await page.goto('/');
     // Capture console logs from the page
     page.on('console', msg => console.log(`[page] ${msg.text()}`));
@@ -14,8 +13,8 @@ test.describe('Basic poker match flow', () => {
 
   test('complete match flow: add player, start match, rebuy, cashout, settle', async ({ page }) => {
     // 1. Add a player
-    await page.getByPlaceholder('e.g., Max').fill('Test Player');
-    await page.getByRole('button', { name: 'ADD PLAYER' }).click();
+    await page.getByPlaceholder('Player name').fill('Test Player');
+    await page.getByRole('button', { name: 'ADD' }).click();
     await expect(page.getByText('Test Player')).toBeVisible();
 
     // 2. Navigate to New Match
@@ -67,10 +66,10 @@ test.describe('Basic poker match flow', () => {
 
   test('two players settlement with transfers', async ({ page }) => {
     // Add two players
-    await page.getByPlaceholder('e.g., Max').fill('Alice');
-    await page.getByRole('button', { name: 'ADD PLAYER' }).click();
-    await page.getByPlaceholder('e.g., Max').fill('Bob');
-    await page.getByRole('button', { name: 'ADD PLAYER' }).click();
+    await page.getByPlaceholder('Player name').fill('Alice');
+    await page.getByRole('button', { name: 'ADD' }).click();
+    await page.getByPlaceholder('Player name').fill('Bob');
+    await page.getByRole('button', { name: 'ADD' }).click();
 
     // Start match with both players
     await page.getByRole('link', { name: 'New Match' }).click();

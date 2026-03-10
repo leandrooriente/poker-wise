@@ -1,11 +1,41 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
+
+import { getGroups } from "@/db/groups";
+import { useActiveGroup } from "@/lib/active-group";
+import { Group } from "@/types/group";
 
 export default function Header() {
+  const { activeGroupId, setActiveGroupId, isLoading: activeGroupLoading } = useActiveGroup();
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [groupsLoading, setGroupsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadGroups() {
+      try {
+        const loaded = await getGroups();
+        setGroups(loaded);
+      } catch {
+        // Failed to load groups
+      } finally {
+        setGroupsLoading(false);
+      }
+    }
+    loadGroups();
+  }, []);
+
   const navItems = [
-    { label: "Players", href: "/" },
+    { label: "Groups", href: "/" },
     { label: "New Match", href: "/new-match" },
     { label: "History", href: "/history" },
   ];
+
+  const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setActiveGroupId(value || null);
+  };
 
   return (
     <header className="border-retro border-retro-width p-4 rounded-retro bg-retro-dark shadow-retro-outset">
@@ -18,6 +48,24 @@ export default function Header() {
             POKER<span className="text-retro-yellow">WISE</span>
           </h1>
 
+          {/* Group selector */}
+          <div className="ml-4">
+            <label htmlFor="group-select" className="sr-only">Select group</label>
+            <select
+              id="group-select"
+              value={activeGroupId || ""}
+              onChange={handleGroupChange}
+              disabled={activeGroupLoading || groupsLoading}
+              className="px-3 py-2 border border-retro-gray rounded-retro bg-retro-dark text-retro-light hover:bg-retro-green hover:text-retro-dark hover:border-retro-green transition-all duration-200 font-pixel text-sm"
+            >
+              <option value="">-- Select group --</option>
+              {groups.map((group) => (
+                <option key={group.id} value={group.id}>
+                   {group.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <nav className="flex flex-wrap gap-2">
@@ -32,8 +80,6 @@ export default function Header() {
           ))}
         </nav>
       </div>
-
-
     </header>
   );
 }

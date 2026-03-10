@@ -1,5 +1,6 @@
 export interface Group {
-  id: string; // handcrafted slug (also used as display name)
+  id: string; // unique identifier (slug)
+  name: string; // display name
   createdAt: string;
 }
 

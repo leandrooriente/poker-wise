@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 
-import { getMatches } from "@/db/matches";
-import { getPlayers } from "@/db/players";
+import MoneyDisplay from "@/components/MoneyDisplay";
+import { getMatchesByGroup } from "@/db/matches";
+import { getPlayersForGroup } from "@/db/players";
+import { useActiveGroup } from "@/lib/active-group";
 import { calculateSettlement } from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
-import MoneyDisplay from "@/components/MoneyDisplay";
 
 interface MatchWithDetails extends Match {
   playerDetails: Array<{
@@ -21,58 +22,64 @@ interface MatchWithDetails extends Match {
 }
 
 export default function HistoryPage() {
+  const { activeGroupId } = useActiveGroup();
   const [matches, setMatches] = useState<MatchWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadMatches();
-  }, []);
+    const loadMatches = async () => {
+      try {
+        if (!activeGroupId) {
+          setMatches([]);
+          setLoading(false);
+          return;
+        }
+        const [matchesData, playersData] = await Promise.all([
+          getMatchesByGroup(activeGroupId),
+          getPlayersForGroup(activeGroupId),
+        ]);
 
-  const loadMatches = async () => {
-    try {
-      const [matchesData, playersData] = await Promise.all([
-        getMatches(),
-        getPlayers(),
-      ]);
+        const enriched = matchesData.map((match): MatchWithDetails => {
+          const playerDetails = match.players.map((mp) => {
+             const player = playersData.find((p) => p.id === mp.userId);
+            return {
+              player: player!,
+              buyIns: mp.buyIns,
+              finalValue: mp.finalValue,
+            };
+          }).filter((pd) => pd.player);
 
-      const enriched = matchesData.map((match): MatchWithDetails => {
-        const playerDetails = match.players.map((mp) => {
-           const player = playersData.find((p) => p.id === mp.userId);
+          const totalBuyIns = playerDetails.reduce((sum, pd) => sum + pd.buyIns, 0);
+          const totalValue = playerDetails.reduce((sum, pd) => sum + pd.finalValue, 0);
+
+          const settlement = calculateSettlement(
+            match.players,
+            match.buyInAmount
+          );
+
           return {
-            player: player!,
-            buyIns: mp.buyIns,
-            finalValue: mp.finalValue,
+            ...match,
+            playerDetails,
+            totalBuyIns,
+            totalValue,
+            settlement,
           };
-        }).filter((pd) => pd.player);
+        });
 
-        const totalBuyIns = playerDetails.reduce((sum, pd) => sum + pd.buyIns, 0);
-        const totalValue = playerDetails.reduce((sum, pd) => sum + pd.finalValue, 0);
+        // Sort by date descending (newest first)
+        enriched.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        const settlement = calculateSettlement(
-          match.players,
-          match.buyInAmount
-        );
+        setMatches(enriched);
+      } catch {
+        // Failed to load matches
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        return {
-          ...match,
-          playerDetails,
-          totalBuyIns,
-          totalValue,
-          settlement,
-        };
-      });
-
-      // Sort by date descending (newest first)
-      enriched.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-      setMatches(enriched);
-    } catch (error) {
-      console.error("Failed to load matches:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    loadMatches();
+  }, [activeGroupId]);
 
   const toggleExpand = (matchId: string) => {
     setExpandedMatchId(expandedMatchId === matchId ? null : matchId);
@@ -93,6 +100,20 @@ export default function HistoryPage() {
         <h2 className="text-2xl font-pixel text-retro-green mb-6">MATCH HISTORY</h2>
         <div className="flex justify-center items-center h-64">
           <div className="text-retro-green font-pixel">Loading matches...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activeGroupId) {
+    return (
+      <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
+        <h2 className="text-2xl font-pixel text-retro-green mb-6">MATCH HISTORY</h2>
+        <div className="border border-retro-gray rounded-retro p-8 text-center">
+          <p className="text-retro-gray">No group selected.</p>
+          <p className="text-sm mt-2">
+            Please select a group from the header dropdown or create one on the Groups page.
+          </p>
         </div>
       </div>
     );

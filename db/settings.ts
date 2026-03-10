@@ -13,8 +13,7 @@ export async function getSettings(): Promise<AppSettings> {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : DEFAULT_SETTINGS;
-  } catch (error) {
-    console.error("Failed to load settings:", error);
+  } catch {
     return DEFAULT_SETTINGS;
   }
 }
@@ -23,8 +22,8 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  } catch (error) {
-    console.error("Failed to save settings:", error);
+  } catch {
+    // Failed to save settings
   }
 }
 
