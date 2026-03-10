@@ -43,7 +43,7 @@ export default defineConfig({
           POSTGRES_URL: process.env.POSTGRES_URL || "postgresql://user:pass@localhost:5432/db",
           ADMIN_EMAIL: process.env.ADMIN_EMAIL || "admin@example.com",
           ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "changeme",
-          AUTH_SECRET: process.env.AUTH_SECRET || "01234567890123456789012345678901",
+          AUTH_SECRET: process.env.AUTH_SECRET || "auth-secret-01234567890123456789012345678901",
           NODE_ENV: process.env.NODE_ENV || "test",
         },
       }
@@ -56,7 +56,7 @@ export default defineConfig({
           POSTGRES_URL: process.env.POSTGRES_URL || "postgresql://user:pass@localhost:5432/db",
           ADMIN_EMAIL: process.env.ADMIN_EMAIL || "admin@example.com",
           ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "changeme",
-          AUTH_SECRET: process.env.AUTH_SECRET || "01234567890123456789012345678901",
+          AUTH_SECRET: process.env.AUTH_SECRET || "auth-secret-01234567890123456789012345678901",
           NODE_ENV: process.env.NODE_ENV || "development",
         },
       },
