@@ -54,13 +54,13 @@ export default function PlayerCard({ player, onUpdate, onDelete }: PlayerCardPro
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              className="flex-1 px-3 py-2 bg-retro-green text-retro-dark font-pixel rounded-retro hover:bg-retro-teal transition-colors"
+              className="flex-1 px-3 py-2 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 transition-colors"
             >
               Save
             </button>
             <button
               onClick={handleCancel}
-              className="flex-1 px-3 py-2 bg-retro-gray text-retro-light font-pixel rounded-retro hover:bg-retro-red transition-colors"
+              className="flex-1 px-3 py-2 bg-white text-black font-pixel rounded-retro hover:bg-retro-red transition-colors"
             >
               Cancel
             </button>
@@ -78,13 +78,13 @@ export default function PlayerCard({ player, onUpdate, onDelete }: PlayerCardPro
             <div className="flex gap-2">
               <button
                 onClick={() => setEditing(true)}
-                className="px-3 py-1 border border-retro-gray rounded-retro text-retro-yellow hover:border-retro-yellow transition-colors text-sm"
+                 className="px-3 py-1 bg-white text-black border border-retro-gray rounded-retro hover:border-retro-yellow transition-colors text-sm"
               >
                 Edit
               </button>
               <button
                 onClick={() => onDelete(player.id)}
-                className="px-3 py-1 border border-retro-gray rounded-retro text-retro-red hover:border-retro-red transition-colors text-sm"
+                 className="px-3 py-1 bg-white text-black border border-retro-gray rounded-retro hover:border-retro-red transition-colors text-sm"
               >
                 Delete
               </button>

@@ -4,9 +4,6 @@ export default function Header() {
   const navItems = [
     { label: "Players", href: "/" },
     { label: "New Match", href: "/new-match" },
-    { label: "Live Match", href: "/live-match" },
-    { label: "Cashout", href: "/cashout" },
-    { label: "Results", href: "/results" },
     { label: "History", href: "/history" },
   ];
 
