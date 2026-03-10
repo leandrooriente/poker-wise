@@ -17,9 +17,9 @@ export interface MatchSetup {
  */
 export async function addPlayer(page: Page, data: PlayerData) {
   await page.goto('/');
-  await page.getByTestId('player-name-input').fill(data.name);
+  await page.getByPlaceholder('Player name').fill(data.name);
   
-  await page.getByRole('button', { name: 'ADD PLAYER' }).click();
+  await page.getByRole('button', { name: 'ADD' }).click();
   await expect(page.getByText(data.name)).toBeVisible();
 }
 
@@ -126,6 +126,8 @@ export async function seedLocalStorage(
     // Ensure default group exists
     const groups = [{ id: 'home-game', createdAt: new Date().toISOString() }];
     localStorage.setItem('poker-wise-groups', JSON.stringify(groups));
+    // Set active group
+    localStorage.setItem('poker-wise-active-group', 'home-game');
     
     // Ensure group memberships exist for seeded users
     if (opts.players) {
