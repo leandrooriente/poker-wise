@@ -15,8 +15,11 @@ export async function resetDatabase() {
   await db.execute(sql`DROP TABLE IF EXISTS admins CASCADE`);
 
   // Enable UUID extension
-  await db.execute(sql`DROP EXTENSION IF EXISTS "uuid-ossp" CASCADE`);
-  await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+  // Ensure extension exists, using a safe approach to avoid duplicate key errors
+  const extExists = await db.execute(sql`SELECT 1 FROM pg_extension WHERE extname = 'uuid-ossp'`);
+  if (extExists.rows.length === 0) {
+    await db.execute(sql`CREATE EXTENSION "uuid-ossp"`);
+  }
 
   // Create tables
   await db.execute(sql`

@@ -41,6 +41,7 @@ export async function login(email: string, password: string): Promise<SessionDat
   session.email = admin.email;
   session.isLoggedIn = true;
   await session.save();
+  console.log("[login] session saved, adminId:", admin.id);
   return session;
 }
 
@@ -56,5 +57,6 @@ export async function requireAdmin() {
     console.log("[requireAdmin] not logged in, redirecting");
     redirect("/login");
   }
+  console.log("[requireAdmin] admin authorized:", session.email);
   return session;
 }
