@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-import { getGroups, addGroup, deleteGroup } from "@/db/groups";
+import { getGroups, addGroup, deleteGroup } from "@/db/serverGroups";
 import { getMatchesByGroup } from "@/db/matches";
 import {
   getGroupMembersForGroup,

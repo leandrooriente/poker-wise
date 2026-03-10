@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-import { getGroups } from "@/db/groups";
+import { getGroups } from "@/db/serverGroups";
 import { useActiveGroup } from "@/lib/active-group";
 import { Group } from "@/types/group";
 

@@ -1,16 +1,21 @@
 /* eslint-disable */
 import { test } from '@playwright/test';
 
-import { addPlayer, expect, seedLocalStorage } from './helpers';
+import { addPlayer, expect, seedLocalStorage, loginAdmin, createGroup } from './helpers';
 
 test.describe('New Match Setup', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to app origin to allow localStorage access, clear, then leave
+    // Navigate to app origin to allow localStorage access, clear
     await page.goto('/history');
     await page.evaluate(() => window.localStorage.clear());
     // Seed default group and active group for groups-first UX
     await seedLocalStorage(page, {});
-    await page.goto('about:blank');
+    // Log in as admin (required for server-backed groups)
+    await loginAdmin(page);
+    // Create default group with unique slug via UI (since server groups are empty)
+    const uniqueSlug = `home-game-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    await createGroup(page, uniqueSlug, 'Home Game');
+    // Stay on current page (groups page) or about:blank? We'll stay on groups page.
   });
 
   test('empty state when there are no players', async ({ page }) => {

@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { test } from '@playwright/test';
 
-import { expect, seedLocalStorage, openLatestHistoryMatch, fillCashoutValues } from './helpers';
+import { expect, seedLocalStorage, openLatestHistoryMatch, fillCashoutValues, loginAdmin, createGroup } from './helpers';
 
 test.describe('History Page', () => {
   test.beforeEach(async ({ page }) => {
@@ -10,6 +10,11 @@ test.describe('History Page', () => {
     await page.evaluate(() => window.localStorage.clear());
     // Seed default group and active group for groups-first UX
     await seedLocalStorage(page, {});
+    // Log in as admin (required for server-backed groups)
+    await loginAdmin(page);
+    // Create default group with unique slug via UI (since server groups are empty)
+    const uniqueSlug = `home-game-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    await createGroup(page, uniqueSlug, 'Home Game');
     await page.goto('about:blank');
   });
 

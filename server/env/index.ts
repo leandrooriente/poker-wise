@@ -41,7 +41,7 @@ export function getEnv() {
         POSTGRES_URL: "postgresql://user:pass@localhost:5432/db",
         ADMIN_EMAIL: "admin@example.com",
         ADMIN_PASSWORD: "changeme",
-        AUTH_SECRET: "dummy-secret-for-build",
+        AUTH_SECRET: "auth-secret-01234567890123456789012345678901",
         NODE_ENV: nodeEnv as "development" | "test" | "production",
       };
     }
