@@ -52,7 +52,7 @@ jobs:
       POSTGRES_URL: postgresql://user:pass@localhost:5432/db
       ADMIN_EMAIL: admin@example.com
       ADMIN_PASSWORD: changeme
-      AUTH_SECRET: secret
+      AUTH_SECRET: 01234567890123456789012345678901
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
       POSTGRES_URL: postgresql://user:pass@localhost:5432/db
       ADMIN_EMAIL: admin@example.com
       ADMIN_PASSWORD: changeme
-      AUTH_SECRET: secret
+      AUTH_SECRET: 01234567890123456789012345678901
     strategy:
       fail-fast: false
       matrix:
