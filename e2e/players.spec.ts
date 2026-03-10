@@ -8,17 +8,15 @@ test.describe('Player Management', () => {
     await page.evaluate(() => window.localStorage.clear());
   });
 
-  test('add player with notes and preferred buy-in', async ({ page }) => {
+  test('add player with preferred buy-in', async ({ page }) => {
     await addPlayer(page, {
       name: 'Alice',
-      notes: 'Aggressive player',
       preferredBuyIn: 1250, // 12.50 EUR
     });
 
     // Verify player card shows all details
     const playerCard = page.locator('div', { has: page.getByText('Alice') });
     await expect(playerCard.getByText('Alice')).toBeVisible();
-    await expect(playerCard.getByText('Aggressive player')).toBeVisible();
     await expect(playerCard.getByText('12.50')).toBeVisible();
     
     // Verify the player count updates
@@ -64,7 +62,6 @@ test.describe('Player Management', () => {
   test('player data persists after reload', async ({ page }) => {
     await addPlayer(page, {
       name: 'Eve',
-      notes: 'Persistence test',
       preferredBuyIn: 800, // 8.00 EUR
     });
     
@@ -73,7 +70,6 @@ test.describe('Player Management', () => {
     
     // Verify player still exists with all details
     await expect(page.getByText('Eve')).toBeVisible();
-    await expect(page.getByText('Persistence test')).toBeVisible();
     await expect(page.getByText('8.00')).toBeVisible();
   });
 

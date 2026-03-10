@@ -179,7 +179,7 @@ export default function NewMatchPage() {
             <button
               onClick={handleStartMatch}
               disabled={selectedPlayerIds.length === 0}
-              className="w-full mt-6 px-6 py-4 bg-retro-green text-retro-dark font-pixel rounded-retro hover:bg-retro-teal hover:shadow-retro-outset disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+               className="w-full mt-6 px-6 py-4 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 hover:shadow-retro-outset disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               START MATCH
             </button>

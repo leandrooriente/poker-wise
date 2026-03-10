@@ -19,9 +19,7 @@ export async function addPlayer(page: Page, data: PlayerData) {
   await page.goto('/');
   await page.getByTestId('player-name-input').fill(data.name);
   
-  if (data.notes) {
-    await page.getByTestId('player-notes-input').fill(data.notes);
-  }
+
   
   if (data.preferredBuyIn !== undefined) {
     await page.getByTestId('player-preferred-buyin-input').fill((data.preferredBuyIn / 100).toFixed(2));

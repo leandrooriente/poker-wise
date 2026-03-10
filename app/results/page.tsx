@@ -68,7 +68,7 @@ function ResultsContent() {
         <p className="text-retro-light">{error || "Results unavailable"}</p>
         <button
           onClick={() => router.push("/new-match")}
-          className="mt-4 px-4 py-2 bg-retro-green text-retro-dark font-pixel rounded-retro"
+          className="mt-4 px-4 py-2 bg-white text-black font-pixel rounded-retro"
         >
           Start New Match
         </button>
@@ -190,7 +190,7 @@ function ResultsContent() {
             <div className="space-y-4">
               <button
                 onClick={handleNewMatch}
-                className="w-full px-6 py-4 bg-retro-green text-retro-dark font-pixel rounded-retro hover:bg-retro-teal hover:shadow-retro-outset transition-all"
+                 className="w-full px-6 py-4 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 hover:shadow-retro-outset transition-all"
               >
                 START NEW MATCH
               </button>
