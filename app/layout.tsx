@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Press_Start_2P, Courier_Prime } from "next/font/google";
 
 import "./globals.css";
@@ -21,14 +21,12 @@ const retroFont = Courier_Prime({
 export const metadata: Metadata = {
   title: "Poker Wise",
   description: "Poker match organizer and settlement app",
-  themeColor: "#006600",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    title: "Poker Wise",
-    statusBarStyle: "black-translucent",
-  },
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -42,16 +40,19 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
       </head>
-      <body className="min-h-screen bg-retro-dark text-retro-light font-retro-sans">
+      <body className="min-h-screen bg-retro-dark font-retro-sans text-retro-light">
         <Providers>
-          <div className="relative max-w-4xl mx-auto p-4">
+          <div className="relative mx-auto max-w-4xl p-4">
             <Header />
             <main className="mt-6">{children}</main>
-             <footer className="mt-12 text-center text-retro-gray text-sm border-t border-retro-gray pt-4">
-                <p>Poker Wise © 2026 — Poker match settlement</p>
-             </footer>
+            <footer className="mt-12 border-t border-retro-gray pt-4 text-center text-sm text-retro-gray">
+              <p>Poker Wise © 2026 — Poker match settlement</p>
+            </footer>
           </div>
         </Providers>
       </body>

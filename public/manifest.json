@@ -2,7 +2,7 @@
   "name": "Poker Wise",
   "short_name": "PokerWise",
   "description": "Local-first poker match organizer with 16-bit style",
-  "theme_color": "#006600",
+
   "background_color": "#111111",
   "display": "standalone",
   "orientation": "portrait",
