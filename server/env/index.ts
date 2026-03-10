@@ -11,5 +11,13 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 
-export const env = envSchema.parse(process.env);
+let cachedEnv: z.infer<typeof envSchema> | null = null;
+
+export function getEnv() {
+  if (!cachedEnv) {
+    cachedEnv = envSchema.parse(process.env);
+  }
+  return cachedEnv;
+}
+
 export { envSchema };

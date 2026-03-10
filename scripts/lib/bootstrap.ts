@@ -1,5 +1,5 @@
 import { hash } from "bcryptjs";
-import { env } from "@/server/env";
+import { getEnv } from "@/server/env";
 import { db } from "@/server/db";
 import { admins } from "@/server/db/schema";
 
@@ -10,11 +10,11 @@ export async function bootstrapAdmin() {
     return existingAdmin;
   }
 
-  const passwordHash = await hash(env.ADMIN_PASSWORD, 10);
+  const passwordHash = await hash(getEnv().ADMIN_PASSWORD, 10);
   const [admin] = await db
     .insert(admins)
     .values({
-      email: env.ADMIN_EMAIL,
+      email: getEnv().ADMIN_EMAIL,
       passwordHash,
     })
     .returning();
