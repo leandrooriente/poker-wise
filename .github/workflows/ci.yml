@@ -73,6 +73,20 @@ jobs:
     name: E2E Tests (Chromium) - Shard ${{ matrix.shard_part }}/2
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     env:
       POSTGRES_URL: postgresql://user:pass@localhost:5432/db
       ADMIN_EMAIL: admin@example.com
@@ -94,6 +108,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+
+      - name: Reset and seed database
+        run: npm run db:reset
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
