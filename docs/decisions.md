@@ -98,6 +98,50 @@
 3. Enable branch protection rules as described above.
 4. Merge this branch (`opencode/kimaki-vercel-auto-deploy`) into `main` to activate the CI pipeline.
 
+## 2026‑03‑10 – Backend Foundation & Migration Plan
+
+### Requirements
+- Migrate Poker Wise from a local‑first localStorage app to a Vercel Postgres backend with admin authentication and public read‑only sharing.
+- Deliver migration in multiple small, reviewable PRs (9 phases) to reduce risk.
+- Optimize for speed over temporary compatibility – intermediate phases may temporarily break functionality.
+
+### Implementation (PR 1 – Backend Foundation)
+- **Database schema**: Defined `groups`, `users`, `members`, `matches`, `match_entries`, `admins`, `group_share_tokens` tables using Drizzle ORM.
+- **Environment validation**: Zod schema for `POSTGRES_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `AUTH_SECRET`, `NODE_ENV`.
+- **Database reset script**: `scripts/db-reset.ts` drops/recreates tables, bootstraps a seeded admin account (password from env).
+- **Scenario‑based seeding**: Five named seed scenarios (`empty`, `basic-group`, `live-match`, `history`, `full-demo`) for local development and deterministic E2E tests.
+- **Seed factories**: Reusable factory functions for creating groups, players, matches, entries, and public share tokens.
+- **Local PostgreSQL**: Docker Compose configuration (`docker-compose.yml`) for local development.
+- **Package scripts**: `db:reset`, `db:seed`, `db:migrate`, `db:studio`.
+- **Unit test**: Added validation test for environment schema.
+- **E2E helper**: `e2e/db-helpers.ts` with `resetDatabase`, `seedScenario`, `resetAndSeed` functions for test setup.
+
+### Decisions
+- **Admin authentication**: Seeded password auth (no email magic links) for MVP simplicity.
+- **Public share tokens**: Every non‑empty seed scenario includes a public share token; anyone with the link can view everything read‑only.
+- **Deterministic seeding**: E2E tests will rely on explicit scenario seeds, not leftover database state.
+- **Local default**: `db:reset` defaults to `full-demo` scenario for convenient local development.
+
+### Next Steps (Remaining PRs)
+1. PR 2 – Admin login UI (password form, session cookie).
+2. PR 3 – Group creation/management UI.
+3. PR 4 – Match lifecycle (create, start, rebuy, cashout) backed by DB.
+4. PR 5 – Public share view (read‑only).
+5. PR 6 – Migrate existing localStorage data to backend (one‑time migration).
+6. PR 7 – Remove localStorage dependencies.
+7. PR 8 – Add API route protection (admin‑only endpoints).
+8. PR 9 – Final polish and cleanup.
+
+### Relevant Files
+- `docs/backend-rollout-plan.md` – full phased PR specification
+- `server/db/schema.ts` – core table definitions
+- `server/env/index.ts` – env validation
+- `scripts/db-reset.ts` – full database reset with admin bootstrap
+- `scripts/lib/scenarios.ts` – named scenario implementations
+- `scripts/lib/seed-factories.ts` – reusable seed factories
+- `e2e/db-helpers.ts` – E2E test database helpers
+- `docker-compose.yml` – local PostgreSQL container
+
 ## Open Questions / Future Work
 - **Export/import**: Not in MVP, but could be added later via JSON download/upload.
 - **Multiple devices**: Sync would require a backend; out of scope for MVP.
