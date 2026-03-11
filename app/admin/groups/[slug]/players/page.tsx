@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import AddPlayerForm from "@/components/AddPlayerForm";
 import PlayerCard from "@/components/PlayerCard";
@@ -15,7 +15,7 @@ export default function GroupPlayersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPlayers = async () => {
+  const fetchPlayers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -49,13 +49,13 @@ export default function GroupPlayersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
 
   useEffect(() => {
     if (slug) {
       fetchPlayers();
     }
-  }, [slug]);
+  }, [slug, fetchPlayers]);
 
   const handleAddPlayer = async (
     playerData: Omit<Player, "id" | "createdAt">
