@@ -4,6 +4,7 @@ import {
   fillCashoutValues,
   loginAdminAndCreateNamespacedGroup,
   generateNamespace,
+  addRebuy,
 } from "./helpers";
 
 test.describe("Results Page", () => {
@@ -218,10 +219,7 @@ test.describe("Results Page", () => {
     await expect(
       page.getByRole("heading", { name: "LIVE MATCH" })
     ).toBeVisible();
-    const aliceRow = page
-      .getByTestId("player-row")
-      .filter({ has: page.getByRole("heading", { name: "Alice" }) });
-    await aliceRow.getByRole("button", { name: "REBUY" }).click();
+    await addRebuy(page, "Alice", 1);
 
     // Navigate to cashout
     await page.getByRole("button", { name: "CASHOUT" }).click();
@@ -233,9 +231,11 @@ test.describe("Results Page", () => {
     await fillCashoutValues(page, { Alice: 25.0, Bob: 5.0 });
 
     // Validation should pass
-    await expect(
-      page.getByText("✓ Totals match! Ready to settle.")
-    ).toBeVisible();
+    const validationMessage = page.getByTestId("validation-message");
+    await expect(validationMessage).toBeVisible();
+    await expect(validationMessage).toHaveText(
+      "✓ Totals match! Ready to settle."
+    );
 
     // Click settle button
     await page.getByRole("button", { name: "SETTLE & SHOW RESULTS" }).click();

@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
 import MoneyInput from "@/components/MoneyInput";
-import { getMatchWithUsers, updateMatch } from "@/db/matches";
+import { getMatchWithUsers, settleMatch } from "@/db/matches";
 import { validateTotals } from "@/lib/settlement";
 
 function CashoutContent() {
@@ -32,6 +32,7 @@ function CashoutContent() {
   const loadMatch = async (id: string) => {
     try {
       const data = await getMatchWithUsers(id);
+
       if (!data) {
         setError("Match not found");
         return;
@@ -50,7 +51,12 @@ function CashoutContent() {
         buyIns: mp.buyIns,
         finalValue: initialValues[mp.userId] || 0,
       }));
-      const validationResult = validateTotals(matchPlayers, data.match.buyInAmount);
+
+      const validationResult = validateTotals(
+        matchPlayers,
+        data.match.buyInAmount
+      );
+
       setValidation(validationResult);
     } catch {
       setError("Failed to load match");
@@ -68,7 +74,9 @@ function CashoutContent() {
         buyIns: mp.buyIns,
         finalValue: newValues[mp.userId] || 0,
       }));
+
       const validationResult = validateTotals(matchPlayers, match.buyInAmount);
+
       setValidation(validationResult);
     }
   };
@@ -78,41 +86,26 @@ function CashoutContent() {
       alert("Cannot settle until totals match.");
       return;
     }
-    // Update match with final values
-    const updatedPlayers = match.players.map((mp: any) => ({
-      ...mp,
-        finalValue: finalValues[mp.userId] || 0,
-    }));
-    const updatedMatch = {
-      ...match,
-      players: updatedPlayers,
-      endedAt: match.endedAt || new Date().toISOString(),
-    };
-    await updateMatch(updatedMatch);
-    // Compute settlement (computed again in results page)
-    // const settlement = calculateSettlement(updatedPlayers, match.buyInAmount);
-    // Navigate to results with settlement data (we can store in match or pass via query)
-    // For simplicity, store settlement in match as derived field (not persisted)
-    // We'll pass match ID and compute again in results page.
+    await settleMatch(match.id, finalValues);
     router.push(`/results?match=${match.id}`);
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-retro-green font-pixel">Loading match...</div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="font-pixel text-retro-green">Loading match...</div>
       </div>
     );
   }
 
   if (error || !match) {
     return (
-      <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
-        <h2 className="text-2xl font-pixel text-retro-red mb-4">ERROR</h2>
+      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
+        <h2 className="font-pixel text-retro-red mb-4 text-2xl">ERROR</h2>
         <p className="text-retro-light">{error || "Match not found"}</p>
         <button
           onClick={() => router.push("/new-match")}
-          className="mt-4 px-4 py-2 bg-white text-black font-pixel rounded-retro"
+          className="rounded-retro font-pixel mt-4 bg-white px-4 py-2 text-black"
         >
           Start New Match
         </button>
@@ -124,50 +117,62 @@ function CashoutContent() {
   const totalPaidIn = totalBuyIns * match.buyInAmount;
 
   return (
-    <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
-      <h2 className="text-2xl font-pixel text-retro-green mb-4">CASHOUT</h2>
+    <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
+      <h2 className="font-pixel text-retro-green mb-4 text-2xl">CASHOUT</h2>
       <p className="text-retro-light mb-6">
-        Enter each player’s final chip value in euros. The total must match the total paid‑in amount.
+        Enter each player’s final chip value in euros. The total must match the
+        total paid‑in amount.
       </p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Player inputs */}
         <div className="lg:col-span-2">
-          <h3 className="text-xl font-pixel text-retro-yellow mb-4">FINAL CHIP VALUES</h3>
+          <h3 className="font-pixel text-retro-yellow mb-4 text-xl">
+            FINAL CHIP VALUES
+          </h3>
           <div className="space-y-6">
-             {players.map(({ user, buyIns }) => {
+            {players.map(({ user, buyIns }) => {
               const paidIn = buyIns * match.buyInAmount;
-               const finalValue = finalValues[user.id] || 0;
+              const finalValue = finalValues[user.id] || 0;
               return (
                 <div
-                   key={user.id}
-                  className="border border-retro-gray rounded-retro p-6 bg-retro-dark hover:border-retro-green transition-colors"
+                  key={user.id}
+                  className="rounded-retro border-retro-gray bg-retro-dark hover:border-retro-green border p-6 transition-colors"
                 >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
-                       <h4 className="text-2xl font-pixel text-retro-green">{user.name}</h4>
+                      <h4 className="font-pixel text-retro-green text-2xl">
+                        {user.name}
+                      </h4>
                       <p className="text-retro-light">
-                        Buy‑ins: <span className="font-pixel">{buyIns}</span> • Paid in:{" "}
-                         <MoneyDisplay cents={paidIn} />
+                        Buy‑ins: <span className="font-pixel">{buyIns}</span> •
+                        Paid in: <MoneyDisplay cents={paidIn} />
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                          <label htmlFor={`final-value-${user.id}`} className="block text-retro-light text-sm mb-2 font-pixel">
-                           FINAL VALUE (EUR)
-                         </label>
-                           <MoneyInput
-                              id={`final-value-${user.id}`}
-                             value={finalValue}
-                              onChange={(cents) => handleFinalValueChange(user.id, cents)}
-                             className="px-4 py-3 w-40 text-right font-pixel"
-                              data-testid={`final-value-input-${user.id}`}
-                           />
+                        <label
+                          htmlFor={`final-value-${user.id}`}
+                          className="font-pixel text-retro-light mb-2 block text-sm"
+                        >
+                          FINAL VALUE (EUR)
+                        </label>
+                        <MoneyInput
+                          id={`final-value-${user.id}`}
+                          value={finalValue}
+                          onChange={(cents) =>
+                            handleFinalValueChange(user.id, cents)
+                          }
+                          className="font-pixel w-40 px-4 py-3 text-right"
+                          data-testid={`final-value-input-${user.id}`}
+                        />
                       </div>
                       <div className="text-center">
                         <div className="text-retro-gray text-sm">Net</div>
-                        <div className={`text-xl font-pixel ${finalValue - paidIn >= 0 ? "text-retro-green" : "text-retro-red"}`}>
-                           <MoneyDisplay cents={finalValue - paidIn} />
+                        <div
+                          className={`font-pixel text-xl ${finalValue - paidIn >= 0 ? "text-retro-green" : "text-retro-red"}`}
+                        >
+                          <MoneyDisplay cents={finalValue - paidIn} />
                         </div>
                       </div>
                     </div>
@@ -181,51 +186,73 @@ function CashoutContent() {
         {/* Validation & actions */}
         <div className="space-y-6">
           <div>
-            <h3 className="text-xl font-pixel text-retro-blue mb-4">VALIDATION</h3>
+            <h3 className="font-pixel text-retro-blue mb-4 text-xl">
+              VALIDATION
+            </h3>
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-retro-light">Total paid‑in</span>
-                 <MoneyDisplay cents={totalPaidIn} />
+                <MoneyDisplay cents={totalPaidIn} />
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Total final value</span>
-                 <MoneyDisplay cents={validation?.totalFinalValue ?? 0} />
+                <MoneyDisplay cents={validation?.totalFinalValue ?? 0} />
               </div>
-              <div className={`flex justify-between border-t border-retro-gray pt-4 ${validation?.isValid ? "text-retro-green" : "text-retro-red"}`}>
+              <div
+                className={`border-retro-gray flex justify-between border-t pt-4 ${validation?.isValid ? "text-retro-green" : "text-retro-red"}`}
+              >
                 <span className="text-retro-light">Difference</span>
-                 <MoneyDisplay cents={validation?.diff ?? 0} />
+                <MoneyDisplay cents={validation?.diff ?? 0} />
               </div>
               {validation && (
-                <div className={`p-3 border rounded-retro text-center ${validation.isValid ? "border-retro-green bg-retro-green/10 text-retro-green" : "border-retro-red bg-retro-red/10 text-retro-red"}`}>
-                  {validation.isValid ? "✓ Totals match! Ready to settle." : "✗ Totals do not match. Adjust values."}
+                <div
+                  data-testid="validation-message"
+                  className={`rounded-retro border p-3 text-center ${validation.isValid ? "border-retro-green bg-retro-green/10 text-retro-green" : "border-retro-red bg-retro-red/10 text-retro-red"}`}
+                >
+                  {validation.isValid
+                    ? "✓ Totals match! Ready to settle."
+                    : "✗ Totals do not match. Adjust values."}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="border-t border-retro-gray pt-6">
-            <h3 className="text-xl font-pixel text-retro-purple mb-4">ACTIONS</h3>
+          <div className="border-retro-gray border-t pt-6">
+            <h3 className="font-pixel text-retro-purple mb-4 text-xl">
+              ACTIONS
+            </h3>
             <div className="space-y-4">
               <button
                 onClick={handleSaveAndSettle}
                 disabled={!validation || !validation.isValid}
-                 className="w-full px-6 py-4 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 hover:shadow-retro-outset disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="rounded-retro font-pixel hover:shadow-retro-outset w-full bg-white px-6 py-4 text-black transition-all hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 SETTLE & SHOW RESULTS
               </button>
               <p className="text-retro-gray text-sm">
-                This will save final values, compute net results, and show who pays whom.
+                This will save final values, compute net results, and show who
+                pays whom.
               </p>
             </div>
           </div>
 
-          <div className="border-t border-retro-gray pt-6">
-            <h3 className="text-xl font-pixel text-retro-yellow mb-4">NOTES</h3>
-            <ul className="text-retro-light text-sm space-y-2">
-              <li>• Enter the total euro value of each player’s chips at the end of the match.</li>
-              <li>• The sum of final values must equal the total paid‑in amount.</li>
-              <li>• Net = final value − paid‑in (positive means profit, negative means loss).</li>
-              <li>• The app will generate minimized transfers between players.</li>
+          <div className="border-retro-gray border-t pt-6">
+            <h3 className="font-pixel text-retro-yellow mb-4 text-xl">NOTES</h3>
+            <ul className="text-retro-light space-y-2 text-sm">
+              <li>
+                • Enter the total euro value of each player’s chips at the end
+                of the match.
+              </li>
+              <li>
+                • The sum of final values must equal the total paid‑in amount.
+              </li>
+              <li>
+                • Net = final value − paid‑in (positive means profit, negative
+                means loss).
+              </li>
+              <li>
+                • The app will generate minimized transfers between players.
+              </li>
             </ul>
           </div>
         </div>
@@ -236,11 +263,13 @@ function CashoutContent() {
 
 export default function CashoutPage() {
   return (
-    <Suspense fallback={
-      <div className="flex justify-center items-center h-64">
-        <div className="text-retro-green font-pixel">Loading cashout...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex h-64 items-center justify-center">
+          <div className="font-pixel text-retro-green">Loading cashout...</div>
+        </div>
+      }
+    >
       <CashoutContent />
     </Suspense>
   );
