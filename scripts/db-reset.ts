@@ -14,8 +14,21 @@ export async function resetDatabase() {
   await db.execute(sql`DROP TABLE IF EXISTS groups CASCADE`);
   await db.execute(sql`DROP TABLE IF EXISTS admins CASCADE`);
 
-  // Enable UUID extension (atomic, handles concurrent attempts)
-  await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+  // Enable UUID extension with error handling for concurrent attempts
+  try {
+    await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+  } catch (err: any) {
+    // Ignore duplicate key error (pg_type_typname_nsp_index) - extension already exists
+    // This can happen when multiple processes try to create the extension simultaneously
+    if (
+      err?.cause?.code === "23505" &&
+      err?.cause?.detail?.includes("pg_type_typname_nsp_index")
+    ) {
+      console.warn("Extension creation race condition detected, continuing...");
+    } else {
+      throw err;
+    }
+  }
 
   // Create tables
   await db.execute(sql`
