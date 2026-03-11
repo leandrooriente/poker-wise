@@ -46,7 +46,7 @@ export async function createNamespacedGroup(
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "-");
 
-  await page.getByLabel("Group Name *").fill(groupName);
+  await page.getByLabel("Group *").fill(groupName);
   await page.getByLabel("Group ID (optional)").fill(groupSlug);
   await page.getByRole("button", { name: "CREATE GROUP" }).click();
 
@@ -198,7 +198,7 @@ export async function loginAdmin(page: Page) {
  * Create a group via UI (must be on groups page).
  */
 export async function createGroup(page: Page, id: string, name: string) {
-  await page.getByLabel("Group Name *").fill(name);
+  await page.getByLabel("Group *").fill(name);
   if (id) {
     await page.getByLabel("Group ID (optional)").fill(id);
   }
