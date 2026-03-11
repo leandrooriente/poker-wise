@@ -41,23 +41,23 @@ export async function createNamespacedGroup(
   page: Page,
   namespace: string
 ): Promise<string> {
-  const groupName = `Test Group ${namespace}`;
   const groupSlug = `test-group-${namespace}`
     .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-");
+    .replace(/[^a-z-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 
-  await page.getByLabel("Group Name *").fill(groupName);
-  await page.getByLabel("Group ID (optional)").fill(groupSlug);
+  await page.getByLabel("Group *").fill(groupSlug);
   await page.getByRole("button", { name: "CREATE GROUP" }).click();
 
-  // Wait for group to appear in list (first heading with group name)
+  // Wait for group to appear in list (heading uses the group slug as name)
   await expect(
-    page.getByRole("heading", { name: groupName }).first()
+    page.getByRole("heading", { name: groupSlug }).first()
   ).toBeVisible();
 
   const groupCard = page
     .locator("div")
-    .filter({ has: page.getByRole("heading", { name: groupName }).first() })
+    .filter({ has: page.getByRole("heading", { name: groupSlug }).first() })
     .first();
 
   const selectButton = groupCard.getByRole("button", { name: "SELECT" });
@@ -198,13 +198,11 @@ export async function loginAdmin(page: Page) {
  * Create a group via UI (must be on groups page).
  */
 export async function createGroup(page: Page, id: string, name: string) {
-  await page.getByLabel("Group Name *").fill(name);
-  if (id) {
-    await page.getByLabel("Group ID (optional)").fill(id);
-  }
+  await page.getByLabel("Group *").fill(id || name);
   await page.getByRole("button", { name: "CREATE GROUP" }).click();
-  // Wait for group to appear in list (first heading with group name)
-  await expect(page.getByRole("heading", { name }).first()).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: id || name }).first()
+  ).toBeVisible();
 }
 
 export interface PlayerData {
