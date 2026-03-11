@@ -192,7 +192,7 @@ jobs:
           POSTGRES_DB: db
           PGPASSWORD: pass
         options: >-
-          --health-cmd "pgisready -U user -d db"
+          --health-cmd "pg_isready -U user -d db"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
