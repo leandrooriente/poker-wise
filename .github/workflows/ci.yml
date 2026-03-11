@@ -141,13 +141,33 @@ jobs:
           TARGET_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           echo "Looking for Vercel preview deployment matching PR SHA: $TARGET_SHA"
+          echo "VERCEL_ORG_ID length: ${#VERCEL_ORG_ID}"
+          echo "VERCEL_PROJECT_ID length: ${#VERCEL_PROJECT_ID}"
 
-          # Authenticate with Vercel CLI
-          echo "$VERCEL_TOKEN" | vercel login --token-stdin --scope $VERCEL_ORG_ID
+          # Authenticate with Vercel CLI - handle scope if provided
+          if [ -n "$VERCEL_ORG_ID" ]; then
+            echo "Using scope: $VERCEL_ORG_ID"
+            echo "$VERCEL_TOKEN" | vercel login --token-stdin --scope "$VERCEL_ORG_ID"
+          else
+            echo "No scope provided, using default"
+            echo "$VERCEL_TOKEN" | vercel login --token-stdin
+          fi
 
           # Get preview deployments for the project
           echo "Fetching preview deployments for project $VERCEL_PROJECT_ID..."
-          DEPLOYMENTS=$(vercel list $VERCEL_PROJECT_ID --scope $VERCEL_ORG_ID --environment preview --json 2>/dev/null || echo "[]")
+
+          # Build vercel list command with available parameters
+          VERCEL_CMD="vercel list"
+          if [ -n "$VERCEL_PROJECT_ID" ]; then
+            VERCEL_CMD="$VERCEL_CMD $VERCEL_PROJECT_ID"
+          fi
+          if [ -n "$VERCEL_ORG_ID" ]; then
+            VERCEL_CMD="$VERCEL_CMD --scope $VERCEL_ORG_ID"
+          fi
+          VERCEL_CMD="$VERCEL_CMD --environment preview --json"
+
+          echo "Running: $VERCEL_CMD"
+          DEPLOYMENTS=$($VERCEL_CMD 2>/dev/null || echo "[]")
 
           # Find deployment with matching SHA
           echo "Searching for deployment with SHA $TARGET_SHA..."
@@ -162,7 +182,7 @@ jobs:
             # Wait and retry once (deployment might still be queued)
             echo "Waiting 30 seconds and retrying..."
             sleep 30
-            DEPLOYMENTS=$(vercel list $VERCEL_PROJECT_ID --scope $VERCEL_ORG_ID --environment preview --json 2>/dev/null || echo "[]")
+            DEPLOYMENTS=$($VERCEL_CMD 2>/dev/null || echo "[]")
             DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
               '.[] | select(.meta.githubCommitSha == $sha) | .url' | head -n1)
             
@@ -175,11 +195,18 @@ jobs:
           echo "✅ Found deployment: $DEPLOYMENT_URL"
           echo "Waiting for deployment to be ready..."
 
-          # Wait for deployment to be ready (vercel inspect --wait polls until READY or ERROR)
-          if ! vercel inspect $DEPLOYMENT_URL --scope $VERCEL_ORG_ID --wait --timeout 300; then
+          # Build vercel inspect command
+          INSPECT_CMD="vercel inspect $DEPLOYMENT_URL"
+          if [ -n "$VERCEL_ORG_ID" ]; then
+            INSPECT_CMD="$INSPECT_CMD --scope $VERCEL_ORG_ID"
+          fi
+          INSPECT_CMD="$INSPECT_CMD --wait --timeout 300"
+
+          echo "Running: $INSPECT_CMD"
+          if ! $INSPECT_CMD; then
             echo "❌ Failed to wait for deployment $DEPLOYMENT_URL"
             echo "Checking deployment state..."
-            DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --scope $VERCEL_ORG_ID --json 2>/dev/null || echo "{}")
+            DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --scope "$VERCEL_ORG_ID" --json 2>/dev/null || echo "{}")
             echo "$DEPLOYMENT_INFO" | jq '.'
             exit 1
           fi
