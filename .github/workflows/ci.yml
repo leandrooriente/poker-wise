@@ -163,8 +163,8 @@ jobs:
 
           # Build vercel ls command with metadata filter for specific SHA
           # Using 'vercel ls' (alias for 'vercel list') with -m filter
-          # Format: vercel ls -m githubCommitSha=SHA --environment preview --json
-          VERCEL_CMD="vercel ls -m githubCommitSha=$TARGET_SHA --environment preview --json"
+          # Format: vercel ls -m githubCommitSha=SHA --environment preview --format json
+          VERCEL_CMD="vercel ls -m githubCommitSha=$TARGET_SHA --environment preview --format json"
 
           echo "Running: $VERCEL_CMD"
           DEPLOYMENTS=$($VERCEL_CMD 2>/dev/null || echo "[]")
