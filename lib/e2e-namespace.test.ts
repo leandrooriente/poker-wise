@@ -29,6 +29,10 @@ describe("generateNamespace", () => {
 
   it("creates unique namespaces outside CI", () => {
     process.env = { ...ORIGINAL_ENV };
+    delete process.env.CI;
+    delete process.env.GITHUB_RUN_ID;
+    delete process.env.GITHUB_SHA;
+    delete process.env.GITHUB_RUN_ATTEMPT;
 
     const first = generateNamespace();
     const second = generateNamespace();

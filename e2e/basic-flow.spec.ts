@@ -1,27 +1,14 @@
 /* eslint-disable */
 import { test, expect } from "@playwright/test";
-import {
-  seedNamespacedLocalStorage,
-  loginAdminAndCreateNamespacedGroup,
-  generateNamespace,
-} from "./helpers";
+import { loginAdminAndCreateNamespacedGroup } from "./helpers";
 
 test.describe("Basic poker match flow", () => {
-  let namespace: string;
-
   test.beforeEach(async ({ page }) => {
-    // Generate a unique namespace for this test run
-    namespace = generateNamespace();
-
-    // Clear localStorage and seed with namespaced group
     await page.goto("/history");
     await page.evaluate(() => window.localStorage.clear());
-    await seedNamespacedLocalStorage(page, namespace, {});
 
-    // Log in as admin and create a namespaced server group (required for admin UI)
     await loginAdminAndCreateNamespacedGroup(page);
 
-    // Capture console logs from the page
     page.on("console", (msg) => console.log(`[page] ${msg.text()}`));
   });
 
