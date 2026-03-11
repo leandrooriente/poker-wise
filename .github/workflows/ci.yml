@@ -136,8 +136,6 @@ jobs:
         id: await-preview
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           TARGET_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           echo "Looking for Vercel preview deployment matching PR SHA: $TARGET_SHA"
@@ -148,34 +146,25 @@ jobs:
             echo "   You can set it in your repository settings under Settings > Secrets and variables > Actions"
             exit 1
           fi
-          if [ -z "$VERCEL_TEAM_ID" ]; then
-            echo "❌ ERROR: VERCEL_TEAM_ID is not set. Please add it as a GitHub Secret."
-            exit 1
-          fi
-          if [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "❌ ERROR: VERCEL_PROJECT_ID is not set. Please add it as a GitHub Secret."
-            exit 1
-          fi
 
-          echo "VERCEL_TEAM_ID: ${VERCEL_TEAM_ID:0:10}..."
-          echo "VERCEL_PROJECT_ID: ${VERCEL_PROJECT_ID:0:10}..."
           echo "VERCEL_TOKEN present: ${#VERCEL_TOKEN}"
+          if [ -n "$VERCEL_TEAM_ID" ]; then
+            echo "VERCEL_TEAM_ID: ${VERCEL_TEAM_ID:0:10}..."
+          fi
+          if [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "VERCEL_PROJECT_ID: ${VERCEL_PROJECT_ID:0:10}..."
+          fi
 
           # Vercel CLI will automatically use VERCEL_TOKEN environment variable
           # No need to login explicitly in CI
 
-          # Get preview deployments for the project
-          echo "Fetching preview deployments for project $VERCEL_PROJECT_ID..."
+          # Get preview deployments matching the PR commit SHA
+          echo "Looking for Vercel preview deployments for commit SHA: $TARGET_SHA..."
 
-          # Build vercel list command
-          VERCEL_CMD="vercel list"
-          if [ -n "$VERCEL_PROJECT_ID" ]; then
-            VERCEL_CMD="$VERCEL_CMD --project $VERCEL_PROJECT_ID"
-          fi
-          if [ -n "$VERCEL_TEAM_ID" ]; then
-            VERCEL_CMD="$VERCEL_CMD --scope $VERCEL_TEAM_ID"
-          fi
-          VERCEL_CMD="$VERCEL_CMD --environment preview --json"
+          # Build vercel ls command with metadata filter for specific SHA
+          # Using 'vercel ls' (alias for 'vercel list') with -m filter
+          # Format: vercel ls -m githubCommitSha=SHA --environment preview --json
+          VERCEL_CMD="vercel ls -m githubCommitSha=$TARGET_SHA --environment preview --json"
 
           echo "Running: $VERCEL_CMD"
           DEPLOYMENTS=$($VERCEL_CMD 2>/dev/null || echo "[]")
@@ -215,11 +204,7 @@ jobs:
           echo "Waiting for deployment to be ready..."
 
           # Build vercel inspect command
-          INSPECT_CMD="vercel inspect $DEPLOYMENT_URL"
-          if [ -n "$VERCEL_TEAM_ID" ]; then
-            INSPECT_CMD="$INSPECT_CMD --scope $VERCEL_TEAM_ID"
-          fi
-          INSPECT_CMD="$INSPECT_CMD --wait --timeout 300"
+          INSPECT_CMD="vercel inspect $DEPLOYMENT_URL --wait --timeout 300"
 
           echo "Running: $INSPECT_CMD"
           if ! $INSPECT_CMD; then
