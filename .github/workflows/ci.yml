@@ -129,6 +129,9 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
       - name: Find and await Vercel preview deployment matching PR SHA
         id: await-preview
         env:
@@ -138,59 +141,51 @@ jobs:
           TARGET_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           echo "Looking for Vercel preview deployment matching PR SHA: $TARGET_SHA"
-          echo "Will wait up to 300 seconds for deployment to be READY..."
 
-          TIMEOUT=300
-          INTERVAL=10
-          ELAPSED=0
-          DEPLOYMENT_URL=""
-          DEPLOYMENT_READY=false
+          # Authenticate with Vercel CLI
+          echo "$VERCEL_TOKEN" | vercel login --token-stdin --scope $VERCEL_ORG_ID
 
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            echo "Checking for deployments with SHA $TARGET_SHA (elapsed: ${ELAPSED}s)..."
-            
-            # Fetch all preview deployments
-            RESPONSE=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&teamId=$VERCEL_ORG_ID&target=preview")
-            
-            # Find deployment with matching SHA
-            MATCHING_DEPLOYMENT=$(echo "$RESPONSE" | jq -r --arg sha "$TARGET_SHA" \
-              '.deployments[] | select(.meta.githubCommitSha == $sha) | {url: .url, readyState: .readyState, state: .state}')
-            
-            if [ -n "$MATCHING_DEPLOYMENT" ] && [ "$MATCHING_DEPLOYMENT" != "null" ]; then
-              DEPLOYMENT_URL=$(echo "$MATCHING_DEPLOYMENT" | jq -r '.url')
-              READY_STATE=$(echo "$MATCHING_DEPLOYMENT" | jq -r '.readyState')
-              DEPLOYMENT_STATE=$(echo "$MATCHING_DEPLOYMENT" | jq -r '.state')
-              
-              echo "Found deployment: $DEPLOYMENT_URL"
-              echo "State: $DEPLOYMENT_STATE, ReadyState: $READY_STATE"
-              
-              if [ "$READY_STATE" = "READY" ]; then
-                DEPLOYMENT_READY=true
-                break
-              elif [ "$DEPLOYMENT_STATE" = "ERROR" ] || [ "$READY_STATE" = "ERROR" ] || [ "$READY_STATE" = "CANCELED" ]; then
-                echo "Deployment failed or was canceled. Exiting."
-                exit 1
-              else
-                echo "Deployment not ready yet. Waiting..."
-              fi
-            else
-              echo "No deployment found yet with SHA $TARGET_SHA"
-            fi
-            
-            sleep $INTERVAL
-            ELAPSED=$((ELAPSED + INTERVAL))
-          done
+          # Get preview deployments for the project
+          echo "Fetching preview deployments for project $VERCEL_PROJECT_ID..."
+          DEPLOYMENTS=$(vercel list $VERCEL_PROJECT_ID --scope $VERCEL_ORG_ID --environment preview --json 2>/dev/null || echo "[]")
 
-          if [ "$DEPLOYMENT_READY" = true ]; then
-            echo "✅ Deployment is ready: $DEPLOYMENT_URL"
-            echo "preview_url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
-          else
-            echo "❌ Timed out waiting for deployment with SHA $TARGET_SHA to be READY"
+          # Find deployment with matching SHA
+          echo "Searching for deployment with SHA $TARGET_SHA..."
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
+            '.[] | select(.meta.githubCommitSha == $sha) | .url' | head -n1)
+
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "❌ No Vercel preview deployment found for SHA $TARGET_SHA"
             echo "Available deployments:"
-            echo "$RESPONSE" | jq '.deployments[] | {sha: .meta.githubCommitSha, url: .url, state: .state, readyState: .readyState}'
+            echo "$DEPLOYMENTS" | jq '.[] | {sha: .meta.githubCommitSha, url: .url, state: .state, readyState: .readyState}'
+            
+            # Wait and retry once (deployment might still be queued)
+            echo "Waiting 30 seconds and retrying..."
+            sleep 30
+            DEPLOYMENTS=$(vercel list $VERCEL_PROJECT_ID --scope $VERCEL_ORG_ID --environment preview --json 2>/dev/null || echo "[]")
+            DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
+              '.[] | select(.meta.githubCommitSha == $sha) | .url' | head -n1)
+            
+            if [ -z "$DEPLOYMENT_URL" ]; then
+              echo "❌ Still no deployment found after waiting. Exiting."
+              exit 1
+            fi
+          fi
+
+          echo "✅ Found deployment: $DEPLOYMENT_URL"
+          echo "Waiting for deployment to be ready..."
+
+          # Wait for deployment to be ready (vercel inspect --wait polls until READY or ERROR)
+          if ! vercel inspect $DEPLOYMENT_URL --scope $VERCEL_ORG_ID --wait --timeout 300; then
+            echo "❌ Failed to wait for deployment $DEPLOYMENT_URL"
+            echo "Checking deployment state..."
+            DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --scope $VERCEL_ORG_ID --json 2>/dev/null || echo "{}")
+            echo "$DEPLOYMENT_INFO" | jq '.'
             exit 1
           fi
+
+          echo "✅ Deployment is ready: $DEPLOYMENT_URL"
+          echo "preview_url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
   e2e-pr-preview:
     name: E2E Tests (PR Preview)
