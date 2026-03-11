@@ -8,7 +8,9 @@ const envSchema = z.object({
   ADMIN_EMAIL: z.string().email(),
   ADMIN_PASSWORD: z.string().min(1),
   AUTH_SECRET: z.string().min(1),
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
 });
 
 let cachedEnv: z.infer<typeof envSchema> | null = null;
@@ -18,21 +20,24 @@ export function getEnv() {
   if (!cachedEnv) {
     const result = envSchema.safeParse(process.env);
     if (result.success) {
+      usingFallback = false;
       cachedEnv = result.data;
     } else {
-      // For non‑production builds, provide fallback values to allow the build to succeed.
-      // This is useful for Vercel preview deployments where env vars may not be set.
       const nodeEnv = process.env.NODE_ENV || "development";
       const vercelEnv = process.env.VERCEL_ENV;
-      const isProduction = nodeEnv === "production" && vercelEnv !== "preview";
-      if (isProduction) {
-        // In production we insist on valid environment variables.
+      const nextPhase = process.env.NEXT_PHASE;
+      const isBuildPhase = nextPhase === "phase-production-build";
+      const requiresStrictEnv =
+        nodeEnv === "production" && vercelEnv !== "preview" && !isBuildPhase;
+
+      if (requiresStrictEnv) {
         throw new Error(
           `Invalid environment configuration: ${result.error.issues
-            .map((e: any) => `${e.path.join(".")}: ${e.message}`)
+            .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
             .join(", ")}`
         );
       }
+
       console.warn(
         "Environment variables missing or invalid, using fallback values for build."
       );
@@ -51,3 +56,8 @@ export function getEnv() {
 
 export { envSchema };
 export const isEnvValid = () => !usingFallback;
+
+export function resetEnvCacheForTests() {
+  cachedEnv = null;
+  usingFallback = false;
+}

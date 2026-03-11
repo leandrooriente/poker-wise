@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
 import { getMatchWithUsers, updateMatch } from "@/db/matches";
@@ -14,18 +14,15 @@ type LiveMatchPlayer = {
   finalValue: number;
 };
 
-export default function LiveMatchPage({
-  searchParams,
-}: {
-  searchParams: { match?: string };
-}) {
+function LiveMatchContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { activeGroupId } = useActiveGroup();
   const [players, setPlayers] = useState<LiveMatchPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [match, setMatch] = useState<Match | null>(null);
-  const matchId = searchParams.match;
+  const matchId = searchParams.get("match");
 
   useEffect(() => {
     async function loadData() {
@@ -128,8 +125,8 @@ export default function LiveMatchPage({
         LIVE MATCH
       </h2>
       <p className="text-retro-light mb-6">
-        Track rebuys during the game. Tap "Rebuy" when a player adds another
-        buy‑in.
+        Track rebuys during the game. Tap <span>&quot;Rebuy&quot;</span> when a
+        player adds another buy-in.
       </p>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -182,6 +179,14 @@ export default function LiveMatchPage({
                 <span className="text-retro-light">Buy‑in each</span>
                 <MoneyDisplay cents={match.buyInAmount} />
               </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-retro-light">Started</span>
+                <span className="text-retro-light text-right">
+                  {match.startedAt
+                    ? new Date(match.startedAt).toLocaleString()
+                    : "Unknown"}
+                </span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Total buy‑ins</span>
                 <span className="font-pixel">{totalBuyIns}</span>
@@ -209,5 +214,19 @@ export default function LiveMatchPage({
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LiveMatchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-64 items-center justify-center">
+          <div className="font-pixel text-retro-green">Loading...</div>
+        </div>
+      }
+    >
+      <LiveMatchContent />
+    </Suspense>
   );
 }

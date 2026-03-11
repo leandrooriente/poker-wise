@@ -96,15 +96,17 @@ test.describe("Live Match", () => {
     await addRebuy(page, "Bob", 1);
 
     // Verify individual buy-ins
-    await expect(
-      page.getByText("Alice").locator("..").getByText("Buy‑ins: 3")
-    ).toBeVisible();
-    await expect(
-      page.getByText("Bob").locator("..").getByText("Buy‑ins: 2")
-    ).toBeVisible();
-    await expect(
-      page.getByText("Charlie").locator("..").getByText("Buy‑ins: 1")
-    ).toBeVisible();
+    const aliceRow = page
+      .getByTestId("player-row")
+      .filter({ hasText: "Alice" });
+    const bobRow = page.getByTestId("player-row").filter({ hasText: "Bob" });
+    const charlieRow = page
+      .getByTestId("player-row")
+      .filter({ hasText: "Charlie" });
+
+    await expect(aliceRow.getByText("Buy‑ins: 3")).toBeVisible();
+    await expect(bobRow.getByText("Buy‑ins: 2")).toBeVisible();
+    await expect(charlieRow.getByText("Buy‑ins: 1")).toBeVisible();
 
     // Total pot: (3+2+1) * 10 = 60 EUR
     expect(await getTotalPotText(page)).toBe("60.00 EUR");
