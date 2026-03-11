@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   typecheck:
     name: TypeScript Type Checking
@@ -69,34 +73,100 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
-  e2e-chromium-matrix:
-    name: E2E Tests (Chromium) - Shard ${{ matrix.shard_part }}/2
+  await-vercel-preview:
+    name: Await Vercel Preview
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    services:
-      postgres:
-        image: postgres:16-alpine
+    if: github.event_name == 'pull_request'
+    outputs:
+      preview_url: ${{ steps.await-preview.outputs.preview_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Find and await Vercel preview deployment matching PR SHA
+        id: await-preview
         env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
-          POSTGRES_DB: db
-          PGPASSWORD: pass
-        options: >-
-          --health-cmd "pg_isready -U user -d db"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          TARGET_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "Looking for Vercel preview deployment matching PR SHA: $TARGET_SHA"
+
+          # Validate required environment variables
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "❌ ERROR: VERCEL_TOKEN is not set. Please add it as a GitHub Secret."
+            echo "   You can set it in your repository settings under Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+
+          # Get preview deployments matching the PR commit SHA
+          echo "Looking for Vercel preview deployments for commit SHA: $TARGET_SHA..."
+
+          # Use the commit SHA metadata to locate the exact preview deployment
+          VERCEL_CMD="vercel ls -m githubCommitSha=$TARGET_SHA --environment preview --format json --token=$VERCEL_TOKEN"
+
+          echo "Running filtered preview lookup"
+          RESPONSE=$($VERCEL_CMD 2>/dev/null || echo '{"deployments":[]}')
+          DEPLOYMENTS=$(echo "$RESPONSE" | jq '.deployments // []')
+          DEPLOYMENT_COUNT=$(echo "$DEPLOYMENTS" | jq '. | length')
+          echo "Found $DEPLOYMENT_COUNT preview deployment(s) matching SHA $TARGET_SHA"
+
+          # Find deployment with matching SHA
+          echo "Searching for deployment with SHA $TARGET_SHA..."
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
+            '.[] | select(.meta.githubCommitSha == $sha) | .url' | head -n1)
+
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "❌ No Vercel preview deployment found for SHA $TARGET_SHA"
+            echo "$RESPONSE" | jq '.'
+
+            # Wait and retry once (deployment might still be queued)
+            echo "Waiting 30 seconds and retrying..."
+            sleep 30
+            RESPONSE=$($VERCEL_CMD 2>/dev/null || echo '{"deployments":[]}')
+            DEPLOYMENTS=$(echo "$RESPONSE" | jq '.deployments // []')
+            DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
+              '.[] | select(.meta.githubCommitSha == $sha) | .url' | head -n1)
+            
+            if [ -z "$DEPLOYMENT_URL" ]; then
+              echo "❌ Still no deployment found after waiting. Exiting."
+              exit 1
+            fi
+          fi
+
+          echo "✅ Found deployment: $DEPLOYMENT_URL"
+          echo "Waiting for deployment to be ready..."
+
+          INSPECT_CMD="vercel inspect $DEPLOYMENT_URL --wait --timeout 300 --token=$VERCEL_TOKEN"
+
+          echo "Running deployment readiness check"
+          if ! $INSPECT_CMD; then
+            echo "❌ Failed to wait for deployment $DEPLOYMENT_URL"
+            echo "Checking deployment state..."
+            DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --format json --token=$VERCEL_TOKEN 2>/dev/null || echo "{}")
+            echo "$DEPLOYMENT_INFO" | jq '.'
+            exit 1
+          fi
+
+          echo "✅ Deployment is ready: $DEPLOYMENT_URL"
+          echo "preview_url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+
+  e2e-preview:
+    name: E2E Tests (Preview)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: await-vercel-preview
+    timeout-minutes: 15
     env:
-      POSTGRES_URL: postgresql://user:pass@localhost:5432/db
-      ADMIN_EMAIL: admin@example.com
-      ADMIN_PASSWORD: changeme
-      AUTH_SECRET: "auth-secret-01234567890123456789012345678901"
-    strategy:
-      fail-fast: false
-      matrix:
-        shard_part: [1, 2]
+      BASE_URL: ${{ needs.await-vercel-preview.outputs.preview_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -110,9 +180,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Reset and seed database
-        run: npm run db:reset
-
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -122,16 +189,13 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Build application for CI
-        run: npm run build
-
-      - name: Run E2E tests with sharding
-        run: npm run e2e -- --project=chromium --shard=${{ matrix.shard_part }}/2
+      - name: Run E2E tests against preview
+        run: npm run e2e -- --project=chromium --workers=1 --max-failures=1
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.shard_part }}-2
+          name: playwright-report-preview
           path: playwright-report/
           retention-days: 7

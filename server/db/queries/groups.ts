@@ -1,7 +1,7 @@
 import { db } from "@/server/db";
 import { groups, groupAdmins } from "@/server/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { v4 as uuidv4 } from "uuid";
+import crypto from "crypto";
 
 export interface CreateGroupInput {
   id: string; // slug
@@ -25,7 +25,7 @@ export async function createGroup(input: CreateGroupInput): Promise<GroupWithAdm
   const { id: slug, name, createdByAdminId } = input;
   
   // Generate UUID for primary key
-  const groupId = uuidv4();
+  const groupId = crypto.randomUUID();
   
   // Insert group
   const [group] = await db.insert(groups).values({

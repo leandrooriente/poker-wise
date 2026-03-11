@@ -1,110 +1,203 @@
-// Compatibility layer for legacy player operations.
-// Uses the new user/group model under the hood.
-// Assumes default group "home-game" for migration compatibility.
-// TODO: Remove this file once all pages are updated to use users/groups directly.
-
-import { getGroups, addGroup } from "./groups";
-import { getGroupMembers, addGroupMember, removeGroupMember } from "./members";
-import { runMigrationIfNeeded } from "./migrate";
-import { getUsers, addUser, updateUser, deleteUser } from "./users";
-
+// Server-backed player operations.
+// Calls the new admin API endpoints for player CRUD.
 
 import { Player } from "@/types/player";
 
 const DEFAULT_GROUP_ID = "home-game";
 
-async function ensureDefaultGroup(): Promise<void> {
-  await runMigrationIfNeeded();
-  // Ensure default group exists even if migration was skipped
-  const groups = await getGroups();
-  let defaultGroup = groups.find(g => g.id === DEFAULT_GROUP_ID);
-  if (!defaultGroup) {
-    defaultGroup = await addGroup({ id: DEFAULT_GROUP_ID, name: "Home Game" });
+function getLocalPlayersForGroup(groupId: string): Player[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const users = JSON.parse(localStorage.getItem("poker-wise-users") || "[]");
+    const members = JSON.parse(
+      localStorage.getItem("poker-wise-group-members") || "[]"
+    );
+    const legacyPlayers = JSON.parse(
+      localStorage.getItem("poker-wise-players") || "[]"
+    );
+
+    const memberIds = new Set(
+      members
+        .filter((member: any) => member.groupId === groupId)
+        .map((member: any) => member.userId)
+    );
+
+    const localUsers = users
+      .filter((user: any) => memberIds.has(user.id))
+      .map((user: any) => ({
+        id: user.id,
+        name: user.name,
+        createdAt: user.createdAt,
+      }));
+
+    if (localUsers.length > 0) {
+      return localUsers;
+    }
+
+    return legacyPlayers
+      .filter((player: any) => memberIds.size === 0 || memberIds.has(player.id))
+      .map((player: any) => ({
+        id: player.id,
+        name: player.name,
+        notes: player.notes ?? undefined,
+        createdAt: player.createdAt,
+      }));
+  } catch {
+    return [];
   }
 }
 
+/**
+ * Get all players in the default group (legacy compatibility).
+ * @deprecated Use getPlayersForGroup with explicit group ID.
+ */
 export async function getPlayers(): Promise<Player[]> {
-
-  await ensureDefaultGroup();
-  const users = await getUsers();
-  const members = await getGroupMembers();
-
-  const defaultGroupMembers = members.filter(m => m.groupId === DEFAULT_GROUP_ID);
-  const memberUserIds = new Set(defaultGroupMembers.map(m => m.userId));
-
-  
-  const filtered = users.filter(u => memberUserIds.has(u.id));
-
-  // Convert users to legacy Player format (notes/preferredBuyIn omitted)
-  return filtered.map(user => ({
-    id: user.id,
-    name: user.name,
-    createdAt: user.createdAt,
-    // notes and preferredBuyIn are omitted (undefined)
-  }));
+  return getPlayersForGroup(DEFAULT_GROUP_ID);
 }
 
+/**
+ * Get all players in a specific group.
+ */
 export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
+  try {
+    const res = await fetch(`/api/admin/groups/${groupId}/players`, {
+      credentials: "include",
+    });
 
-  const users = await getUsers();
-  const members = await getGroupMembers();
-  const groupMembers = members.filter(m => m.groupId === groupId);
-  const memberUserIds = new Set(groupMembers.map(m => m.userId));
-  const filtered = users.filter(u => memberUserIds.has(u.id));
-  // Convert users to legacy Player format (notes/preferredBuyIn omitted)
-  return filtered.map(user => ({
-    id: user.id,
-    name: user.name,
-    createdAt: user.createdAt,
-  }));
+    if (!res.ok) {
+      // If unauthorized, the user is not an admin; return empty array for compatibility.
+      // This allows non‑admin pages (e.g., public share) to still load players
+      // once we have read-only endpoints (PR 8).
+      if (res.status === 401 || res.status === 403) {
+        console.warn(
+          `No admin permission to fetch players for group ${groupId}; returning empty list.`
+        );
+        return [];
+      }
+      throw new Error(`Failed to fetch players: ${res.status}`);
+    }
+
+    const data = await res.json();
+    // API returns notes, but not preferredBuyIn.
+    return data.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      notes: p.notes ?? undefined,
+      createdAt: p.createdAt,
+    }));
+  } catch (err) {
+    console.error("getPlayersForGroup failed:", err);
+    return getLocalPlayersForGroup(groupId);
+  }
 }
 
+/**
+ * Save a list of players (legacy compatibility).
+ * @deprecated Not supported in server‑backed model.
+ */
 export async function savePlayers(_players: Player[]): Promise<void> {
-  // This function is rarely used; we can implement it if needed.
-  // For now, we'll ignore because the new model doesn't map 1:1.
-  // eslint-disable-next-line no-console
-  console.warn("savePlayers is deprecated; use user/group member APIs instead");
+  console.warn(
+    "savePlayers is deprecated; use individual player CRUD endpoints instead"
+  );
 }
 
-export async function addPlayer(player: Omit<Player, "id" | "createdAt">): Promise<Player> {
+/**
+ * Add a new player to the default group.
+ * @deprecated Use group‑specific player creation via UI.
+ */
+export async function addPlayer(
+  player: Omit<Player, "id" | "createdAt">
+): Promise<Player> {
+  // The legacy UI does not specify a group; we use the default group.
+  // This will fail if the default group doesn't exist in the backend.
+  // For compatibility, we attempt to create the player in the default group.
+  try {
+    const res = await fetch(`/api/admin/groups/${DEFAULT_GROUP_ID}/players`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        name: player.name,
+        notes: player.notes,
+      }),
+    });
 
-  await ensureDefaultGroup();
-  // Create a new global user
-  const newUser = await addUser({
-    name: player.name,
-  });
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("Admin permission required to add players");
+      }
+      throw new Error(`Failed to add player: ${res.status}`);
+    }
 
-  // Add user to default group
-  await addGroupMember({
-    groupId: DEFAULT_GROUP_ID,
-    userId: newUser.id,
-  });
-
-  // Return legacy Player format (without notes/preferredBuyIn)
-  return {
-    id: newUser.id,
-    name: newUser.name,
-    createdAt: newUser.createdAt,
-  };
+    const data = await res.json();
+    return {
+      id: data.id,
+      name: data.name,
+      notes: data.notes ?? undefined,
+      createdAt: data.createdAt,
+    };
+  } catch (err) {
+    console.error("addPlayer failed:", err);
+    // Re‑throw to let UI handle the error.
+    throw err;
+  }
 }
 
+/**
+ * Update an existing player's name (and optionally notes).
+ */
 export async function updatePlayer(updatedPlayer: Player): Promise<void> {
-  await ensureDefaultGroup();
-  // Update user name only (notes/preferredBuyIn ignored)
-  await updateUser({
-    id: updatedPlayer.id,
-    name: updatedPlayer.name,
-    createdAt: updatedPlayer.createdAt,
-  });
+  // Determine group ID from the player – we don't have it.
+  // The legacy UI only updates name, and the player is assumed to be in the default group.
+  // We'll try to update using the player's ID; the API will verify admin membership.
+  try {
+    const res = await fetch(`/api/admin/groups/${DEFAULT_GROUP_ID}/players`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        id: updatedPlayer.id,
+        name: updatedPlayer.name,
+        notes: updatedPlayer.notes,
+      }),
+    });
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("Admin permission required to update players");
+      }
+      throw new Error(`Failed to update player: ${res.status}`);
+    }
+  } catch (err) {
+    console.error("updatePlayer failed:", err);
+    throw err;
+  }
 }
 
+/**
+ * Delete a player from the default group.
+ */
 export async function deletePlayer(id: string): Promise<void> {
-  await ensureDefaultGroup();
-  // Remove user from default group, but keep global user (could be in other groups)
-  await removeGroupMember(DEFAULT_GROUP_ID, id);
-  // Optionally delete global user if not member of any other group
-  const members = await getGroupMembers();
-  if (!members.some(m => m.userId === id)) {
-    await deleteUser(id);
+  try {
+    const res = await fetch(
+      `/api/admin/groups/${DEFAULT_GROUP_ID}/players?id=${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        credentials: "include",
+      }
+    );
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("Admin permission required to delete players");
+      }
+      throw new Error(`Failed to delete player: ${res.status}`);
+    }
+  } catch (err) {
+    console.error("deletePlayer failed:", err);
+    throw err;
   }
 }

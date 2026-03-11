@@ -18,9 +18,11 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "e2e": "playwright test",
+    "e2e:local": "playwright test --project=chromium --workers=1 --max-failures=1",
     "e2e:ui": "playwright test --ui",
     "e2e:install": "playwright install",
     "db:reset": "tsx scripts/db-reset.ts",
+    "db:init": "tsx scripts/db-init.ts",
     "db:seed": "tsx scripts/db-seed.ts",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

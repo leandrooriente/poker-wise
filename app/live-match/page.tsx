@@ -6,7 +6,6 @@ import { useState, useEffect, Suspense } from "react";
 import MoneyDisplay from "@/components/MoneyDisplay";
 import { getMatchWithUsers, updateMatch } from "@/db/matches";
 
-
 function LiveMatchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,15 +38,24 @@ function LiveMatchContent() {
 
   const handleRebuy = async (playerId: string) => {
     if (!match) return;
-    const updatedPlayers = match.players.map((mp: any) =>
-       mp.userId === playerId ? { ...mp, buyIns: mp.buyIns + 1 } : mp
+
+    const currentData = await getMatchWithUsers(match.id);
+    const baseMatch = currentData?.match ?? match;
+    const updatedPlayers = baseMatch.players.map((mp: any) =>
+      mp.userId === playerId ? { ...mp, buyIns: mp.buyIns + 1 } : mp
     );
-    const updatedMatch = { ...match, players: updatedPlayers };
+    const updatedMatch = { ...baseMatch, players: updatedPlayers };
+
     await updateMatch(updatedMatch);
+
+    const data = await getMatchWithUsers(updatedMatch.id);
+    if (data) {
+      setMatch(data.match);
+      setPlayers(data.players);
+      return;
+    }
+
     setMatch(updatedMatch);
-    // Refresh players list
-    const data = await getMatchWithUsers(match.id);
-    if (data) setPlayers(data.players);
   };
 
   const handleProceedToCashout = () => {
@@ -63,7 +71,7 @@ function LiveMatchContent() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="text-retro-green font-pixel">Loading match...</div>
       </div>
     );
@@ -71,12 +79,12 @@ function LiveMatchContent() {
 
   if (error || !match) {
     return (
-      <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
-        <h2 className="text-2xl font-pixel text-retro-red mb-4">ERROR</h2>
+      <div className="border-retro-gray rounded-retro bg-retro-dark shadow-retro-outset border p-6">
+        <h2 className="font-pixel text-retro-red mb-4 text-2xl">ERROR</h2>
         <p className="text-retro-light">{error || "Match not found"}</p>
         <button
           onClick={() => router.push("/new-match")}
-          className="mt-4 px-4 py-2 bg-white text-black font-pixel rounded-retro"
+          className="font-pixel rounded-retro mt-4 bg-white px-4 py-2 text-black"
         >
           Start New Match
         </button>
@@ -88,37 +96,43 @@ function LiveMatchContent() {
   const totalPot = totalBuyIns * match.buyInAmount;
 
   return (
-    <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
-      <h2 className="text-2xl font-pixel text-retro-green mb-4">LIVE MATCH</h2>
+    <div className="border-retro-gray rounded-retro bg-retro-dark shadow-retro-outset border p-6">
+      <h2 className="font-pixel text-retro-green mb-4 text-2xl">LIVE MATCH</h2>
       <p className="text-retro-light mb-6">
-        Track rebuys during the game. Tap “Rebuy” when a player adds another buy‑in.
+        Track rebuys during the game. Tap “Rebuy” when a player adds another
+        buy‑in.
       </p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Player list */}
         <div className="lg:col-span-2">
-          <h3 className="text-xl font-pixel text-retro-yellow mb-4">PLAYERS</h3>
+          <h3 className="font-pixel text-retro-yellow mb-4 text-xl">PLAYERS</h3>
           <div className="space-y-4">
-             {players.map(({ user, buyIns }) => (
+            {players.map(({ user, buyIns }) => (
               <div
-                 key={user.id}
-                className="border border-retro-gray rounded-retro p-4 flex justify-between items-center bg-retro-dark hover:border-retro-green transition-colors"
+                key={user.id}
+                className="border-retro-gray rounded-retro bg-retro-dark hover:border-retro-green flex items-center justify-between border p-4 transition-colors"
                 data-testid="player-row"
               >
                 <div>
-                   <h4 className="text-xl font-pixel text-retro-green">{user.name}</h4>
+                  <h4 className="font-pixel text-retro-green text-xl">
+                    {user.name}
+                  </h4>
                   <p className="text-retro-light">
                     Buy‑ins: <span className="font-pixel">{buyIns}</span>
                   </p>
                   <p className="text-retro-gray text-sm">
-                      Total paid: <MoneyDisplay cents={buyIns * match.buyInAmount} />
+                    Total paid:{" "}
+                    <MoneyDisplay cents={buyIns * match.buyInAmount} />
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-2xl font-pixel text-retro-yellow">{buyIns}</span>
+                  <span className="font-pixel text-retro-yellow text-2xl">
+                    {buyIns}
+                  </span>
                   <button
-                     onClick={() => handleRebuy(user.id)}
-                     className="px-6 py-3 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 transition-colors"
+                    onClick={() => handleRebuy(user.id)}
+                    className="font-pixel rounded-retro bg-white px-6 py-3 text-black transition-colors hover:bg-gray-200"
                   >
                     REBUY
                   </button>
@@ -131,45 +145,54 @@ function LiveMatchContent() {
         {/* Match info & actions */}
         <div className="space-y-6">
           <div>
-            <h3 className="text-xl font-pixel text-retro-blue mb-4">MATCH INFO</h3>
+            <h3 className="font-pixel text-retro-blue mb-4 text-xl">
+              MATCH INFO
+            </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-retro-light">Buy‑in each</span>
-                  <MoneyDisplay cents={match.buyInAmount} />
+                <MoneyDisplay cents={match.buyInAmount} />
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Total buy‑ins</span>
                 <span className="font-pixel">{totalBuyIns}</span>
               </div>
-              <div className="flex justify-between border-t border-retro-gray pt-3">
+              <div className="border-retro-gray flex justify-between border-t pt-3">
                 <span className="text-retro-light">Total pot</span>
-                  <MoneyDisplay cents={totalPot} className="font-pixel text-retro-green" />
+                <MoneyDisplay
+                  cents={totalPot}
+                  className="font-pixel text-retro-green"
+                />
               </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Started</span>
                 <span className="text-retro-gray text-sm">
-                  {new Date(match.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(match.createdAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-retro-gray pt-6">
-            <h3 className="text-xl font-pixel text-retro-purple mb-4">ACTIONS</h3>
+          <div className="border-retro-gray border-t pt-6">
+            <h3 className="font-pixel text-retro-purple mb-4 text-xl">
+              ACTIONS
+            </h3>
             <div className="space-y-4">
               <button
                 onClick={handleProceedToCashout}
-                 className="w-full px-6 py-4 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 hover:shadow-retro-outset transition-all"
+                className="font-pixel rounded-retro hover:shadow-retro-outset w-full bg-white px-6 py-4 text-black transition-all hover:bg-gray-200"
               >
                 PROCEED TO CASHOUT
               </button>
               <p className="text-retro-gray text-sm">
-                Once all rebuys are recorded, proceed to enter final chip values.
+                Once all rebuys are recorded, proceed to enter final chip
+                values.
               </p>
             </div>
           </div>
-
-
         </div>
       </div>
     </div>
@@ -178,11 +201,13 @@ function LiveMatchContent() {
 
 export default function LiveMatchPage() {
   return (
-    <Suspense fallback={
-      <div className="flex justify-center items-center h-64">
-        <div className="text-retro-green font-pixel">Loading match...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-retro-green font-pixel">Loading match...</div>
+        </div>
+      }
+    >
       <LiveMatchContent />
     </Suspense>
   );

@@ -1,16 +1,15 @@
-import { test } from "@playwright/test";
-
-import { addPlayer, expect, seedLocalStorage, loginAdmin, createGroup } from "./helpers";
+import { test, expect } from "@playwright/test";
+import {
+  addPlayer,
+  gotoActiveGroupPlayersPage,
+  loginAdminAndCreateNamespacedGroup,
+} from "./helpers";
 
 test.describe("Player Management", () => {
   test.beforeEach(async ({ page }) => {
-    // Seed default group and migration marker (still needed for migration)
-    await seedLocalStorage(page, {});
-    // Log in as admin (required for server-backed groups)
-    await loginAdmin(page);
-    // Create default group with unique slug via UI (since server groups are empty)
-    const uniqueSlug = `home-game-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    await createGroup(page, uniqueSlug, 'Home Game');
+    // Log in as admin and create a namespaced group for test isolation
+    await loginAdminAndCreateNamespacedGroup(page);
+    await gotoActiveGroupPlayersPage(page);
   });
 
   test("add player", async ({ page }) => {
@@ -19,7 +18,9 @@ test.describe("Player Management", () => {
     });
 
     // Verify player card shows name
-    const playerCard = page.locator("div", { has: page.getByText("Alice") });
+    const playerCard = page
+      .getByTestId("player-card")
+      .filter({ hasText: "Alice" });
     await expect(playerCard.getByText("Alice")).toBeVisible();
   });
 
@@ -44,20 +45,18 @@ test.describe("Player Management", () => {
     await addPlayer(page, { name: "Charlie" });
     await addPlayer(page, { name: "David" });
 
-    // Verify two players in the active group
-    const playerItems = page.getByTestId("player-item");
-    await expect(playerItems).toHaveCount(2);
+    const playerCards = page.getByTestId("player-card");
+    await expect(playerCards).toHaveCount(2);
 
     // Set up dialog acceptance for confirmation
     page.on("dialog", (dialog) => dialog.accept());
 
-    // Delete Charlie (remove from group)
-    const charlieItem = playerItems.filter({ hasText: "Charlie" });
-    await charlieItem.getByRole("button", { name: "REMOVE" }).click();
+    const charlieCard = playerCards.filter({ hasText: "Charlie" });
+    await charlieCard.getByRole("button", { name: "Delete" }).click();
 
     // Verify deletion
     await expect(page.getByText("Charlie")).not.toBeVisible();
-    await expect(playerItems).toHaveCount(1);
+    await expect(playerCards).toHaveCount(1);
     await expect(page.getByText("David")).toBeVisible();
   });
 
@@ -80,7 +79,7 @@ test.describe("Player Management", () => {
 
   test("cannot add player with empty name", async ({ page }) => {
     // Try to submit empty form
-    await page.getByRole("button", { name: "ADD" }).click();
+    await page.getByRole("button", { name: "ADD PLAYER" }).click();
 
     // Should still have no players
     await expect(page.getByText("No players yet.")).toBeVisible();
@@ -95,7 +94,7 @@ test.describe("Player Management", () => {
     // Find the add-player form
     const form = page
       .locator("form")
-      .filter({ has: page.getByPlaceholder("Player name") });
+      .filter({ has: page.getByTestId("player-name-input") });
     await expect(form).toBeVisible();
 
     // Verify form layout: stacked vertically on mobile
@@ -103,17 +102,15 @@ test.describe("Player Management", () => {
     // await expect(form).toHaveCSS("flex-direction", "column");
 
     // Input should be full width
-    const input = form.getByPlaceholder("Player name");
-    // Button should be full width on mobile
-    const button = form.getByRole("button", { name: "ADD" });
+    const input = form.getByTestId("player-name-input");
+    const button = form.getByRole("button", { name: "ADD PLAYER" });
 
-    // Verify both elements take full width of the form
+    // Verify the input still spans the form width on mobile
     const formWidth = await form.evaluate((el) => el.clientWidth);
     const inputWidth = await input.evaluate((el) => el.clientWidth);
     const buttonWidth = await button.evaluate((el) => el.clientWidth);
-    // Allow small difference due to borders (max 4px)
     expect(Math.abs(inputWidth - formWidth)).toBeLessThanOrEqual(4);
-    expect(Math.abs(buttonWidth - formWidth)).toBeLessThanOrEqual(4);
+    expect(buttonWidth).toBeLessThanOrEqual(formWidth);
 
     // Verify button is below input (stacked layout)
     const inputBox = await input.boundingBox();

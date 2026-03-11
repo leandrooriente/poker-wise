@@ -1,38 +1,21 @@
 import { sql } from "drizzle-orm";
-import { db } from "./lib/db";
+import { db } from "@/server/db";
 import { bootstrapAdmin } from "./lib/bootstrap";
 
-export async function resetDatabase() {
-  console.log("Resetting database...");
+/**
+ * Idempotent database initialization.
+ * Creates tables if they don't exist, enables UUID extension, and bootstraps admin.
+ * Safe to run multiple times.
+ */
+export async function initDatabase() {
+  console.log("Initializing database (idempotent)...");
 
-  // Drop tables in reverse order of dependencies
-  await db.execute(sql`DROP TABLE IF EXISTS group_share_tokens CASCADE`);
-  await db.execute(sql`DROP TABLE IF EXISTS match_entries CASCADE`);
-  await db.execute(sql`DROP TABLE IF EXISTS matches CASCADE`);
-  await db.execute(sql`DROP TABLE IF EXISTS players CASCADE`);
-  await db.execute(sql`DROP TABLE IF EXISTS group_admins CASCADE`);
-  await db.execute(sql`DROP TABLE IF EXISTS groups CASCADE`);
-  await db.execute(sql`DROP TABLE IF EXISTS admins CASCADE`);
+  // Enable UUID extension (atomic, handles concurrent attempts)
+  await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
 
-  // Enable UUID extension with error handling for concurrent attempts
-  try {
-    await db.execute(sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
-  } catch (err: any) {
-    // Ignore duplicate key error (pg_type_typname_nsp_index) - extension already exists
-    // This can happen when multiple processes try to create the extension simultaneously
-    if (
-      err?.cause?.code === "23505" &&
-      err?.cause?.detail?.includes("pg_type_typname_nsp_index")
-    ) {
-      console.warn("Extension creation race condition detected, continuing...");
-    } else {
-      throw err;
-    }
-  }
-
-  // Create tables
+  // Create tables in dependency order
   await db.execute(sql`
-    CREATE TABLE admins (
+    CREATE TABLE IF NOT EXISTS admins (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       email VARCHAR(255) NOT NULL UNIQUE,
       password_hash VARCHAR(255) NOT NULL,
@@ -41,7 +24,7 @@ export async function resetDatabase() {
   `);
 
   await db.execute(sql`
-    CREATE TABLE groups (
+    CREATE TABLE IF NOT EXISTS groups (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       name VARCHAR(255) NOT NULL,
       slug VARCHAR(100) NOT NULL UNIQUE,
@@ -51,7 +34,7 @@ export async function resetDatabase() {
   `);
 
   await db.execute(sql`
-    CREATE TABLE group_admins (
+    CREATE TABLE IF NOT EXISTS group_admins (
       group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
       admin_id UUID NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
       role VARCHAR(50) NOT NULL DEFAULT 'admin',
@@ -61,7 +44,7 @@ export async function resetDatabase() {
   `);
 
   await db.execute(sql`
-    CREATE TABLE players (
+    CREATE TABLE IF NOT EXISTS players (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
       name VARCHAR(255) NOT NULL,
@@ -71,7 +54,7 @@ export async function resetDatabase() {
   `);
 
   await db.execute(sql`
-    CREATE TABLE matches (
+    CREATE TABLE IF NOT EXISTS matches (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
       title VARCHAR(255),
@@ -85,7 +68,7 @@ export async function resetDatabase() {
   `);
 
   await db.execute(sql`
-    CREATE TABLE match_entries (
+    CREATE TABLE IF NOT EXISTS match_entries (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       match_id UUID NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
       player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
@@ -95,7 +78,7 @@ export async function resetDatabase() {
   `);
 
   await db.execute(sql`
-    CREATE TABLE group_share_tokens (
+    CREATE TABLE IF NOT EXISTS group_share_tokens (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
       token_hash VARCHAR(255) NOT NULL UNIQUE,
@@ -104,15 +87,15 @@ export async function resetDatabase() {
     )
   `);
 
-  // Bootstrap admin
+  // Bootstrap admin (if missing)
   await bootstrapAdmin();
 
-  console.log("Database reset complete.");
+  console.log("Database initialization complete.");
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  resetDatabase().catch((err) => {
-    console.error("Failed to reset database:", err);
+  initDatabase().catch((err) => {
+    console.error("Failed to initialize database:", err);
     process.exit(1);
   });
 }

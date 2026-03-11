@@ -1,11 +1,21 @@
 /* eslint-disable */
 import { test, expect } from "@playwright/test";
-import { seedLocalStorage } from "./helpers";
+import {
+  seedNamespacedLocalStorage,
+  loginAdminAndCreateNamespacedGroup,
+  generateNamespace,
+} from "./helpers";
 
 test.describe("Header responsive layout", () => {
+  let namespace: string;
+
   test.beforeEach(async ({ page }) => {
-    // Seed default group and migration marker
-    await seedLocalStorage(page, {});
+    // Generate a unique namespace for this test run
+    namespace = generateNamespace();
+    // Seed default group and migration marker with namespace
+    await seedNamespacedLocalStorage(page, namespace, {});
+    // Log in as admin and create a namespaced server group (required for admin UI)
+    await loginAdminAndCreateNamespacedGroup(page);
     await page.goto("/");
     // Capture console logs from the page
     page.on("console", (msg) => console.log(`[page] ${msg.text()}`));
