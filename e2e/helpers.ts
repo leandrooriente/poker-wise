@@ -9,11 +9,11 @@ import { Page } from "@playwright/test";
  * Generate a unique namespace string for test data isolation.
  * Incorporates CI environment variables (run ID, SHA, shard) when available.
  * Falls back to timestamp + random string for local runs.
+ * NOTE: Only generates letters and dashes (no numbers) to match form validation.
  */
 export function generateNamespace(): string {
-  const uniqueSuffix = `${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 8)}`;
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).slice(2, 8);
 
   // In CI, use GitHub Actions context for stable, shard-aware namespacing
   if (process.env.CI) {
@@ -23,13 +23,28 @@ export function generateNamespace(): string {
       : "unknown";
     const attempt = process.env.GITHUB_RUN_ATTEMPT || "1";
 
-    return `e2e-${runId}-${sha}-${attempt}-${uniqueSuffix}`
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-");
+    // Convert numbers to letters to match form validation
+    const numericRunId = runId.replace(
+      /\d/g,
+      (d) => "abcdefghijklmnopqrstuvwxyz"[parseInt(d) % 26]
+    );
+    const numericSha = sha.replace(
+      /\d/g,
+      (d) => "abcdefghijklmnopqrstuvwxyz"[parseInt(d) % 26]
+    );
+    const numericAttempt = attempt.replace(
+      /\d/g,
+      (d) => "abcdefghijklmnopqrstuvwxyz"[parseInt(d) % 26]
+    );
+
+    return `e2e-${numericRunId}-${numericSha}-${numericAttempt}-${timestamp}-${random}`.replace(
+      /[^a-z-]/g,
+      "-"
+    );
   }
 
-  // Local development: timestamp + random suffix
-  return `local-${uniqueSuffix}`;
+  // Local development: timestamp + random suffix (already letters only)
+  return `local-${timestamp}-${random}`;
 }
 
 /**
