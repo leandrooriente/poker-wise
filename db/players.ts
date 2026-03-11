@@ -25,7 +25,7 @@ export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
     if (!res.ok) {
       // If unauthorized, the user is not an admin; return empty array for compatibility.
       // This allows non‑admin pages (e.g., public share) to still load players
-      // once we have read‑only endpoints (PR 8).
+      // once we have read-only endpoints (PR 8).
       if (res.status === 401 || res.status === 403) {
         console.warn(
           `No admin permission to fetch players for group ${groupId}; returning empty list.`
