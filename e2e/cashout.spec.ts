@@ -18,8 +18,6 @@ test.describe("Cashout", () => {
     await page.goto("/");
     await page.evaluate(() => {
       window.localStorage.clear();
-      // Set migration marker to true to prevent migration from running with empty data
-      window.localStorage.setItem("poker-wise-migration-v1-done", "true");
     });
     // Seed default group and active group for groups-first UX with namespace
     await seedNamespacedLocalStorage(page, namespace, {});

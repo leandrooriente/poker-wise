@@ -1,13 +1,11 @@
 import { deleteMatchesByGroup } from "./matches";
 import { removeAllGroupMembersForGroup } from "./members";
-import { ensureMigration } from "./migrate";
 
 import { Group } from "@/types/group";
 
 const STORAGE_KEY = "poker-wise-groups";
 
 export async function getGroups(): Promise<Group[]> {
-  await ensureMigration();
   if (typeof window === "undefined") return [];
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -23,7 +21,6 @@ export async function getGroups(): Promise<Group[]> {
 }
 
 export async function saveGroups(groups: Group[]): Promise<void> {
-  await ensureMigration();
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
@@ -32,15 +29,16 @@ export async function saveGroups(groups: Group[]): Promise<void> {
   }
 }
 
-export async function addGroup(group: Omit<Group, "createdAt">): Promise<Group> {
-  await ensureMigration();
+export async function addGroup(
+  group: Omit<Group, "createdAt">
+): Promise<Group> {
   const newGroup: Group = {
     ...group,
     createdAt: new Date().toISOString(),
   };
   const groups = await getGroups();
   // Ensure id uniqueness
-  if (groups.some(g => g.id === newGroup.id)) {
+  if (groups.some((g) => g.id === newGroup.id)) {
     throw new Error(`Group with id "${newGroup.id}" already exists`);
   }
   groups.push(newGroup);
@@ -49,7 +47,6 @@ export async function addGroup(group: Omit<Group, "createdAt">): Promise<Group> 
 }
 
 export async function updateGroup(updatedGroup: Group): Promise<void> {
-  await ensureMigration();
   const groups = await getGroups();
   const index = groups.findIndex((g) => g.id === updatedGroup.id);
   if (index >= 0) {
@@ -59,7 +56,6 @@ export async function updateGroup(updatedGroup: Group): Promise<void> {
 }
 
 export async function deleteGroup(id: string): Promise<void> {
-  await ensureMigration();
   // Delete matches for this group
   await deleteMatchesByGroup(id);
   // Delete all group memberships for this group
@@ -71,7 +67,6 @@ export async function deleteGroup(id: string): Promise<void> {
 }
 
 export async function getGroup(id: string): Promise<Group | undefined> {
-  await ensureMigration();
   const groups = await getGroups();
   return groups.find((g) => g.id === id);
 }

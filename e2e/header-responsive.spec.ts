@@ -12,7 +12,7 @@ test.describe("Header responsive layout", () => {
   test.beforeEach(async ({ page }) => {
     // Generate a unique namespace for this test run
     namespace = generateNamespace();
-    // Seed default group and migration marker with namespace
+    // Seed default group data with namespace
     await seedNamespacedLocalStorage(page, namespace, {});
     // Log in as admin and create a namespaced server group (required for admin UI)
     await loginAdminAndCreateNamespacedGroup(page);

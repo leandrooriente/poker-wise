@@ -125,11 +125,6 @@ export async function seedNamespacedLocalStorage(
           createdAt: p.createdAt,
         }));
         localStorage.setItem("poker-wise-users", JSON.stringify(users));
-        // Also seed legacy key for backward compatibility in tests
-        localStorage.setItem(
-          "poker-wise-players",
-          JSON.stringify(opts.players)
-        );
       }
       // Create namespace-specific group
       const groups = [
@@ -153,10 +148,10 @@ export async function seedNamespacedLocalStorage(
       }
 
       if (opts.matches) {
-        // Convert legacy playerId to userId and add groupId if missing
+        // Normalize all seeded matches to the namespaced group for this test.
         const convertedMatches = opts.matches.map((match: any) => ({
           ...match,
-          groupId: match.groupId || opts.groupId,
+          groupId: opts.groupId,
           players: match.players.map((mp: any) => {
             const { playerId, ...rest } = mp;
             return {
@@ -176,8 +171,6 @@ export async function seedNamespacedLocalStorage(
           JSON.stringify(opts.settings)
         );
       }
-      // Set migration marker to true to skip migration (since we seeded new format directly)
-      localStorage.setItem("poker-wise-migration-v1-done", "true");
     },
     { ...options, groupId }
   );
@@ -372,8 +365,6 @@ export async function seedLocalStorage(
         createdAt: p.createdAt,
       }));
       localStorage.setItem("poker-wise-users", JSON.stringify(users));
-      // Also seed legacy key for backward compatibility in tests
-      localStorage.setItem("poker-wise-players", JSON.stringify(opts.players));
     }
     // Ensure default group exists
     const groups = [{ id: "home-game", createdAt: new Date().toISOString() }];
@@ -415,8 +406,6 @@ export async function seedLocalStorage(
         JSON.stringify(opts.settings)
       );
     }
-    // Set migration marker to true to skip migration (since we seeded new format directly)
-    localStorage.setItem("poker-wise-migration-v1-done", "true");
   }, options);
 }
 

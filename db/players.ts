@@ -15,9 +15,6 @@ function getLocalPlayersForGroup(groupId: string): Player[] {
     const members = JSON.parse(
       localStorage.getItem("poker-wise-group-members") || "[]"
     );
-    const legacyPlayers = JSON.parse(
-      localStorage.getItem("poker-wise-players") || "[]"
-    );
 
     const memberIds = new Set(
       members
@@ -33,18 +30,7 @@ function getLocalPlayersForGroup(groupId: string): Player[] {
         createdAt: user.createdAt,
       }));
 
-    if (localUsers.length > 0) {
-      return localUsers;
-    }
-
-    return legacyPlayers
-      .filter((player: any) => memberIds.size === 0 || memberIds.has(player.id))
-      .map((player: any) => ({
-        id: player.id,
-        name: player.name,
-        notes: player.notes ?? undefined,
-        createdAt: player.createdAt,
-      }));
+    return localUsers;
   } catch {
     return [];
   }
