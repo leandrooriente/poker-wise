@@ -1,11 +1,8 @@
-import { ensureMigration } from "./migrate";
-
 import { GroupMember } from "@/types/group";
 
 const STORAGE_KEY = "poker-wise-group-members";
 
 export async function getGroupMembers(): Promise<GroupMember[]> {
-  await ensureMigration();
   if (typeof window === "undefined") return [];
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -16,7 +13,6 @@ export async function getGroupMembers(): Promise<GroupMember[]> {
 }
 
 export async function saveGroupMembers(members: GroupMember[]): Promise<void> {
-  await ensureMigration();
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
@@ -25,50 +21,66 @@ export async function saveGroupMembers(members: GroupMember[]): Promise<void> {
   }
 }
 
-export async function addGroupMember(member: Omit<GroupMember, "joinedAt">): Promise<GroupMember> {
-  await ensureMigration();
+export async function addGroupMember(
+  member: Omit<GroupMember, "joinedAt">
+): Promise<GroupMember> {
   const newMember: GroupMember = {
     ...member,
     joinedAt: new Date().toISOString(),
   };
   const members = await getGroupMembers();
   // Ensure uniqueness (groupId, userId)
-  if (members.some(m => m.groupId === member.groupId && m.userId === member.userId)) {
-    throw new Error(`User ${member.userId} is already a member of group ${member.groupId}`);
+  if (
+    members.some(
+      (m) => m.groupId === member.groupId && m.userId === member.userId
+    )
+  ) {
+    throw new Error(
+      `User ${member.userId} is already a member of group ${member.groupId}`
+    );
   }
   members.push(newMember);
   await saveGroupMembers(members);
   return newMember;
 }
 
-export async function removeGroupMember(groupId: string, userId: string): Promise<void> {
-  await ensureMigration();
+export async function removeGroupMember(
+  groupId: string,
+  userId: string
+): Promise<void> {
   const members = await getGroupMembers();
-  const filtered = members.filter(m => !(m.groupId === groupId && m.userId === userId));
+  const filtered = members.filter(
+    (m) => !(m.groupId === groupId && m.userId === userId)
+  );
   await saveGroupMembers(filtered);
 }
 
-export async function removeAllGroupMembersForGroup(groupId: string): Promise<void> {
-  await ensureMigration();
+export async function removeAllGroupMembersForGroup(
+  groupId: string
+): Promise<void> {
   const members = await getGroupMembers();
-  const filtered = members.filter(m => m.groupId !== groupId);
+  const filtered = members.filter((m) => m.groupId !== groupId);
   await saveGroupMembers(filtered);
 }
 
-export async function getGroupMembersForGroup(groupId: string): Promise<GroupMember[]> {
-  await ensureMigration();
+export async function getGroupMembersForGroup(
+  groupId: string
+): Promise<GroupMember[]> {
   const members = await getGroupMembers();
-  return members.filter(m => m.groupId === groupId);
+  return members.filter((m) => m.groupId === groupId);
 }
 
-export async function getGroupMembersForUser(userId: string): Promise<GroupMember[]> {
-  await ensureMigration();
+export async function getGroupMembersForUser(
+  userId: string
+): Promise<GroupMember[]> {
   const members = await getGroupMembers();
-  return members.filter(m => m.userId === userId);
+  return members.filter((m) => m.userId === userId);
 }
 
-export async function isUserMemberOfGroup(groupId: string, userId: string): Promise<boolean> {
-  await ensureMigration();
+export async function isUserMemberOfGroup(
+  groupId: string,
+  userId: string
+): Promise<boolean> {
   const members = await getGroupMembers();
-  return members.some(m => m.groupId === groupId && m.userId === userId);
+  return members.some((m) => m.groupId === groupId && m.userId === userId);
 }
