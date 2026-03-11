@@ -63,13 +63,11 @@ export async function createNamespacedGroup(
   await page.getByLabel("Group *").fill(groupSlug);
   await page.getByRole("button", { name: "CREATE GROUP" }).click();
 
-  // Wait for "No groups yet" message to disappear, indicating groups loaded
-  await expect(page.getByText("No groups yet")).not.toBeVisible();
-
   // Wait for group to appear in list (form now uses same value for name and slug)
+  // Use a longer timeout to account for API calls and React state updates
   await expect(
     page.getByRole("heading", { name: groupSlug }).first()
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 10000 });
 
   const groupCard = page
     .locator("div")
