@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   typecheck:
     name: TypeScript Type Checking
@@ -72,6 +76,7 @@ jobs:
   e2e-setup:
     name: E2E Setup (Database Reset)
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     services:
       postgres:
         image: postgres:16-alpine
@@ -108,9 +113,74 @@ jobs:
       - name: Reset database
         run: npm run db:reset
 
+  await-vercel-preview:
+    name: Await Vercel Preview
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    outputs:
+      preview_url: ${{ steps.await-preview.outputs.preview_url }}
+    steps:
+      - name: Await Vercel preview deployment
+        id: await-preview
+        uses: unlyed/github-action-await-vercel-preview@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          timeout: 300
+          check-interval: 10
+          sha: ${{ github.event.pull_request.head.sha }}
+
+  e2e-pr-preview:
+    name: E2E Tests (PR Preview)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: await-vercel-preview
+    timeout-minutes: 15
+    env:
+      BASE_URL: ${{ needs.await-vercel-preview.outputs.preview_url }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard_part: [1]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests against preview
+        run: npm run e2e -- --project=chromium --shard=${{ matrix.shard_part }}/1
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-pr-preview
+          path: playwright-report/
+          retention-days: 7
+
   e2e-chromium-matrix:
     name: E2E Tests (Chromium) - Shard ${{ matrix.shard_part }}/2
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     timeout-minutes: 15
     needs: e2e-setup
     services:
@@ -122,7 +192,7 @@ jobs:
           POSTGRES_DB: db
           PGPASSWORD: pass
         options: >-
-          --health-cmd "pg_isready -U user -d db"
+          --health-cmd "pgisready -U user -d db"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
