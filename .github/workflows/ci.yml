@@ -136,33 +136,44 @@ jobs:
         id: await-preview
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           TARGET_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           echo "Looking for Vercel preview deployment matching PR SHA: $TARGET_SHA"
-          echo "VERCEL_ORG_ID length: ${#VERCEL_ORG_ID}"
-          echo "VERCEL_PROJECT_ID length: ${#VERCEL_PROJECT_ID}"
 
-          # Authenticate with Vercel CLI - handle scope if provided
-          if [ -n "$VERCEL_ORG_ID" ]; then
-            echo "Using scope: $VERCEL_ORG_ID"
-            echo "$VERCEL_TOKEN" | vercel login --token-stdin --scope "$VERCEL_ORG_ID"
-          else
-            echo "No scope provided, using default"
-            echo "$VERCEL_TOKEN" | vercel login --token-stdin
+          # Validate required environment variables
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "❌ ERROR: VERCEL_TOKEN is not set. Please add it as a GitHub Secret."
+            echo "   You can set it in your repository settings under Settings > Secrets and variables > Actions"
+            exit 1
           fi
+          if [ -z "$VERCEL_TEAM_ID" ]; then
+            echo "❌ ERROR: VERCEL_TEAM_ID is not set. Please add it as a GitHub Secret."
+            exit 1
+          fi
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "❌ ERROR: VERCEL_PROJECT_ID is not set. Please add it as a GitHub Secret."
+            exit 1
+          fi
+
+          echo "VERCEL_TEAM_ID: ${VERCEL_TEAM_ID:0:10}..."
+          echo "VERCEL_PROJECT_ID: ${VERCEL_PROJECT_ID:0:10}..."
+          echo "VERCEL_TOKEN present: ${#VERCEL_TOKEN}"
+
+          # Vercel CLI will automatically use VERCEL_TOKEN environment variable
+          # No need to login explicitly in CI
 
           # Get preview deployments for the project
           echo "Fetching preview deployments for project $VERCEL_PROJECT_ID..."
 
-          # Build vercel list command with available parameters
+          # Build vercel list command
           VERCEL_CMD="vercel list"
           if [ -n "$VERCEL_PROJECT_ID" ]; then
-            VERCEL_CMD="$VERCEL_CMD $VERCEL_PROJECT_ID"
+            VERCEL_CMD="$VERCEL_CMD --project $VERCEL_PROJECT_ID"
           fi
-          if [ -n "$VERCEL_ORG_ID" ]; then
-            VERCEL_CMD="$VERCEL_CMD --scope $VERCEL_ORG_ID"
+          if [ -n "$VERCEL_TEAM_ID" ]; then
+            VERCEL_CMD="$VERCEL_CMD --scope $VERCEL_TEAM_ID"
           fi
           VERCEL_CMD="$VERCEL_CMD --environment preview --json"
 
@@ -197,8 +208,8 @@ jobs:
 
           # Build vercel inspect command
           INSPECT_CMD="vercel inspect $DEPLOYMENT_URL"
-          if [ -n "$VERCEL_ORG_ID" ]; then
-            INSPECT_CMD="$INSPECT_CMD --scope $VERCEL_ORG_ID"
+          if [ -n "$VERCEL_TEAM_ID" ]; then
+            INSPECT_CMD="$INSPECT_CMD --scope $VERCEL_TEAM_ID"
           fi
           INSPECT_CMD="$INSPECT_CMD --wait --timeout 300"
 
@@ -206,7 +217,7 @@ jobs:
           if ! $INSPECT_CMD; then
             echo "❌ Failed to wait for deployment $DEPLOYMENT_URL"
             echo "Checking deployment state..."
-            DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --scope "$VERCEL_ORG_ID" --json 2>/dev/null || echo "{}")
+            DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --json 2>/dev/null || echo "{}")
             echo "$DEPLOYMENT_INFO" | jq '.'
             exit 1
           fi
