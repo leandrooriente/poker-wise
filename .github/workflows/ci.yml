@@ -73,46 +73,6 @@ jobs:
       - name: Run unit tests
         run: npm run test
 
-  e2e-setup:
-    name: E2E Setup (Database Reset)
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
-          POSTGRES_DB: db
-          PGPASSWORD: pass
-        options: >-
-          --health-cmd "pg_isready -U user -d db"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    env:
-      POSTGRES_URL: postgresql://user:pass@localhost:5432/db
-      ADMIN_EMAIL: admin@example.com
-      ADMIN_PASSWORD: changeme
-      AUTH_SECRET: "auth-secret-01234567890123456789012345678901"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Reset database
-        run: npm run db:reset
-
   await-vercel-preview:
     name: Await Vercel Preview
     runs-on: ubuntu-latest
@@ -199,18 +159,14 @@ jobs:
           echo "✅ Deployment is ready: $DEPLOYMENT_URL"
           echo "preview_url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
-  e2e-pr-preview:
-    name: E2E Tests (PR Preview)
+  e2e-preview:
+    name: E2E Tests (Preview)
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     needs: await-vercel-preview
     timeout-minutes: 15
     env:
       BASE_URL: ${{ needs.await-vercel-preview.outputs.preview_url }}
-    strategy:
-      fail-fast: false
-      matrix:
-        shard_part: [1]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -234,78 +190,12 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests against preview
-        run: npm run e2e -- --project=chromium --shard=${{ matrix.shard_part }}/1
+        run: npm run e2e -- --project=chromium
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-pr-preview
-          path: playwright-report/
-          retention-days: 7
-
-  e2e-chromium-matrix:
-    name: E2E Tests (Chromium) - Shard ${{ matrix.shard_part }}/2
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    timeout-minutes: 15
-    needs: e2e-setup
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
-          POSTGRES_DB: db
-          PGPASSWORD: pass
-        options: >-
-          --health-cmd "pg_isready -U user -d db"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    env:
-      POSTGRES_URL: postgresql://user:pass@localhost:5432/db
-      ADMIN_EMAIL: admin@example.com
-      ADMIN_PASSWORD: changeme
-      AUTH_SECRET: "auth-secret-01234567890123456789012345678901"
-    strategy:
-      fail-fast: false
-      matrix:
-        shard_part: [1, 2]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
-
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Build application for CI
-        run: npm run build
-
-      - name: Run E2E tests with sharding
-        run: npm run e2e -- --project=chromium --shard=${{ matrix.shard_part }}/2
-
-      - name: Upload Playwright HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-${{ matrix.shard_part }}-2
+          name: playwright-report-preview
           path: playwright-report/
           retention-days: 7
