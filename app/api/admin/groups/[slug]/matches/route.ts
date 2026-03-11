@@ -11,6 +11,7 @@ function serializeMatch(match: matchesQueries.MatchRecord) {
     startedAt: match.startedAt.toISOString(),
     endedAt: match.endedAt?.toISOString() ?? undefined,
     createdAt: match.createdAt.toISOString(),
+    settlement: match.settlement,
   };
 }
 

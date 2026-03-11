@@ -1,3 +1,5 @@
+import { SettlementResult } from "@/lib/settlement";
+
 // MatchPlayer now references userId (global user) not playerId (legacy player)
 export interface MatchPlayer {
   userId: string; // renamed from playerId to reflect global user reference
@@ -18,6 +20,8 @@ export interface Match {
   // Derived data (computed, not stored)
   totalPot?: number;
   settlementTransfers?: SettlementTransfer[];
+  // Server-computed settlement for settled matches
+  settlement?: SettlementResult;
 }
 
 export interface SettlementTransfer {

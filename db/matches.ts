@@ -11,6 +11,7 @@ function normalizeMatch(match: any): Match {
     ...match,
     title: match.title ?? undefined,
     endedAt: match.endedAt ?? undefined,
+    settlement: match.settlement,
   };
 }
 
@@ -134,7 +135,15 @@ export async function getMatchesByGroup(groupId: string): Promise<Match[]> {
     return data.map((match: any) => normalizeMatch(match));
   } catch {
     const matches = await getLocalMatches();
-    return matches.filter((match) => match.groupId === groupId);
+    const filtered = matches.filter((match) => match.groupId === groupId);
+    // Compute settlement for settled matches in local fallback
+    return filtered.map((match) => ({
+      ...match,
+      settlement:
+        match.status === "settled"
+          ? calculateSettlement(match.players, match.buyInAmount)
+          : undefined,
+    }));
   }
 }
 

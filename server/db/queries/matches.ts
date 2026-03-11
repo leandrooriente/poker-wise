@@ -27,6 +27,7 @@ export interface MatchRecord {
   createdByAdminId: string;
   createdAt: Date;
   players: MatchEntryInput[];
+  settlement?: SettlementResult;
 }
 
 export interface MatchPlayerDetails {
@@ -89,10 +90,17 @@ async function buildMatchRecord(
     .from(matchEntries)
     .where(eq(matchEntries.matchId, matchRow.id));
 
-  return {
+  const record: MatchRecord = {
     ...matchRow,
     players: entries,
   };
+
+  // Include settlement for settled matches
+  if (matchRow.status === "settled") {
+    record.settlement = buildSettlement(record);
+  }
+
+  return record;
 }
 
 export async function createMatchForAdmin(
