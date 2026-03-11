@@ -147,47 +147,15 @@ jobs:
             exit 1
           fi
 
-          echo "VERCEL_TOKEN present: ${#VERCEL_TOKEN}"
-          if [ -n "$VERCEL_TEAM_ID" ]; then
-            echo "VERCEL_TEAM_ID: ${VERCEL_TEAM_ID:0:10}..."
-          fi
-          if [ -n "$VERCEL_PROJECT_ID" ]; then
-            echo "VERCEL_PROJECT_ID: ${VERCEL_PROJECT_ID:0:10}..."
-          fi
-
-          # Vercel CLI will automatically use VERCEL_TOKEN environment variable
-          # No need to login explicitly in CI
-
           # Get preview deployments matching the PR commit SHA
           echo "Looking for Vercel preview deployments for commit SHA: $TARGET_SHA..."
 
-          # First, list all preview deployments to debug
-          echo "Checking all preview deployments..."
-          ALL_DEPLOYMENTS_CMD="vercel ls --environment preview --format json --token=$VERCEL_TOKEN"
-          ALL_RESPONSE=$($ALL_DEPLOYMENTS_CMD 2>/dev/null || echo '{"deployments":[]}')
-          ALL_DEPLOYMENTS=$(echo "$ALL_RESPONSE" | jq '.deployments // []')
-          ALL_COUNT=$(echo "$ALL_DEPLOYMENTS" | jq '. | length')
-          echo "Total preview deployments found: $ALL_COUNT"
-          if [ "$ALL_COUNT" -gt 0 ]; then
-            echo "First 3 deployments:"
-            echo "$ALL_DEPLOYMENTS" | jq '.[:3] | .[] | {sha: .meta.githubCommitSha, url: .url, state: .state, readyState: .readyState, createdAt: .createdAt, meta: .meta}'
-          fi
-
-          # Build vercel ls command with metadata filter for specific SHA
-          # Using 'vercel ls' (alias for 'vercel list') with -m filter
-          # Format: vercel ls -m githubCommitSha=SHA --environment preview --format json --token=TOKEN
+          # Use the commit SHA metadata to locate the exact preview deployment
           VERCEL_CMD="vercel ls -m githubCommitSha=$TARGET_SHA --environment preview --format json --token=$VERCEL_TOKEN"
 
-          echo "Running filtered command: $VERCEL_CMD"
+          echo "Running filtered preview lookup"
           RESPONSE=$($VERCEL_CMD 2>/dev/null || echo '{"deployments":[]}')
           DEPLOYMENTS=$(echo "$RESPONSE" | jq '.deployments // []')
-
-          # Debug: show raw response and parsed deployments
-          echo "Raw response (first 500 chars):"
-          echo "$RESPONSE" | head -c 500
-          echo ""
-
-          # Debug: show deployment count and first few entries
           DEPLOYMENT_COUNT=$(echo "$DEPLOYMENTS" | jq '. | length')
           echo "Found $DEPLOYMENT_COUNT preview deployment(s) matching SHA $TARGET_SHA"
 
@@ -198,13 +166,8 @@ jobs:
 
           if [ -z "$DEPLOYMENT_URL" ]; then
             echo "❌ No Vercel preview deployment found for SHA $TARGET_SHA"
-            echo "Available preview deployments (showing first 5 of $ALL_COUNT total):"
-            if [ "$ALL_COUNT" -gt 0 ]; then
-              echo "$ALL_DEPLOYMENTS" | jq '.[:5] | .[] | {sha: .meta.githubCommitSha, url: .url, state: .state, readyState: .readyState, createdAt: .createdAt}'
-            else
-              echo "No preview deployments found at all. Check Vercel project configuration."
-            fi
-            
+            echo "$RESPONSE" | jq '.'
+
             # Wait and retry once (deployment might still be queued)
             echo "Waiting 30 seconds and retrying..."
             sleep 30
@@ -222,14 +185,13 @@ jobs:
           echo "✅ Found deployment: $DEPLOYMENT_URL"
           echo "Waiting for deployment to be ready..."
 
-          # Build vercel inspect command
           INSPECT_CMD="vercel inspect $DEPLOYMENT_URL --wait --timeout 300 --token=$VERCEL_TOKEN"
 
-          echo "Running: $INSPECT_CMD"
+          echo "Running deployment readiness check"
           if ! $INSPECT_CMD; then
             echo "❌ Failed to wait for deployment $DEPLOYMENT_URL"
             echo "Checking deployment state..."
-            DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --json --token=$VERCEL_TOKEN 2>/dev/null || echo "{}")
+            DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --format json --token=$VERCEL_TOKEN 2>/dev/null || echo "{}")
             echo "$DEPLOYMENT_INFO" | jq '.'
             exit 1
           fi
