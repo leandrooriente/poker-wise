@@ -8,6 +8,7 @@ import {
   matches,
   players,
 } from "@/server/db/schema";
+import { calculateSettlement, SettlementResult } from "@/lib/settlement";
 
 export interface MatchEntryInput {
   userId: string;
@@ -37,6 +38,10 @@ export interface MatchPlayerDetails {
   };
   buyIns: number;
   finalValue: number;
+}
+
+function buildSettlement(match: MatchRecord): SettlementResult {
+  return calculateSettlement(match.players, match.buyInAmount);
 }
 
 async function verifyAdminMembership(groupId: string, adminId: string) {
@@ -165,7 +170,14 @@ export async function getMatchForAdmin(
 export async function getMatchWithPlayersForAdmin(
   matchId: string,
   adminId: string
-): Promise<{ match: MatchRecord; players: MatchPlayerDetails[] } | undefined> {
+): Promise<
+  | {
+      match: MatchRecord;
+      players: MatchPlayerDetails[];
+      settlement?: SettlementResult;
+    }
+  | undefined
+> {
   const match = await getMatchForAdmin(matchId, adminId);
   if (!match) {
     return undefined;
@@ -194,7 +206,11 @@ export async function getMatchWithPlayersForAdmin(
     })
     .filter((entry): entry is MatchPlayerDetails => entry !== null);
 
-  return { match, players: details };
+  return {
+    match,
+    players: details,
+    settlement: match.status === "settled" ? buildSettlement(match) : undefined,
+  };
 }
 
 export async function listMatchesForGroupForAdmin(
@@ -286,4 +302,54 @@ export async function updateMatchForAdmin(
   }
 
   return buildMatchRecord(updated);
+}
+
+export async function settleMatchForAdmin(
+  matchId: string,
+  adminId: string,
+  finalValues: Record<string, number>
+): Promise<
+  | {
+      match: MatchRecord;
+      players: MatchPlayerDetails[];
+      settlement: SettlementResult;
+    }
+  | { error: string }
+  | undefined
+> {
+  const existing = await getMatchForAdmin(matchId, adminId);
+  if (!existing) {
+    return undefined;
+  }
+
+  const settledPlayers = existing.players.map((player) => ({
+    ...player,
+    finalValue: finalValues[player.userId] ?? 0,
+  }));
+  const settlement = calculateSettlement(settledPlayers, existing.buyInAmount);
+
+  if (!settlement.isValid) {
+    return { error: settlement.error || "Totals do not match" };
+  }
+
+  const updated = await updateMatchForAdmin(matchId, adminId, {
+    players: settledPlayers,
+    endedAt: existing.endedAt?.toISOString() ?? new Date().toISOString(),
+    status: "settled",
+  });
+
+  if (!updated) {
+    return undefined;
+  }
+
+  const result = await getMatchWithPlayersForAdmin(matchId, adminId);
+  if (!result) {
+    return undefined;
+  }
+
+  return {
+    match: result.match,
+    players: result.players,
+    settlement: result.settlement ?? buildSettlement(result.match),
+  };
 }

@@ -22,6 +22,7 @@ function serializeMatch(match: matchesQueries.MatchRecord) {
 function serializeMatchWithPlayers(result: {
   match: matchesQueries.MatchRecord;
   players: matchesQueries.MatchPlayerDetails[];
+  settlement?: any;
 }) {
   return {
     match: serializeMatch(result.match),
@@ -34,6 +35,7 @@ function serializeMatchWithPlayers(result: {
       buyIns: player.buyIns,
       finalValue: player.finalValue,
     })),
+    settlement: result.settlement,
   };
 }
 

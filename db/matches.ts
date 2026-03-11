@@ -1,6 +1,7 @@
 import { getPlayersForGroup } from "./players";
 
 import { generateId } from "../lib/uuid";
+import { calculateSettlement, SettlementResult } from "../lib/settlement";
 import { Match } from "../types/match";
 
 const STORAGE_KEY = "poker-wise-matches";
@@ -149,6 +150,7 @@ export async function getMatchWithUsers(id: string): Promise<{
     buyIns: number;
     finalValue: number;
   }>;
+  settlement?: SettlementResult;
 } | null> {
   try {
     const res = await fetch(`/api/admin/matches/${id}`, {
@@ -163,35 +165,122 @@ export async function getMatchWithUsers(id: string): Promise<{
     return {
       match: normalizeMatch(data.match),
       players: data.players,
+      settlement: data.settlement,
     };
-  } catch {
+  } catch (err) {
+    console.warn(
+      "getMatchWithUsers API call failed, falling back to local match",
+      err
+    );
     const match = await getMatch(id);
-    if (!match) return null;
-
+    if (!match) {
+      console.warn("local match not found for id:", id);
+      return null;
+    }
+    console.warn("local match groupId:", match.groupId);
     const playersForGroup = await getPlayersForGroup(match.groupId);
+    console.warn("playersForGroup length:", playersForGroup.length);
+    console.warn(
+      "playersForGroup:",
+      playersForGroup.map((p) => ({ id: p.id, name: p.name }))
+    );
     const playersById = new Map(
       playersForGroup.map((player) => [player.id, player])
+    );
+    console.warn("match.players:", match.players);
+
+    const playersResult = match.players
+      .map((entry) => {
+        const user = playersById.get(entry.userId);
+        if (!user) {
+          console.warn("no user found for userId:", entry.userId);
+          return null;
+        }
+
+        return {
+          user,
+          buyIns: entry.buyIns,
+          finalValue: entry.finalValue,
+        };
+      })
+      .filter(
+        (entry): entry is { user: any; buyIns: number; finalValue: number } =>
+          entry !== null
+      );
+    console.warn(
+      "playersResult:",
+      playersResult.map((p) => ({
+        userId: p.user.id,
+        name: p.user.name,
+        buyIns: p.buyIns,
+        finalValue: p.finalValue,
+      }))
     );
 
     return {
       match,
-      players: match.players
-        .map((entry) => {
-          const user = playersById.get(entry.userId);
-          if (!user) {
-            return null;
-          }
+      players: playersResult,
+      settlement:
+        match.status === "settled"
+          ? calculateSettlement(match.players, match.buyInAmount)
+          : undefined,
+    };
+  }
+}
 
-          return {
-            user,
-            buyIns: entry.buyIns,
-            finalValue: entry.finalValue,
-          };
-        })
-        .filter(
-          (entry): entry is { user: any; buyIns: number; finalValue: number } =>
-            entry !== null
-        ),
+export async function settleMatch(
+  id: string,
+  finalValues: Record<string, number>
+): Promise<{
+  match: Match;
+  players: Array<{ user: any; buyIns: number; finalValue: number }>;
+  settlement: SettlementResult;
+}> {
+  try {
+    const res = await fetch(`/api/admin/matches/${id}/settle`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ finalValues }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || `Failed to settle match: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return {
+      match: normalizeMatch(data.match),
+      players: data.players,
+      settlement: data.settlement,
+    };
+  } catch {
+    const match = await getMatch(id);
+    if (!match) {
+      throw new Error("Match not found");
+    }
+
+    const updatedMatch = {
+      ...match,
+      status: "settled" as const,
+      endedAt: match.endedAt || new Date().toISOString(),
+      players: match.players.map((player) => ({
+        ...player,
+        finalValue: finalValues[player.userId] ?? 0,
+      })),
+    };
+    await updateMatch(updatedMatch);
+
+    const data = await getMatchWithUsers(id);
+    if (!data || !data.settlement) {
+      throw new Error("Failed to settle match");
+    }
+
+    return {
+      match: data.match,
+      players: data.players,
+      settlement: data.settlement,
     };
   }
 }
