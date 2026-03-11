@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { getE2ELocalEnv } from "./lib/e2e-local-config";
+
 // Determine base URL: use environment variable if set, otherwise default to local dev server
 const baseURL = process.env.BASE_URL || "http://localhost:3001";
 
@@ -8,42 +10,15 @@ const baseURL = process.env.BASE_URL || "http://localhost:3001";
 const useLocalServer =
   !process.env.BASE_URL || baseURL.startsWith("http://localhost");
 
+const localEnv = getE2ELocalEnv(process.env);
+
 const webServerConfig = useLocalServer
-  ? process.env.CI
-    ? {
-        command: "npm run start",
-        url: "http://localhost:3001",
-        reuseExistingServer: true,
-        env: {
-          PORT: "3001",
-          POSTGRES_URL:
-            process.env.POSTGRES_URL ||
-            "postgresql://user:pass@localhost:5432/db",
-          ADMIN_EMAIL: process.env.ADMIN_EMAIL || "admin@example.com",
-          ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "changeme",
-          AUTH_SECRET:
-            process.env.AUTH_SECRET ||
-            "auth-secret-01234567890123456789012345678901",
-          NODE_ENV: process.env.NODE_ENV || "test",
-        },
-      }
-    : {
-        command: "npm run dev",
-        url: "http://localhost:3001",
-        reuseExistingServer: true,
-        env: {
-          PORT: "3001",
-          POSTGRES_URL:
-            process.env.POSTGRES_URL ||
-            "postgresql://user:pass@localhost:5432/db",
-          ADMIN_EMAIL: process.env.ADMIN_EMAIL || "admin@example.com",
-          ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "changeme",
-          AUTH_SECRET:
-            process.env.AUTH_SECRET ||
-            "auth-secret-01234567890123456789012345678901",
-          NODE_ENV: process.env.NODE_ENV || "development",
-        },
-      }
+  ? {
+      command: "npx tsx scripts/e2e-local-server.ts",
+      url: "http://localhost:3001",
+      reuseExistingServer: true,
+      env: localEnv,
+    }
   : undefined;
 
 export default defineConfig({
@@ -52,7 +27,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : undefined,
-  reporter: "html",
+  reporter: [["line"], ["html"]],
   use: {
     baseURL,
     trace: "on-first-retry",
