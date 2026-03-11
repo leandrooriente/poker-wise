@@ -204,33 +204,31 @@ export default function GroupsPage() {
                           : "border-retro-gray bg-retro-dark"
                       }`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-pixel text-lg text-retro-green">
-                            {group.name}
-                          </h4>
-                          <p className="text-sm text-retro-gray">
-                            ID: {group.id}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleSelectGroup(group.id)}
-                            className={`rounded-retro border px-3 py-1 font-pixel text-sm ${
-                              isActive
-                                ? "border-retro-yellow text-retro-yellow"
-                                : "border-retro-gray text-retro-light hover:border-retro-green"
-                            }`}
-                          >
-                            {isActive ? "ACTIVE" : "SELECT"}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteGroup(group.id)}
-                            className="rounded-retro border border-retro-red px-3 py-1 font-pixel text-sm text-retro-red hover:bg-retro-red hover:text-retro-dark"
-                          >
-                            DELETE
-                          </button>
-                        </div>
+                      <div>
+                        <h4 className="font-pixel text-lg text-retro-green">
+                          {group.name}
+                        </h4>
+                        <p className="text-sm text-retro-gray">
+                          ID: {group.id}
+                        </p>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <button
+                          onClick={() => handleSelectGroup(group.id)}
+                          className={`rounded-retro border px-3 py-1 font-pixel text-sm ${
+                            isActive
+                              ? "border-retro-yellow text-retro-yellow"
+                              : "border-retro-gray text-retro-light hover:border-retro-green"
+                          }`}
+                        >
+                          {isActive ? "ACTIVE" : "SELECT"}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteGroup(group.id)}
+                          className="rounded-retro border border-retro-red px-3 py-1 font-pixel text-sm text-retro-red hover:bg-retro-red hover:text-retro-dark"
+                        >
+                          DELETE
+                        </button>
                       </div>
                     </div>
                   );
