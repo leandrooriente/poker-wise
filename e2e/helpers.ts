@@ -61,7 +61,21 @@ export async function createNamespacedGroup(
     .replace(/[^a-z0-9-]/g, "-");
 
   await page.getByLabel("Group *").fill(groupSlug);
+
+  // Take a screenshot before clicking to debug
+  await page.screenshot({
+    path: `test-results/debug-before-create-${groupSlug}.png`,
+  });
+
   await page.getByRole("button", { name: "CREATE GROUP" }).click();
+
+  // Wait a moment for the form to submit
+  await page.waitForTimeout(1000);
+
+  // Take a screenshot after clicking to debug
+  await page.screenshot({
+    path: `test-results/debug-after-create-${groupSlug}.png`,
+  });
 
   // Wait for group to appear in list (form now uses same value for name and slug)
   // Use a longer timeout to account for API calls and React state updates
