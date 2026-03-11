@@ -51,9 +51,38 @@ async function waitForPostgres(connectionString: string) {
   throw new Error("Postgres did not become ready within 60 seconds");
 }
 
+async function isPostgresReady(connectionString: string) {
+  const client = new Client({ connectionString });
+
+  try {
+    await client.connect();
+    await client.query("select 1");
+    await client.end();
+    return true;
+  } catch {
+    await client.end().catch(() => undefined);
+    return false;
+  }
+}
+
 async function main() {
-  await runCommand("docker", ["compose", "up", "-d", "postgres"]);
-  await waitForPostgres(env.POSTGRES_URL);
+  const postgresReady = await isPostgresReady(env.POSTGRES_URL);
+
+  if (!postgresReady) {
+    try {
+      await runCommand("docker", ["compose", "up", "-d", "postgres"]);
+      await waitForPostgres(env.POSTGRES_URL);
+    } catch (error) {
+      throw new Error(
+        [
+          `Postgres is not reachable at ${env.POSTGRES_URL}.`,
+          "Start your local Postgres instance manually or grant Docker access, then retry `npm run e2e:local`.",
+          `Bootstrap failure: ${error instanceof Error ? error.message : String(error)}`,
+        ].join(" ")
+      );
+    }
+  }
+
   await runCommand("npx", ["tsx", "scripts/db-init.ts"]);
 
   const server = spawn("npx", ["next", "dev", "-p", env.PORT], {

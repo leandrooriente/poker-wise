@@ -1,6 +1,6 @@
 import { ensureMigration } from "./migrate";
 
-import { getUser } from "@/db/users";
+import { getPlayersForGroup } from "@/db/players";
 import { generateId } from "@/lib/uuid";
 import { Match } from "@/types/match";
 
@@ -27,7 +27,9 @@ export async function saveMatches(matches: Match[]): Promise<void> {
   }
 }
 
-export async function addMatch(match: Omit<Match, "id" | "createdAt">): Promise<Match> {
+export async function addMatch(
+  match: Omit<Match, "id" | "createdAt">
+): Promise<Match> {
   await ensureMigration();
   const newMatch: Match = {
     ...match,
@@ -66,13 +68,13 @@ export async function getMatch(id: string): Promise<Match | undefined> {
 export async function getMatchesByGroup(groupId: string): Promise<Match[]> {
   await ensureMigration();
   const matches = await getMatches();
-  return matches.filter(m => m.groupId === groupId);
+  return matches.filter((m) => m.groupId === groupId);
 }
 
 export async function deleteMatchesByGroup(groupId: string): Promise<void> {
   await ensureMigration();
   const matches = await getMatches();
-  const filtered = matches.filter(m => m.groupId !== groupId);
+  const filtered = matches.filter((m) => m.groupId !== groupId);
   await saveMatches(filtered);
 }
 
@@ -88,9 +90,14 @@ export async function getMatchWithUsers(id: string): Promise<{
   const match = await getMatch(id);
   if (!match) return null;
 
+  const playersForGroup = await getPlayersForGroup(match.groupId);
+  const playersById = new Map(
+    playersForGroup.map((player) => [player.id, player])
+  );
+
   const playerDetails = await Promise.all(
     match.players.map(async (mp) => {
-      const user = await getUser(mp.userId);
+      const user = playersById.get(mp.userId);
 
       return {
         user: user!,
@@ -99,7 +106,7 @@ export async function getMatchWithUsers(id: string): Promise<{
       };
     })
   );
-  const filtered = playerDetails.filter(p => p.user);
+  const filtered = playerDetails.filter((p) => p.user);
 
   return { match, players: filtered };
 }

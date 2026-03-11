@@ -5,6 +5,51 @@ import { Player } from "@/types/player";
 
 const DEFAULT_GROUP_ID = "home-game";
 
+function getLocalPlayersForGroup(groupId: string): Player[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const users = JSON.parse(localStorage.getItem("poker-wise-users") || "[]");
+    const members = JSON.parse(
+      localStorage.getItem("poker-wise-group-members") || "[]"
+    );
+    const legacyPlayers = JSON.parse(
+      localStorage.getItem("poker-wise-players") || "[]"
+    );
+
+    const memberIds = new Set(
+      members
+        .filter((member: any) => member.groupId === groupId)
+        .map((member: any) => member.userId)
+    );
+
+    const localUsers = users
+      .filter((user: any) => memberIds.has(user.id))
+      .map((user: any) => ({
+        id: user.id,
+        name: user.name,
+        createdAt: user.createdAt,
+      }));
+
+    if (localUsers.length > 0) {
+      return localUsers;
+    }
+
+    return legacyPlayers
+      .filter((player: any) => memberIds.size === 0 || memberIds.has(player.id))
+      .map((player: any) => ({
+        id: player.id,
+        name: player.name,
+        notes: player.notes ?? undefined,
+        createdAt: player.createdAt,
+      }));
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Get all players in the default group (legacy compatibility).
  * @deprecated Use getPlayersForGroup with explicit group ID.
@@ -45,8 +90,7 @@ export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
     }));
   } catch (err) {
     console.error("getPlayersForGroup failed:", err);
-    // Fallback to empty array for offline/local‑first compatibility.
-    return [];
+    return getLocalPlayersForGroup(groupId);
   }
 }
 

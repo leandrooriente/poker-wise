@@ -55,6 +55,29 @@ export async function createNamespacedGroup(
     page.getByRole("heading", { name: groupName }).first()
   ).toBeVisible();
 
+  const groupCard = page
+    .locator("div")
+    .filter({ has: page.getByRole("heading", { name: groupName }).first() })
+    .first();
+
+  const selectButton = groupCard.getByRole("button", { name: "SELECT" });
+  if (await selectButton.isVisible().catch(() => false)) {
+    await selectButton.click();
+  }
+
+  await expect(groupCard.getByRole("button", { name: "ACTIVE" })).toBeVisible();
+  await expect(page.getByText(`ID: ${groupSlug}`).last()).toBeVisible();
+
+  await page.evaluate((slug) => {
+    window.localStorage.setItem("poker-wise-active-group", slug);
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: "poker-wise-active-group",
+        newValue: slug,
+      })
+    );
+  }, groupSlug);
+
   return groupSlug;
 }
 
@@ -196,6 +219,23 @@ export interface PlayerData {
   notes?: string;
 }
 
+export async function gotoActiveGroupPlayersPage(page: Page) {
+  const activeGroupId = await page.evaluate(() =>
+    window.localStorage.getItem("poker-wise-active-group")
+  );
+
+  if (!activeGroupId) {
+    throw new Error("No active group set for E2E player management");
+  }
+
+  await page.goto(`/admin/groups/${activeGroupId}/players`);
+  await expect(
+    page.getByRole("heading", { name: "Players in Group" })
+  ).toBeVisible();
+
+  return activeGroupId;
+}
+
 export interface MatchSetup {
   players: string[]; // player names
   title?: string;
@@ -206,10 +246,10 @@ export interface MatchSetup {
  * Add a player via the UI on the players page
  */
 export async function addPlayer(page: Page, data: PlayerData) {
-  await page.goto("/");
-  await page.getByPlaceholder("Player name").fill(data.name);
+  await gotoActiveGroupPlayersPage(page);
+  await page.getByTestId("player-name-input").fill(data.name);
 
-  await page.getByRole("button", { name: "ADD" }).click();
+  await page.getByRole("button", { name: "ADD PLAYER" }).click();
   await expect(page.getByText(data.name)).toBeVisible();
 }
 

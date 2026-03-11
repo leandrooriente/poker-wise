@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { test, expect } from "@playwright/test";
-import { loginAdminAndCreateNamespacedGroup } from "./helpers";
+import { addPlayer, loginAdminAndCreateNamespacedGroup } from "./helpers";
 
 test.describe("Basic poker match flow", () => {
   test.beforeEach(async ({ page }) => {
@@ -16,9 +16,7 @@ test.describe("Basic poker match flow", () => {
     page,
   }) => {
     // 1. Add a player
-    await page.getByPlaceholder("Player name").fill("Test Player");
-    await page.getByRole("button", { name: "ADD" }).click();
-    await expect(page.getByText("Test Player")).toBeVisible();
+    await addPlayer(page, { name: "Test Player" });
 
     // 2. Navigate to New Match
     await page.getByRole("link", { name: "New Match" }).click();
@@ -83,10 +81,8 @@ test.describe("Basic poker match flow", () => {
 
   test("two players settlement with transfers", async ({ page }) => {
     // Add two players
-    await page.getByPlaceholder("Player name").fill("Alice");
-    await page.getByRole("button", { name: "ADD" }).click();
-    await page.getByPlaceholder("Player name").fill("Bob");
-    await page.getByRole("button", { name: "ADD" }).click();
+    await addPlayer(page, { name: "Alice" });
+    await addPlayer(page, { name: "Bob" });
 
     // Start match with both players
     await page.getByRole("link", { name: "New Match" }).click();
