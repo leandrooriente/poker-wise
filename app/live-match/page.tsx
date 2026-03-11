@@ -6,7 +6,13 @@ import { useState, useEffect } from "react";
 import MoneyDisplay from "@/components/MoneyDisplay";
 import { getMatchWithUsers, updateMatch } from "@/db/matches";
 import { useActiveGroup } from "@/lib/active-group";
-import { MatchPlayer } from "@/types/match";
+import { Match } from "@/types/match";
+
+type LiveMatchPlayer = {
+  user: { id: string; name: string };
+  buyIns: number;
+  finalValue: number;
+};
 
 export default function LiveMatchPage({
   searchParams,
@@ -15,9 +21,10 @@ export default function LiveMatchPage({
 }) {
   const router = useRouter();
   const { activeGroupId } = useActiveGroup();
-  const [players, setPlayers] = useState<MatchPlayer[]>([]);
+  const [players, setPlayers] = useState<LiveMatchPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [match, setMatch] = useState<Match | null>(null);
   const matchId = searchParams.match;
 
   useEffect(() => {
@@ -28,8 +35,13 @@ export default function LiveMatchPage({
           setLoading(false);
           return;
         }
-        const loadedPlayers = await getPlayersForMatch(matchId);
-        setPlayers(loadedPlayers);
+        const data = await getMatchWithUsers(matchId);
+        if (!data) {
+          setError("Match not found");
+          return;
+        }
+        setMatch(data.match);
+        setPlayers(data.players as LiveMatchPlayer[]);
       } catch {
         setError("Failed to load match");
       } finally {
@@ -41,10 +53,25 @@ export default function LiveMatchPage({
 
   const handleRebuy = async (userId: string) => {
     try {
-      await updatePlayerBuyIns(matchId!, userId, 1);
-      // Reload players to get updated data
-      const updatedPlayers = await getPlayersForMatch(matchId!);
-      setPlayers(updatedPlayers);
+      if (!match) return;
+
+      const currentData = await getMatchWithUsers(match.id);
+      const baseMatch = currentData?.match ?? match;
+      const updatedPlayers = baseMatch.players.map(
+        (player: { userId: string; buyIns: number; finalValue: number }) =>
+          player.userId === userId
+            ? { ...player, buyIns: player.buyIns + 1 }
+            : player
+      );
+      const updatedMatch = { ...baseMatch, players: updatedPlayers };
+
+      await updateMatch(updatedMatch);
+
+      const data = await getMatchWithUsers(updatedMatch.id);
+      if (data) {
+        setMatch(data.match);
+        setPlayers(data.players as LiveMatchPlayer[]);
+      }
     } catch {
       alert("Failed to record rebuy. Please try again.");
     }
@@ -81,8 +108,6 @@ export default function LiveMatchPage({
     );
   }
 
-  const match = players[0]?.match;
-
   if (!match) {
     return (
       <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
@@ -91,7 +116,10 @@ export default function LiveMatchPage({
     );
   }
 
-  const totalBuyIns = players.reduce((sum, p) => sum + p.buyIns, 0);
+  const totalBuyIns = players.reduce(
+    (sum: number, p: LiveMatchPlayer) => sum + p.buyIns,
+    0
+  );
   const totalPot = totalBuyIns * match.buyInAmount;
 
   return (
@@ -109,7 +137,7 @@ export default function LiveMatchPage({
         <div className="lg:col-span-2">
           <h3 className="font-pixel text-retro-yellow mb-4 text-xl">PLAYERS</h3>
           <div className="space-y-4">
-            {players.map(({ user, buyIns }) => (
+            {players.map(({ user, buyIns }: LiveMatchPlayer) => (
               <div
                 key={user.id}
                 className="rounded-retro border-retro-gray bg-retro-dark hover:border-retro-green flex flex-col border p-4 transition-colors"
