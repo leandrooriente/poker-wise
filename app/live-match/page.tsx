@@ -128,8 +128,8 @@ export default function LiveMatchPage({
         LIVE MATCH
       </h2>
       <p className="text-retro-light mb-6">
-        Track rebuys during the game. Tap "Rebuy" when a player adds another
-        buy‑in.
+        Track rebuys during the game. Tap &quot;Rebuy&quot; when a player adds
+        another buy‑in.
       </p>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
