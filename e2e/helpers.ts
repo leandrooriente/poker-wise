@@ -11,29 +11,25 @@ import { Page } from "@playwright/test";
  * Falls back to timestamp + random string for local runs.
  */
 export function generateNamespace(): string {
+  const uniqueSuffix = `${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
+
   // In CI, use GitHub Actions context for stable, shard-aware namespacing
   if (process.env.CI) {
     const runId = process.env.GITHUB_RUN_ID || "ci";
     const sha = process.env.GITHUB_SHA
       ? process.env.GITHUB_SHA.substring(0, 8)
       : "unknown";
-    const shard =
-      process.env.SHARD_INDEX || process.env.GITHUB_ACTION_REPOSITORY
-        ? "1"
-        : "1";
-    // For PR preview jobs, we might have SHARD_INDEX from matrix.shard_part
-    // Try to extract from GitHub Actions matrix context
-    const matrixShard = process.env.GITHUB_ACTION_REPOSITORY ? "" : "";
-    // Use simple combination
-    return `e2e-${runId}-${sha}-${shard}`
+    const attempt = process.env.GITHUB_RUN_ATTEMPT || "1";
+
+    return `e2e-${runId}-${sha}-${attempt}-${uniqueSuffix}`
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, "-");
   }
 
   // Local development: timestamp + random suffix
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 8);
-  return `local-${timestamp}-${random}`;
+  return `local-${uniqueSuffix}`;
 }
 
 /**
