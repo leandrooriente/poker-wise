@@ -9,6 +9,7 @@ export interface Match {
   id: string;
   groupId: string; // added: which group this match belongs to
   title?: string;
+  status?: "live" | "settled";
   createdAt: string;
   startedAt?: string;
   endedAt?: string;
