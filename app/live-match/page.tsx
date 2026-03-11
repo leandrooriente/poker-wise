@@ -169,9 +169,6 @@ export default function LiveMatchPage({
           </div>
 
           <div className="border-t border-retro-gray pt-6">
-            <h3 className="mb-4 font-pixel text-xl text-retro-purple">
-              ACTIONS
-            </h3>
             <div className="space-y-4">
               <button
                 onClick={handleProceedToCashout}
