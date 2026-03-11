@@ -176,10 +176,6 @@ export default function LiveMatchPage({
               >
                 PROCEED TO CASHOUT
               </button>
-              <p className="text-sm text-retro-gray">
-                Once all rebuys are recorded, proceed to enter final chip
-                values.
-              </p>
             </div>
           </div>
         </div>
