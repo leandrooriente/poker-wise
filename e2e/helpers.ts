@@ -288,14 +288,17 @@ export async function addRebuy(
   playerName: string,
   times: number = 1
 ) {
+  const playerRow = page
+    .getByTestId("player-row")
+    .filter({ hasText: playerName });
+  const buyInsLabel = playerRow.locator("p").filter({ hasText: /Buy.?ins:/ });
+
   for (let i = 0; i < times; i++) {
-    // Find the player row by name and click REBUY button
-    const playerRow = page
-      .getByTestId("player-row")
-      .filter({ hasText: playerName });
+    const buyInsText = await buyInsLabel.innerText();
+    const currentBuyIns = Number(buyInsText.match(/(\d+)/)?.[1] || "0");
+
     await playerRow.getByRole("button", { name: "REBUY" }).click();
-    // Wait a moment for state to update
-    await page.waitForTimeout(100);
+    await expect(buyInsLabel).toContainText(`${currentBuyIns + 1}`);
   }
 }
 
