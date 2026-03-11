@@ -1,93 +1,92 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
-import { getMatchWithUsers, updateMatch } from "@/db/matches";
+import { getPlayersForMatch, updatePlayerBuyIns } from "@/db/matches";
+import { useActiveGroup } from "@/lib/active-group";
+import { MatchPlayer } from "@/types/match";
 
-function LiveMatchContent() {
+export default function LiveMatchPage({
+  searchParams,
+}: {
+  searchParams: { match?: string };
+}) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const matchId = searchParams.get("match");
+  const { activeGroupId } = useActiveGroup();
+  const [players, setPlayers] = useState<MatchPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [match, setMatch] = useState<any>(null);
-  const [players, setPlayers] = useState<any[]>([]);
+  const matchId = searchParams.match;
 
   useEffect(() => {
-    if (matchId) loadMatch(matchId);
-    else setError("No match ID provided");
+    async function loadData() {
+      try {
+        if (!matchId) {
+          setError("No match ID provided");
+          setLoading(false);
+          return;
+        }
+        const loadedPlayers = await getPlayersForMatch(matchId);
+        setPlayers(loadedPlayers);
+      } catch {
+        setError("Failed to load match");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
   }, [matchId]);
 
-  const loadMatch = async (id: string) => {
+  const handleRebuy = async (userId: string) => {
     try {
-      const data = await getMatchWithUsers(id);
-      if (!data) {
-        setError("Match not found");
-        return;
-      }
-      setMatch(data.match);
-      setPlayers(data.players);
+      await updatePlayerBuyIns(matchId!, userId, 1);
+      // Reload players to get updated data
+      const updatedPlayers = await getPlayersForMatch(matchId!);
+      setPlayers(updatedPlayers);
     } catch {
-      setError("Failed to load match");
-    } finally {
-      setLoading(false);
+      alert("Failed to record rebuy. Please try again.");
     }
-  };
-
-  const handleRebuy = async (playerId: string) => {
-    if (!match) return;
-
-    const currentData = await getMatchWithUsers(match.id);
-    const baseMatch = currentData?.match ?? match;
-    const updatedPlayers = baseMatch.players.map((mp: any) =>
-      mp.userId === playerId ? { ...mp, buyIns: mp.buyIns + 1 } : mp
-    );
-    const updatedMatch = { ...baseMatch, players: updatedPlayers };
-
-    await updateMatch(updatedMatch);
-
-    const data = await getMatchWithUsers(updatedMatch.id);
-    if (data) {
-      setMatch(data.match);
-      setPlayers(data.players);
-      return;
-    }
-
-    setMatch(updatedMatch);
   };
 
   const handleProceedToCashout = () => {
-    if (!match) return;
-    // Update match endedAt if not set
-    if (!match.endedAt) {
-      const updatedMatch = { ...match, endedAt: new Date().toISOString() };
-      updateMatch(updatedMatch);
-      setMatch(updatedMatch);
-    }
-    router.push(`/cashout?match=${match.id}`);
+    router.push(`/cashout?match=${matchId}`);
   };
 
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="font-pixel text-retro-green">Loading match...</div>
+        <div className="font-pixel text-retro-green">Loading...</div>
       </div>
     );
   }
 
-  if (error || !match) {
+  if (error || !activeGroupId) {
     return (
       <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-4 font-pixel text-2xl text-retro-red">ERROR</h2>
-        <p className="text-retro-light">{error || "Match not found"}</p>
+        <h2 className="mb-4 font-pixel text-xl text-retro-red sm:text-2xl">
+          ERROR
+        </h2>
+        <p className="text-retro-light">
+          {error || "No match found or no active group"}
+        </p>
         <button
           onClick={() => router.push("/new-match")}
-          className="mt-4 rounded-retro bg-white px-4 py-2 font-pixel text-black"
+          className="mt-4 rounded-retro bg-white px-4 py-2 font-pixel text-black hover:bg-gray-200"
         >
           Start New Match
         </button>
+      </div>
+    );
+  }
+
+  const match = players[0]?.match;
+
+  if (!match) {
+    return (
+      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
+        <p className="text-retro-light">Match data not available</p>
       </div>
     );
   }
@@ -97,9 +96,11 @@ function LiveMatchContent() {
 
   return (
     <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-      <h2 className="mb-4 font-pixel text-2xl text-retro-green">LIVE MATCH</h2>
+      <h2 className="mb-4 font-pixel text-xl text-retro-green sm:text-2xl">
+        LIVE MATCH
+      </h2>
       <p className="mb-6 text-retro-light">
-        Track rebuys during the game. Tap “Rebuy” when a player adds another
+        Track rebuys during the game. Tap "Rebuy" when a player adds another
         buy‑in.
       </p>
 
@@ -164,15 +165,6 @@ function LiveMatchContent() {
                   className="font-pixel text-retro-green"
                 />
               </div>
-              <div className="flex justify-between">
-                <span className="text-retro-light">Started</span>
-                <span className="text-sm text-retro-gray">
-                  {new Date(match.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
             </div>
           </div>
 
@@ -196,19 +188,5 @@ function LiveMatchContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function LiveMatchPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex h-64 items-center justify-center">
-          <div className="font-pixel text-retro-green">Loading match...</div>
-        </div>
-      }
-    >
-      <LiveMatchContent />
-    </Suspense>
   );
 }
