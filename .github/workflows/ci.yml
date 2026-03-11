@@ -180,6 +180,14 @@ jobs:
           echo "Running: $VERCEL_CMD"
           DEPLOYMENTS=$($VERCEL_CMD 2>/dev/null || echo "[]")
 
+          # Debug: show deployment count and first few entries
+          DEPLOYMENT_COUNT=$(echo "$DEPLOYMENTS" | jq '. | length')
+          echo "Found $DEPLOYMENT_COUNT preview deployment(s)"
+          if [ "$DEPLOYMENT_COUNT" -gt 0 ]; then
+            echo "First deployment metadata:"
+            echo "$DEPLOYMENTS" | jq '.[0] | {sha: .meta.githubCommitSha, url: .url, state: .state, readyState: .readyState, createdAt: .createdAt, meta: .meta}'
+          fi
+
           # Find deployment with matching SHA
           echo "Searching for deployment with SHA $TARGET_SHA..."
           DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
@@ -187,8 +195,8 @@ jobs:
 
           if [ -z "$DEPLOYMENT_URL" ]; then
             echo "❌ No Vercel preview deployment found for SHA $TARGET_SHA"
-            echo "Available deployments:"
-            echo "$DEPLOYMENTS" | jq '.[] | {sha: .meta.githubCommitSha, url: .url, state: .state, readyState: .readyState}'
+            echo "Available deployments (showing first 5):"
+            echo "$DEPLOYMENTS" | jq '.[:5] | .[] | {sha: .meta.githubCommitSha, url: .url, state: .state, readyState: .readyState, createdAt: .createdAt}'
             
             # Wait and retry once (deployment might still be queued)
             echo "Waiting 30 seconds and retrying..."
