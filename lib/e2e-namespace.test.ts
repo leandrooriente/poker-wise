@@ -23,8 +23,10 @@ describe("generateNamespace", () => {
     const second = generateNamespace();
 
     expect(first).not.toBe(second);
-    expect(first).toContain("e2e-22953296034-2951f342-1-");
-    expect(second).toContain("e2e-22953296034-2951f342-1-");
+    // Numbers are converted to letters to match form validation (no numbers allowed)
+    // The final .replace(/[^a-z-]/g, "-") also removes the "2" in "e2e-"
+    expect(first).toContain("e-e-ccjfdcjgade-cjfbfdec-b-");
+    expect(second).toContain("e-e-ccjfdcjgade-cjfbfdec-b-");
   });
 
   it("creates unique namespaces outside CI", () => {
