@@ -140,8 +140,10 @@ test.describe("Basic poker match flow", () => {
     const bobHeading = page.getByRole("heading", { name: "Bob" });
     const bobBalance = bobHeading.locator("../..");
     await expect(bobBalance.locator(".text-5xl.font-pixel")).toHaveText(
-      "-5.00 EUR"
+      "5.00 EUR"
     );
+    await expect(aliceBalance.getByText("TO RECEIVE")).toBeVisible();
+    await expect(bobBalance.getByText("TO PAY")).toBeVisible();
 
     // Verify transfer: Bob → Alice 5 EUR
     const transfer = page

@@ -94,6 +94,14 @@ function ResultsContent() {
                 (p) => p.user.id === balance.userId
               )?.user;
               const net = balance.net;
+              const statusLabel =
+                net > 0 ? "TO RECEIVE" : net < 0 ? "TO PAY" : "BREAK EVEN";
+              const statusColor =
+                net > 0
+                  ? "text-retro-green"
+                  : net < 0
+                    ? "text-retro-red"
+                    : "text-retro-gray";
               return (
                 <div
                   key={balance.userId}
@@ -110,10 +118,13 @@ function ResultsContent() {
                         Final value: <MoneyDisplay cents={balance.finalValue} />
                       </p>
                     </div>
-                    <div
-                      className={`font-pixel text-5xl ${net >= 0 ? "text-retro-green" : "text-retro-red"}`}
-                    >
-                      <MoneyDisplay cents={net} />
+                    <div className={`text-right ${statusColor}`}>
+                      <div className="mb-2 font-pixel text-sm">
+                        {statusLabel}
+                      </div>
+                      <div className="font-pixel text-5xl">
+                        <MoneyDisplay cents={Math.abs(net)} />
+                      </div>
                     </div>
                   </div>
                 </div>

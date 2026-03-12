@@ -113,8 +113,9 @@ test.describe("Results Page", () => {
       .getByRole("heading", { name: "Bob" })
       .locator("../..");
     await expect(bobBalance.locator(".text-5xl.font-pixel")).toHaveText(
-      "-10.00 EUR"
+      "10.00 EUR"
     );
+    await expect(bobBalance.getByText("TO PAY")).toBeVisible();
 
     // One transfer from Bob to Alice of 10.00 EUR
     await expect(
@@ -170,15 +171,18 @@ test.describe("Results Page", () => {
       .getByRole("heading", { name: "Bob" })
       .locator("../..");
     await expect(bobBalance.locator(".text-5xl.font-pixel")).toHaveText(
-      "-10.00 EUR"
+      "10.00 EUR"
     );
     await expect(page.getByRole("heading", { name: "Charlie" })).toBeVisible();
     const charlieBalance = page
       .getByRole("heading", { name: "Charlie" })
       .locator("../..");
     await expect(charlieBalance.locator(".text-5xl.font-pixel")).toHaveText(
-      "-5.00 EUR"
+      "5.00 EUR"
     );
+    await expect(aliceBalance.getByText("TO RECEIVE")).toBeVisible();
+    await expect(bobBalance.getByText("TO PAY")).toBeVisible();
+    await expect(charlieBalance.getByText("TO PAY")).toBeVisible();
 
     // Two transfers, Bob→Alice 10.00 and Charlie→Alice 5.00
     await expect(
@@ -256,8 +260,10 @@ test.describe("Results Page", () => {
       .getByRole("heading", { name: "Bob" })
       .locator("../..");
     await expect(bobBalance.locator(".text-5xl.font-pixel")).toHaveText(
-      "-5.00 EUR"
+      "5.00 EUR"
     );
+    await expect(aliceBalance.getByText("TO RECEIVE")).toBeVisible();
+    await expect(bobBalance.getByText("TO PAY")).toBeVisible();
     // One transfer Bob → Alice 5.00 EUR
     await expect(
       page.getByRole("heading", { name: "TRANSFERS" })
