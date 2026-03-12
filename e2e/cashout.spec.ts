@@ -303,7 +303,12 @@ test.describe("Cashout", () => {
       page.getByText("✓ Totals match! Ready to settle.")
     ).toBeVisible();
     await expect(
-      page.getByText("Solo").locator("..").getByText("0.00 EUR")
+      page
+        .getByRole("heading", { name: "Solo" })
+        .locator("..")
+        .locator("..")
+        .locator("div.text-center")
+        .getByText("0.00 EUR")
     ).toBeVisible(); // net zero
   });
 

@@ -177,6 +177,8 @@ test.describe("New Match Setup", () => {
     ).toBeVisible();
     await expect(page.getByText("Alice")).toBeVisible();
     await expect(page.getByText("Bob")).toBeVisible();
-    await expect(page.getByText("Buy‑ins: 1")).toHaveCount(2); // Each starts with 1
+    await expect(
+      page.locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveCount(2); // Each player has buy‑ins count display
   });
 });

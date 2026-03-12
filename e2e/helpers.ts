@@ -293,14 +293,16 @@ export async function addRebuy(
   const playerRow = page
     .getByTestId("player-row")
     .filter({ hasText: playerName });
-  const buyInsLabel = playerRow.locator("p").filter({ hasText: /Buy.?ins:/ });
+  const buyInsSpan = playerRow.locator(
+    "span.font-pixel.text-retro-yellow.text-2xl"
+  );
 
   for (let i = 0; i < times; i++) {
-    const buyInsText = await buyInsLabel.innerText();
-    const currentBuyIns = Number(buyInsText.match(/(\d+)/)?.[1] || "0");
+    const buyInsText = await buyInsSpan.innerText();
+    const currentBuyIns = Number(buyInsText);
 
     await playerRow.getByRole("button", { name: "REBUY" }).click();
-    await expect(buyInsLabel).toContainText(`${currentBuyIns + 1}`);
+    await expect(buyInsSpan).toHaveText(`${currentBuyIns + 1}`);
   }
 }
 
@@ -330,7 +332,7 @@ export async function fillCashoutValues(
     // Wait for at least one matching heading to be attached
     await heading.first().waitFor({ state: "attached" });
     const playerSection = heading.locator("..").locator("..").locator("..");
-    const input = playerSection.getByLabel("FINAL VALUE (EUR)");
+    const input = playerSection.getByLabel("FINAL VALUE");
     await input.fill(amount.toFixed(2));
   }
 }

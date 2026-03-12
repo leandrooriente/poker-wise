@@ -148,9 +148,7 @@ function LiveMatchContent() {
                     {buyIns}
                   </span>
                 </div>
-                <p className="text-retro-light">
-                  Buy‑ins: <span className="font-pixel">{buyIns}</span>
-                </p>
+
                 <p className="text-retro-gray text-sm">
                   Total paid:{" "}
                   <MoneyDisplay cents={buyIns * match.buyInAmount} />
