@@ -131,6 +131,8 @@ test.describe("Player Management", () => {
     await button.click();
 
     // Verify player added
-    await expect(page.getByText("Mobile Player")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Mobile Player" })
+    ).toBeVisible();
   });
 });

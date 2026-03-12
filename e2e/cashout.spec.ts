@@ -321,7 +321,7 @@ test.describe("Cashout", () => {
     // Should have button to start new match
     await page.getByRole("button", { name: "Start New Match" }).click();
     await expect(
-      page.getByRole("heading", { name: "NEW MATCH SETUP" })
+      page.getByRole("heading", { name: "NEW MATCH" })
     ).toBeVisible();
   });
 
