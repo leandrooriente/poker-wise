@@ -149,7 +149,7 @@ function CashoutContent() {
                       </p>
                     </div>
                     <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                      <div className="text-center md:text-right">
+                      <div className="text-left">
                         <label
                           htmlFor={`final-value-${user.id}`}
                           className="mb-2 block font-pixel text-sm text-retro-light"
@@ -162,11 +162,11 @@ function CashoutContent() {
                           onChange={(cents) =>
                             handleFinalValueChange(user.id, cents)
                           }
-                          className="w-full px-4 py-3 text-right font-pixel md:w-40"
+                          className="w-full px-4 py-3 text-left font-pixel md:w-40"
                           data-testid={`final-value-input-${user.id}`}
                         />
                       </div>
-                      <div className="text-center">
+                      <div className="text-left">
                         <div className="font-pixel text-sm text-retro-gray">
                           Net
                         </div>
