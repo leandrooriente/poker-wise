@@ -34,6 +34,7 @@ export default function Header() {
     { label: "Groups", href: "/" },
     { label: "New Match", href: "/new-match" },
     { label: "History", href: "/history" },
+    { label: "Login", href: "/login" },
   ];
 
   const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -42,14 +43,14 @@ export default function Header() {
   };
 
   return (
-    <header className="border-retro border-retro-width rounded-retro bg-retro-dark shadow-retro-outset p-4">
+    <header className="border-retro-width rounded-retro border-retro bg-retro-dark p-4 shadow-retro-outset">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="flex items-center gap-3">
-            <div className="from-retro-green to-retro-blue flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br">
-              <span className="text-retro-dark font-pixel text-lg">P</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-retro-green to-retro-blue">
+              <span className="font-pixel text-lg text-retro-dark">P</span>
             </div>
-            <h1 className="font-pixel text-retro-green text-xl sm:text-2xl">
+            <h1 className="font-pixel text-xl text-retro-green sm:text-2xl">
               POKER<span className="text-retro-yellow">WISE</span>
             </h1>
           </div>
@@ -64,7 +65,7 @@ export default function Header() {
               value={activeGroupId || ""}
               onChange={handleGroupChange}
               disabled={activeGroupLoading || groupsLoading}
-              className="border-retro-gray rounded-retro bg-retro-dark text-retro-light hover:bg-retro-green hover:text-retro-dark hover:border-retro-green font-pixel w-full border px-3 py-2 text-sm transition-all duration-200"
+              className="w-full rounded-retro border border-retro-gray bg-retro-dark px-3 py-2 font-pixel text-sm text-retro-light transition-all duration-200 hover:border-retro-green hover:bg-retro-green hover:text-retro-dark"
             >
               <option value="">Select group</option>
               {groups.map((group) => (
@@ -81,7 +82,7 @@ export default function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="border-retro-gray rounded-retro bg-retro-dark text-retro-light hover:bg-retro-green hover:text-retro-dark hover:border-retro-green font-pixel border px-3 py-2 text-sm transition-all duration-200"
+              className="rounded-retro border border-retro-gray bg-retro-dark px-3 py-2 font-pixel text-sm text-retro-light transition-all duration-200 hover:border-retro-green hover:bg-retro-green hover:text-retro-dark"
             >
               {item.label}
             </Link>

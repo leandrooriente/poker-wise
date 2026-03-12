@@ -30,6 +30,7 @@ test.describe("Header responsive layout", () => {
     await expect(page.getByText("POKERWISE")).toBeVisible();
     // Ensure group selector is visible
     await expect(page.getByLabel("Select group")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Login" })).toBeVisible();
 
     // Take screenshot of the header
     const header = page.locator("header");
@@ -55,6 +56,7 @@ test.describe("Header responsive layout", () => {
     await expect(page.locator("header")).toBeVisible();
     await expect(page.getByText("POKERWISE")).toBeVisible();
     await expect(page.getByLabel("Select group")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Login" })).toBeVisible();
 
     // Take screenshot of the header
     const header = page.locator("header");
