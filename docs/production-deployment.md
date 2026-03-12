@@ -165,6 +165,7 @@ NODE_ENV=production npm run admin:create -- newadmin@example.com 'strong-passwor
 Notes:
 
 - The script reads `POSTGRES_URL` from the env file pulled from Vercel, so it connects directly to the production database.
+- For this CLI, only `POSTGRES_URL` is required locally; missing app-only vars like `AUTH_SECRET` or `ADMIN_PASSWORD` will not block the command.
 - Creating an admin account and granting group access happen in a single transaction.
 - If you omit `--group` and `--all-groups`, the admin can log in but will not manage any groups until access is granted.
 - The script fails if the email already exists.
