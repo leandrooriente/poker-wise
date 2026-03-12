@@ -53,11 +53,20 @@ test.describe("New Match Setup", () => {
 
     await page.goto("/new-match");
 
+    const aliceLabel = page.locator('label[for="player-1"]');
+    const bobLabel = page.locator('label[for="player-2"]');
+
+    await expect(aliceLabel.getByText("[ ]")).toBeVisible();
+    await expect(bobLabel.getByText("[ ]")).toBeVisible();
+
     // Initially 0 selected
 
     // Select Alice and Bob
     await page.locator("label", { hasText: "Alice" }).click();
     await page.locator("label", { hasText: "Bob" }).click();
+
+    await expect(aliceLabel.getByText("[✓]")).toBeVisible();
+    await expect(bobLabel.getByText("[✓]")).toBeVisible();
 
     // Unselect Alice
     await page.locator("label", { hasText: "Alice" }).click();
@@ -65,6 +74,8 @@ test.describe("New Match Setup", () => {
     // Verify only Bob is selected (checkbox checked)
     await expect(page.getByLabel("Alice")).not.toBeChecked();
     await expect(page.getByLabel("Bob")).toBeChecked();
+    await expect(aliceLabel.getByText("[ ]")).toBeVisible();
+    await expect(bobLabel.getByText("[✓]")).toBeVisible();
   });
 
   test("match title input is not shown", async ({ page }) => {
