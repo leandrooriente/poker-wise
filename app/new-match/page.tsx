@@ -142,13 +142,20 @@ export default function NewMatchPage() {
                           : "border-retro-gray bg-retro-dark hover:border-retro-blue"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span
+                          aria-hidden="true"
+                          className={`font-pixel shadow-retro-outset inline-flex h-8 min-w-8 items-center justify-center border px-1 text-sm leading-none ${
+                            isSelected
+                              ? "border-retro-green bg-retro-green text-retro-dark"
+                              : "border-retro-gray bg-retro-dark text-retro-light"
+                          }`}
+                        >
+                          {isSelected ? "[✓]" : "[ ]"}
+                        </span>
                         <span className="font-pixel text-lg">
                           {player.name}
                         </span>
-                        {isSelected && (
-                          <span className="text-retro-green font-pixel">✓</span>
-                        )}
                       </div>
                     </label>
                   </div>
