@@ -70,12 +70,12 @@ test.describe("Basic poker match flow", () => {
     // 9. Verify net result is zero for both players (break even)
     const playerHeading1 = page.getByRole("heading", { name: "Test Player 1" });
     const playerBalance1 = playerHeading1.locator("../..");
-    await expect(playerBalance1.locator(".text-3xl.font-pixel")).toHaveText(
+    await expect(playerBalance1.locator(".text-5xl.font-pixel")).toHaveText(
       "0.00 EUR"
     );
     const playerHeading2 = page.getByRole("heading", { name: "Test Player 2" });
     const playerBalance2 = playerHeading2.locator("../..");
-    await expect(playerBalance2.locator(".text-3xl.font-pixel")).toHaveText(
+    await expect(playerBalance2.locator(".text-5xl.font-pixel")).toHaveText(
       "0.00 EUR"
     );
     await expect(page.getByText("No transfers needed")).toBeVisible();
@@ -133,22 +133,22 @@ test.describe("Basic poker match flow", () => {
     await expect(page.getByRole("heading", { name: "Alice" })).toBeVisible();
     const aliceHeading = page.getByRole("heading", { name: "Alice" });
     const aliceBalance = aliceHeading.locator("../..");
-    await expect(aliceBalance.locator(".text-3xl.font-pixel")).toHaveText(
+    await expect(aliceBalance.locator(".text-5xl.font-pixel")).toHaveText(
       "5.00 EUR"
     );
     await expect(page.getByRole("heading", { name: "Bob" })).toBeVisible();
     const bobHeading = page.getByRole("heading", { name: "Bob" });
     const bobBalance = bobHeading.locator("../..");
-    await expect(bobBalance.locator(".text-3xl.font-pixel")).toHaveText(
+    await expect(bobBalance.locator(".text-5xl.font-pixel")).toHaveText(
       "-5.00 EUR"
     );
 
     // Verify transfer: Bob → Alice 5 EUR
     const transfer = page
-      .locator(".border.border-retro-gray.rounded-retro.p-4.bg-retro-dark")
+      .getByTestId("transfer-item")
       .filter({ hasText: "Bob" })
       .filter({ hasText: "Alice" });
     await expect(transfer).toBeVisible();
-    await expect(transfer.locator(".text-xl")).toBeVisible();
+    await expect(transfer.getByText("5.00 EUR")).toBeVisible();
   });
 });
