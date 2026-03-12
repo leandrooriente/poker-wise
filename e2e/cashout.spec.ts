@@ -389,7 +389,9 @@ test.describe("Cashout", () => {
       .getByRole("heading", { name: "Loser" })
       .locator("../..");
     await expect(loserBalance.locator(".text-5xl.font-pixel")).toHaveText(
-      "-5.00 EUR"
+      "5.00 EUR"
     );
+    await expect(winnerBalance.getByText("TO RECEIVE")).toBeVisible();
+    await expect(loserBalance.getByText("TO PAY")).toBeVisible();
   });
 });
