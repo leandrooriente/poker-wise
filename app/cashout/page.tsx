@@ -100,12 +100,12 @@ function CashoutContent() {
 
   if (error || !match) {
     return (
-      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
-        <h2 className="font-pixel text-retro-red mb-4 text-2xl">ERROR</h2>
+      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
+        <h2 className="mb-4 font-pixel text-2xl text-retro-red">ERROR</h2>
         <p className="text-retro-light">{error || "Match not found"}</p>
         <button
           onClick={() => router.push("/new-match")}
-          className="rounded-retro font-pixel mt-4 bg-white px-4 py-2 text-black"
+          className="mt-4 rounded-retro bg-white px-4 py-2 font-pixel text-black"
         >
           Start New Match
         </button>
@@ -117,9 +117,9 @@ function CashoutContent() {
   const totalPaidIn = totalBuyIns * match.buyInAmount;
 
   return (
-    <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
-      <h2 className="font-pixel text-retro-green mb-4 text-2xl">CASHOUT</h2>
-      <p className="text-retro-light mb-6">
+    <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
+      <h2 className="mb-4 font-pixel text-2xl text-retro-green">CASHOUT</h2>
+      <p className="mb-6 text-retro-light">
         Enter each player’s final chip value in euros. The total must match the
         total paid‑in amount.
       </p>
@@ -127,7 +127,7 @@ function CashoutContent() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Player inputs */}
         <div className="lg:col-span-2">
-          <h3 className="font-pixel text-retro-yellow mb-4 text-xl">
+          <h3 className="mb-4 font-pixel text-xl text-retro-yellow">
             FINAL CHIP VALUES
           </h3>
           <div className="space-y-6">
@@ -137,22 +137,22 @@ function CashoutContent() {
               return (
                 <div
                   key={user.id}
-                  className="rounded-retro border-retro-gray bg-retro-dark hover:border-retro-green border p-6 transition-colors"
+                  className="rounded-retro border border-retro-gray bg-retro-dark p-6 transition-colors hover:border-retro-green"
                 >
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
-                      <h4 className="font-pixel text-retro-green text-2xl">
+                      <h4 className="font-pixel text-2xl text-retro-green">
                         {user.name}
                       </h4>
                       <p className="text-retro-light">
                         Buy‑ins: <span className="font-pixel">{buyIns}</span>
                       </p>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                      <div className="text-center md:text-right">
                         <label
                           htmlFor={`final-value-${user.id}`}
-                          className="font-pixel text-retro-light mb-2 block text-sm"
+                          className="mb-2 block font-pixel text-sm text-retro-light"
                         >
                           FINAL VALUE
                         </label>
@@ -162,12 +162,14 @@ function CashoutContent() {
                           onChange={(cents) =>
                             handleFinalValueChange(user.id, cents)
                           }
-                          className="font-pixel w-40 px-4 py-3 text-right"
+                          className="w-full px-4 py-3 text-right font-pixel md:w-40"
                           data-testid={`final-value-input-${user.id}`}
                         />
                       </div>
                       <div className="text-center">
-                        <div className="text-retro-gray text-sm">Net</div>
+                        <div className="font-pixel text-sm text-retro-gray">
+                          Net
+                        </div>
                         <div
                           className={`font-pixel text-xl ${finalValue - paidIn >= 0 ? "text-retro-green" : "text-retro-red"}`}
                         >
@@ -185,7 +187,7 @@ function CashoutContent() {
         {/* Validation & actions */}
         <div className="space-y-6">
           <div>
-            <h3 className="font-pixel text-retro-blue mb-4 text-xl">
+            <h3 className="mb-4 font-pixel text-xl text-retro-blue">
               VALIDATION
             </h3>
             <div className="space-y-4">
@@ -198,7 +200,7 @@ function CashoutContent() {
                 <MoneyDisplay cents={validation?.totalFinalValue ?? 0} />
               </div>
               <div
-                className={`border-retro-gray flex justify-between border-t pt-4 ${validation?.isValid ? "text-retro-green" : "text-retro-red"}`}
+                className={`flex justify-between border-t border-retro-gray pt-4 ${validation?.isValid ? "text-retro-green" : "text-retro-red"}`}
               >
                 <span className="text-retro-light">Difference</span>
                 <MoneyDisplay cents={validation?.diff ?? 0} />
@@ -216,12 +218,12 @@ function CashoutContent() {
             </div>
           </div>
 
-          <div className="border-retro-gray border-t pt-6">
+          <div className="border-t border-retro-gray pt-6">
             <div className="space-y-4">
               <button
                 onClick={handleSaveAndSettle}
                 disabled={!validation || !validation.isValid}
-                className="rounded-retro font-pixel hover:shadow-retro-outset w-full bg-white px-6 py-4 text-black transition-all hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-retro bg-white px-6 py-4 font-pixel text-black transition-all hover:bg-gray-200 hover:shadow-retro-outset disabled:cursor-not-allowed disabled:opacity-50"
               >
                 SETTLE & SHOW RESULTS
               </button>
