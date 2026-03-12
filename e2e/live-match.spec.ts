@@ -49,14 +49,22 @@ test.describe("Live Match", () => {
 
     // Initial state
     await expect(page.getByText("Alice")).toBeVisible();
-    await expect(page.getByText("Buy‑ins: 1")).toBeVisible();
+    await expect(
+      page
+        .getByTestId("player-row")
+        .locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveText("1");
     expect(await getTotalPotText(page)).toBe("10.00 EUR");
 
     // Add two rebuys
     await addRebuy(page, "Alice", 2);
 
     // Verify updates
-    await expect(page.getByText("Buy‑ins: 3")).toBeVisible();
+    await expect(
+      page
+        .getByTestId("player-row")
+        .locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveText("3");
     await expect(page.getByText("Total paid: 30.00 EUR")).toBeVisible();
     expect(await getTotalPotText(page)).toBe("30.00 EUR");
   });
@@ -104,9 +112,15 @@ test.describe("Live Match", () => {
       .getByTestId("player-row")
       .filter({ hasText: "Charlie" });
 
-    await expect(aliceRow.getByText("Buy‑ins: 3")).toBeVisible();
-    await expect(bobRow.getByText("Buy‑ins: 2")).toBeVisible();
-    await expect(charlieRow.getByText("Buy‑ins: 1")).toBeVisible();
+    await expect(
+      aliceRow.locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveText("3");
+    await expect(
+      bobRow.locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveText("2");
+    await expect(
+      charlieRow.locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveText("1");
 
     // Total pot: (3+2+1) * 10 = 60 EUR
     expect(await getTotalPotText(page)).toBe("60.00 EUR");
@@ -191,13 +205,13 @@ test.describe("Live Match", () => {
     await expect(page.getByText("Bob")).toBeVisible();
 
     // Verify buy-ins carried over (Alice: 3, Bob: 2)
-    // Check that paid-in amounts are correct
-    // Alice: 3 * 10 = 30 EUR, Bob: 2 * 10 = 20 EUR
+    // Check that buy-ins are correct
+    // Alice: 3 buy-ins, Bob: 2 buy-ins
     await expect(
-      page.getByText("Alice").locator("..").getByText("Paid in: 30.00 EUR")
+      page.getByText("Alice").locator("..").getByText("Buy‑ins: 3")
     ).toBeVisible();
     await expect(
-      page.getByText("Bob").locator("..").getByText("Paid in: 20.00 EUR")
+      page.getByText("Bob").locator("..").getByText("Buy‑ins: 2")
     ).toBeVisible();
   });
 

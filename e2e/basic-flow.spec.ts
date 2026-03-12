@@ -43,7 +43,9 @@ test.describe("Basic poker match flow", () => {
       .getByTestId("player-row")
       .filter({ hasText: "Test Player 1" });
     await playerRow1.getByRole("button", { name: "REBUY" }).click();
-    await expect(playerRow1.getByText("Buy‑ins: 2")).toBeVisible();
+    await expect(
+      playerRow1.locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveText("2");
 
     // 6. Proceed to cashout
     await page.getByRole("button", { name: "PROCEED TO CASHOUT" }).click();
@@ -51,7 +53,7 @@ test.describe("Basic poker match flow", () => {
 
     // 7. Enter final chip values (total pot = 3 buy-ins = 30 EUR)
     // Distribute according to paid-in: Test Player 1 paid 20 EUR, Test Player 2 paid 10 EUR
-    const finalValueInputs = page.getByLabel("FINAL VALUE (EUR)");
+    const finalValueInputs = page.getByLabel("FINAL VALUE");
     await finalValueInputs.first().fill("20.00");
     await finalValueInputs.last().fill("10.00");
     // Validation should show totals match
@@ -113,9 +115,9 @@ test.describe("Basic poker match flow", () => {
     // Set Alice final = 15 EUR, Bob final = 5 EUR
     // Need to locate inputs within player rows. Use getByRole with name regex.
     // Each player row has a heading with player name.
-    // We'll use page.getByRole('heading', { name: 'Alice' }).locator('..').getByLabel('FINAL VALUE (EUR)')
-    // Simpler: use page.getByLabel('FINAL VALUE (EUR)').first() and .last() (order may be consistent)
-    const finalValueInputs = page.getByLabel("FINAL VALUE (EUR)");
+    // We'll use page.getByRole('heading', { name: 'Alice' }).locator('..').getByLabel('FINAL VALUE')
+    // Simpler: use page.getByLabel('FINAL VALUE').first() and .last() (order may be consistent)
+    const finalValueInputs = page.getByLabel("FINAL VALUE");
     await finalValueInputs.first().fill("15.00");
     await finalValueInputs.last().fill("5.00");
 

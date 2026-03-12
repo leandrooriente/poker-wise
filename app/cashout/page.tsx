@@ -145,8 +145,7 @@ function CashoutContent() {
                         {user.name}
                       </h4>
                       <p className="text-retro-light">
-                        Buy‑ins: <span className="font-pixel">{buyIns}</span> •
-                        Paid in: <MoneyDisplay cents={paidIn} />
+                        Buy‑ins: <span className="font-pixel">{buyIns}</span>
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -155,7 +154,7 @@ function CashoutContent() {
                           htmlFor={`final-value-${user.id}`}
                           className="font-pixel text-retro-light mb-2 block text-sm"
                         >
-                          FINAL VALUE (EUR)
+                          FINAL VALUE
                         </label>
                         <MoneyInput
                           id={`final-value-${user.id}`}
@@ -218,9 +217,6 @@ function CashoutContent() {
           </div>
 
           <div className="border-retro-gray border-t pt-6">
-            <h3 className="font-pixel text-retro-purple mb-4 text-xl">
-              ACTIONS
-            </h3>
             <div className="space-y-4">
               <button
                 onClick={handleSaveAndSettle}
@@ -229,31 +225,7 @@ function CashoutContent() {
               >
                 SETTLE & SHOW RESULTS
               </button>
-              <p className="text-retro-gray text-sm">
-                This will save final values, compute net results, and show who
-                pays whom.
-              </p>
             </div>
-          </div>
-
-          <div className="border-retro-gray border-t pt-6">
-            <h3 className="font-pixel text-retro-yellow mb-4 text-xl">NOTES</h3>
-            <ul className="text-retro-light space-y-2 text-sm">
-              <li>
-                • Enter the total euro value of each player’s chips at the end
-                of the match.
-              </li>
-              <li>
-                • The sum of final values must equal the total paid‑in amount.
-              </li>
-              <li>
-                • Net = final value − paid‑in (positive means profit, negative
-                means loss).
-              </li>
-              <li>
-                • The app will generate minimized transfers between players.
-              </li>
-            </ul>
           </div>
         </div>
       </div>
