@@ -40,11 +40,11 @@ export default function LoginPage() {
 
   return (
     <div className="py-4">
-      <div className="mx-auto w-full max-w-md rounded-retro border border-retro-gray bg-retro-dark p-8 shadow-retro-outset">
-        <h1 className="mb-2 text-center font-pixel text-3xl text-retro-green">
+      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset mx-auto w-full max-w-md border p-8">
+        <h1 className="font-pixel text-retro-green mb-2 text-center text-3xl">
           ADMIN LOGIN
         </h1>
-        <p className="mb-6 text-center text-retro-gray">
+        <p className="text-retro-gray mb-6 text-center">
           Enter your credentials to access the admin panel.
         </p>
 
@@ -52,7 +52,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="email"
-              className="mb-2 block font-pixel text-sm text-retro-yellow"
+              className="font-pixel text-retro-yellow mb-2 block text-sm"
             >
               EMAIL
             </label>
@@ -61,7 +61,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-retro border border-retro-gray bg-retro-dark px-3 py-2 font-pixel text-retro-light"
+              className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light w-full border px-3 py-2"
               placeholder="admin@example.com"
               required
               autoComplete="email"
@@ -71,7 +71,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="mb-2 block font-pixel text-sm text-retro-yellow"
+              className="font-pixel text-retro-yellow mb-2 block text-sm"
             >
               PASSWORD
             </label>
@@ -80,7 +80,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-retro border border-retro-gray bg-retro-dark px-3 py-2 font-pixel text-retro-light"
+              className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light w-full border px-3 py-2"
               placeholder="••••••••"
               required
               autoComplete="current-password"
@@ -88,7 +88,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="rounded-retro border border-retro-red bg-retro-dark px-3 py-2 text-sm text-retro-red">
+            <div className="rounded-retro border-retro-red bg-retro-dark text-retro-red border px-3 py-2 text-sm">
               ⚠️ {error}
             </div>
           )}
@@ -96,17 +96,11 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-retro border border-retro-green bg-retro-green px-4 py-3 font-pixel text-retro-dark transition-colors hover:bg-retro-dark hover:text-retro-green disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-retro border-retro-green bg-retro-green font-pixel text-retro-dark hover:bg-retro-dark hover:text-retro-green w-full border px-4 py-3 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "LOGGING IN..." : "LOGIN"}
           </button>
         </form>
-
-        <div className="mt-8 text-center text-sm text-retro-gray">
-          <p>
-            Use the seeded admin credentials from your environment variables.
-          </p>
-        </div>
       </div>
     </div>
   );
