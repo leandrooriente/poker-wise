@@ -21,7 +21,9 @@ test.describe("Player Management", () => {
     const playerCard = page
       .getByTestId("player-card")
       .filter({ hasText: "Alice" });
-    await expect(playerCard.getByText("Alice")).toBeVisible();
+    await expect(
+      playerCard.getByRole("heading", { name: "Alice" })
+    ).toBeVisible();
   });
 
   test.skip("edit player name", async ({ page }) => {
@@ -37,8 +39,10 @@ test.describe("Player Management", () => {
     await playerCard.getByRole("button", { name: "Save" }).click();
 
     // Verify updates
-    await expect(playerCard.getByText("Robert")).toBeVisible();
-    await expect(page.getByText("Bob")).not.toBeVisible();
+    await expect(
+      playerCard.getByRole("heading", { name: "Robert" })
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Bob" })).not.toBeVisible();
   });
 
   test("delete player", async ({ page }) => {
@@ -55,9 +59,11 @@ test.describe("Player Management", () => {
     await charlieCard.getByRole("button", { name: "Delete" }).click();
 
     // Verify deletion
-    await expect(page.getByText("Charlie")).not.toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Charlie" })
+    ).not.toBeVisible();
     await expect(playerCards).toHaveCount(1);
-    await expect(page.getByText("David")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "David" })).toBeVisible();
   });
 
   test("player data persists after reload", async ({ page }) => {
@@ -69,7 +75,7 @@ test.describe("Player Management", () => {
     await page.reload();
 
     // Verify player still exists
-    await expect(page.getByText("Eve")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Eve" })).toBeVisible();
   });
 
   test("empty state when no players", async ({ page }) => {
@@ -125,6 +131,8 @@ test.describe("Player Management", () => {
     await button.click();
 
     // Verify player added
-    await expect(page.getByText("Mobile Player")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Mobile Player" })
+    ).toBeVisible();
   });
 });
