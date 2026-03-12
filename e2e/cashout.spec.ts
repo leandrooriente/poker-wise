@@ -200,7 +200,7 @@ test.describe("Cashout", () => {
         .getByRole("heading", { name: "Alice" })
         .locator("..")
         .locator("..")
-        .locator("div.text-center")
+        .locator("div.text-left")
         .getByText("1.25 EUR")
     ).toBeVisible();
     // Bob net: 8.75 - 10.00 = -1.25
@@ -209,7 +209,7 @@ test.describe("Cashout", () => {
         .getByRole("heading", { name: "Bob" })
         .locator("..")
         .locator("..")
-        .locator("div.text-center")
+        .locator("div.text-left")
         .getByText("-1.25 EUR")
     ).toBeVisible();
   });
@@ -307,7 +307,7 @@ test.describe("Cashout", () => {
         .getByRole("heading", { name: "Solo" })
         .locator("..")
         .locator("..")
-        .locator("div.text-center")
+        .locator("div.text-left")
         .getByText("0.00 EUR")
     ).toBeVisible(); // net zero
   });
