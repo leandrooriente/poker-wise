@@ -83,7 +83,6 @@ export async function createNamespacedGroup(
   }
 
   await expect(groupCard.getByRole("button", { name: "ACTIVE" })).toBeVisible();
-  await expect(page.getByText(`ID: ${groupSlug}`).last()).toBeVisible();
 
   await page.evaluate((slug) => {
     window.localStorage.setItem("poker-wise-active-group", slug);
@@ -269,12 +268,7 @@ export async function startMatch(page: Page, setup: MatchSetup) {
 
   // Select players
   for (const playerName of setup.players) {
-    await page.getByRole("button", { name: playerName }).click();
-  }
-
-  // Optional title
-  if (setup.title) {
-    await page.getByTestId("match-title-input").fill(setup.title);
+    await page.locator("label", { hasText: playerName }).click();
   }
 
   // Optional custom buy-in

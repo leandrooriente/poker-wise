@@ -18,7 +18,6 @@ export default function NewMatchPage() {
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [buyInAmount, setBuyInAmount] = useState<number>(1000); // cents
   const [loading, setLoading] = useState(true);
-  const [title, setTitle] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -55,8 +54,8 @@ export default function NewMatchPage() {
       alert("Please select a group first.");
       return;
     }
-    if (selectedPlayerIds.length === 0) {
-      alert("Select at least one player.");
+    if (selectedPlayerIds.length < 2) {
+      alert("Select at least two players.");
       return;
     }
     const matchPlayers = selectedPlayerIds.map((userId) => ({
@@ -66,7 +65,6 @@ export default function NewMatchPage() {
     }));
     const match = {
       groupId: activeGroupId,
-      title: title.trim() || undefined,
       buyInAmount,
       players: matchPlayers,
       startedAt: new Date().toISOString(),
@@ -77,7 +75,7 @@ export default function NewMatchPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <div className="text-retro-green font-pixel">Loading...</div>
       </div>
     );
@@ -85,12 +83,15 @@ export default function NewMatchPage() {
 
   if (!activeGroupId) {
     return (
-      <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
-        <h2 className="text-2xl font-pixel text-retro-green mb-4">NEW MATCH SETUP</h2>
-        <div className="text-center py-8">
+      <div className="border-retro-gray rounded-retro bg-retro-dark shadow-retro-outset border p-6">
+        <h2 className="font-pixel text-retro-green mb-4 text-2xl">
+          NEW MATCH SETUP
+        </h2>
+        <div className="py-8 text-center">
           <p className="text-retro-gray">No group selected.</p>
-          <p className="text-sm text-retro-gray mt-2">
-            Please select a group from the header dropdown or create one on the Groups page.
+          <p className="text-retro-gray mt-2 text-sm">
+            Please select a group from the header dropdown or create one on the
+            Groups page.
           </p>
         </div>
       </div>
@@ -98,75 +99,74 @@ export default function NewMatchPage() {
   }
 
   return (
-    <div className="border border-retro-gray rounded-retro p-6 bg-retro-dark shadow-retro-outset">
-      <h2 className="text-2xl font-pixel text-retro-green mb-4">NEW MATCH SETUP</h2>
+    <div className="border-retro-gray rounded-retro bg-retro-dark shadow-retro-outset border p-6">
+      <h2 className="font-pixel text-retro-green mb-4 text-2xl">
+        NEW MATCH SETUP
+      </h2>
       <p className="text-retro-light mb-6">
-        Select players and configure buy‑in amount for a new Texas Hold’em match.
+        Select players and configure buy‑in amount for a new Texas Hold’em
+        match.
       </p>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Player selection */}
         <div className="lg:col-span-2">
-          <h3 className="text-xl font-pixel text-retro-yellow mb-4">SELECT PLAYERS</h3>
+          <h3 className="font-pixel text-retro-yellow mb-4 text-xl">
+            SELECT PLAYERS
+          </h3>
           {players.length === 0 ? (
-            <div className="border border-retro-gray rounded-retro p-8 text-center">
+            <div className="border-retro-gray rounded-retro border p-8 text-center">
               <p className="text-retro-gray">No players found.</p>
-              <p className="text-sm mt-2">
+              <p className="mt-2 text-sm">
                 Go to <strong>Players</strong> tab to add players first.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
               {players.map((player) => {
                 const isSelected = selectedPlayerIds.includes(player.id);
                 return (
-                  <button
-                    key={player.id}
-                    type="button"
-                    onClick={() => togglePlayer(player.id)}
-                    className={`p-4 border rounded-retro text-left transition-all ${
-                      isSelected
-                        ? "border-retro-green bg-retro-green/10 text-retro-green"
-                        : "border-retro-gray bg-retro-dark hover:border-retro-blue"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-pixel text-lg">{player.name}</span>
-                      {isSelected && (
-                        <span className="text-retro-green font-pixel">✓</span>
-                      )}
-                    </div>
-
-                  </button>
+                  <div key={player.id} className="relative">
+                    <input
+                      type="checkbox"
+                      id={`player-${player.id}`}
+                      checked={isSelected}
+                      onChange={() => togglePlayer(player.id)}
+                      className="absolute h-0 w-0 opacity-0"
+                    />
+                    <label
+                      htmlFor={`player-${player.id}`}
+                      className={`rounded-retro block cursor-pointer border p-4 text-left transition-all ${
+                        isSelected
+                          ? "border-retro-green bg-retro-green/10 text-retro-green"
+                          : "border-retro-gray bg-retro-dark hover:border-retro-blue"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-pixel text-lg">
+                          {player.name}
+                        </span>
+                        {isSelected && (
+                          <span className="text-retro-green font-pixel">✓</span>
+                        )}
+                      </div>
+                    </label>
+                  </div>
                 );
               })}
             </div>
           )}
-          <p className="text-retro-light text-sm mt-4">
-            Selected: {selectedPlayerIds.length} player(s)
-          </p>
         </div>
 
         {/* Configuration */}
         <div className="space-y-6">
           <div>
-            <h3 className="text-xl font-pixel text-retro-blue mb-4">CONFIGURATION</h3>
+            <h3 className="font-pixel text-retro-blue mb-4 text-xl">
+              BUY‑IN AMOUNT (EUR)
+            </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-retro-light text-sm mb-2 font-pixel">
-                  MATCH TITLE (OPTIONAL)
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans"
-                  placeholder="e.g., Friday Night Poker"
-                  data-testid="match-title-input"
-                />
-              </div>
-              <div>
-                <label className="block text-retro-light text-sm mb-2 font-pixel">
+                <label className="text-retro-light font-pixel mb-2 block text-sm">
                   BUY‑IN AMOUNT (EUR)
                 </label>
                 <MoneyInput
@@ -175,31 +175,22 @@ export default function NewMatchPage() {
                   className="w-full"
                   data-testid="buy-in-amount-input"
                 />
-
               </div>
             </div>
           </div>
 
-          <div className="border-t border-retro-gray pt-6">
-            <h3 className="text-xl font-pixel text-retro-purple mb-4">READY TO START</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-retro-light">Players</span>
-                <span className="font-pixel">{selectedPlayerIds.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-retro-light">Buy-in each</span>
-                 <MoneyDisplay cents={buyInAmount} />
-              </div>
-              <div className="flex justify-between border-t border-retro-gray pt-3">
-                <span className="text-retro-light">Total pot</span>
-                 <MoneyDisplay cents={selectedPlayerIds.length * buyInAmount} className="font-pixel text-retro-green" />
-              </div>
+          <div className="border-retro-gray border-t pt-6">
+            <div className="mb-6 flex justify-between">
+              <span className="text-retro-light">Total pot</span>
+              <MoneyDisplay
+                cents={selectedPlayerIds.length * buyInAmount}
+                className="font-pixel text-retro-green"
+              />
             </div>
             <button
               onClick={handleStartMatch}
-              disabled={selectedPlayerIds.length === 0}
-               className="w-full mt-6 px-6 py-4 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 hover:shadow-retro-outset disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              disabled={selectedPlayerIds.length < 2}
+              className="font-pixel rounded-retro hover:shadow-retro-outset mt-6 w-full bg-white px-6 py-4 text-black transition-all hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               START MATCH
             </button>
