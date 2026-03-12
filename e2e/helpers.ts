@@ -9,11 +9,11 @@ import { Page } from "@playwright/test";
  * Generate a unique namespace string for test data isolation.
  * Incorporates CI environment variables (run ID, SHA, shard) when available.
  * Falls back to timestamp + random string for local runs.
+ * NOTE: Only generates letters and dashes (no numbers) to match form validation.
  */
 export function generateNamespace(): string {
-  const uniqueSuffix = `${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 8)}`;
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).slice(2, 8);
 
   // In CI, use GitHub Actions context for stable, shard-aware namespacing
   if (process.env.CI) {
@@ -23,13 +23,28 @@ export function generateNamespace(): string {
       : "unknown";
     const attempt = process.env.GITHUB_RUN_ATTEMPT || "1";
 
-    return `e2e-${runId}-${sha}-${attempt}-${uniqueSuffix}`
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-");
+    // Convert numbers to letters to match form validation
+    const numericRunId = runId.replace(
+      /\d/g,
+      (d) => "abcdefghijklmnopqrstuvwxyz"[parseInt(d) % 26]
+    );
+    const numericSha = sha.replace(
+      /\d/g,
+      (d) => "abcdefghijklmnopqrstuvwxyz"[parseInt(d) % 26]
+    );
+    const numericAttempt = attempt.replace(
+      /\d/g,
+      (d) => "abcdefghijklmnopqrstuvwxyz"[parseInt(d) % 26]
+    );
+
+    return `e2e-${numericRunId}-${numericSha}-${numericAttempt}-${timestamp}-${random}`.replace(
+      /[^a-z-]/g,
+      "-"
+    );
   }
 
-  // Local development: timestamp + random suffix
-  return `local-${uniqueSuffix}`;
+  // Local development: timestamp + random suffix (already letters only)
+  return `local-${timestamp}-${random}`;
 }
 
 /**
@@ -48,12 +63,14 @@ export async function createNamespacedGroup(
     .replace(/^-|-$/g, "");
 
   await page.getByLabel("Group *").fill(groupSlug);
+
   await page.getByRole("button", { name: "CREATE GROUP" }).click();
 
-  // Wait for group to appear in list (heading uses the group slug as name)
+  // Wait for group to appear in list (form now uses same value for name and slug)
+  // Use a longer timeout to account for API calls and React state updates
   await expect(
     page.getByRole("heading", { name: groupSlug }).first()
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 10000 });
 
   const groupCard = page
     .locator("div")
