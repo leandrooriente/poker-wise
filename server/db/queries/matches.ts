@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
-import crypto from "crypto";
+import { generateId } from "@/lib/uuid";
 
 import { db } from "@/server/db";
 import {
@@ -126,7 +126,7 @@ export async function createMatchForAdmin(
     return undefined;
   }
 
-  const matchId = crypto.randomUUID();
+  const matchId = generateId();
 
   await db.transaction(async (tx: any) => {
     await tx.insert(matches).values({
@@ -142,7 +142,7 @@ export async function createMatchForAdmin(
 
     await tx.insert(matchEntries).values(
       input.players.map((player) => ({
-        id: crypto.randomUUID(),
+        id: generateId(),
         matchId,
         playerId: player.userId,
         buyIns: player.buyIns,
@@ -294,7 +294,7 @@ export async function updateMatchForAdmin(
       await tx.delete(matchEntries).where(eq(matchEntries.matchId, matchId));
       await tx.insert(matchEntries).values(
         updates.players.map((player) => ({
-          id: crypto.randomUUID(),
+          id: generateId(),
           matchId,
           playerId: player.userId,
           buyIns: player.buyIns,
