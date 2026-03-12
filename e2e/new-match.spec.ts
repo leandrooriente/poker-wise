@@ -53,11 +53,20 @@ test.describe("New Match Setup", () => {
 
     await page.goto("/new-match");
 
+    const aliceIndicator = page.getByTestId("player-checkbox-indicator-1");
+    const bobIndicator = page.getByTestId("player-checkbox-indicator-2");
+
+    await expect(aliceIndicator).toHaveAttribute("data-state", "unchecked");
+    await expect(bobIndicator).toHaveAttribute("data-state", "unchecked");
+
     // Initially 0 selected
 
     // Select Alice and Bob
     await page.locator("label", { hasText: "Alice" }).click();
     await page.locator("label", { hasText: "Bob" }).click();
+
+    await expect(aliceIndicator).toHaveAttribute("data-state", "checked");
+    await expect(bobIndicator).toHaveAttribute("data-state", "checked");
 
     // Unselect Alice
     await page.locator("label", { hasText: "Alice" }).click();
@@ -65,6 +74,8 @@ test.describe("New Match Setup", () => {
     // Verify only Bob is selected (checkbox checked)
     await expect(page.getByLabel("Alice")).not.toBeChecked();
     await expect(page.getByLabel("Bob")).toBeChecked();
+    await expect(aliceIndicator).toHaveAttribute("data-state", "unchecked");
+    await expect(bobIndicator).toHaveAttribute("data-state", "checked");
   });
 
   test("match title input is not shown", async ({ page }) => {
