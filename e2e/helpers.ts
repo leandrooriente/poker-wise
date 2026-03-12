@@ -257,7 +257,7 @@ export async function addPlayer(page: Page, data: PlayerData) {
   await page.getByTestId("player-name-input").fill(data.name);
 
   await page.getByRole("button", { name: "ADD PLAYER" }).click();
-  await expect(page.getByText(data.name)).toBeVisible();
+  await expect(page.getByRole("heading", { name: data.name })).toBeVisible();
 }
 
 /**
