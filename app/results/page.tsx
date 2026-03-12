@@ -60,12 +60,12 @@ function ResultsContent() {
 
   if (error || !match || !settlement) {
     return (
-      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
-        <h2 className="font-pixel text-retro-red mb-4 text-2xl">ERROR</h2>
+      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
+        <h2 className="mb-4 font-pixel text-2xl text-retro-red">ERROR</h2>
         <p className="text-retro-light">{error || "Results unavailable"}</p>
         <button
           onClick={() => router.push("/new-match")}
-          className="rounded-retro font-pixel mt-4 bg-white px-4 py-2 text-black"
+          className="mt-4 rounded-retro bg-white px-4 py-2 font-pixel text-black"
         >
           Start New Match
         </button>
@@ -74,18 +74,18 @@ function ResultsContent() {
   }
 
   return (
-    <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
-      <h2 className="font-pixel text-retro-green mb-4 text-2xl">
+    <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
+      <h2 className="mb-4 font-pixel text-2xl text-retro-green">
         SETTLEMENT RESULTS
       </h2>
-      <p className="text-retro-light mb-6">
+      <p className="mb-6 text-retro-light">
         View net results and exact “who pays whom” transfers after cashout.
       </p>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Player balances */}
         <div className="lg:col-span-2">
-          <h3 className="font-pixel text-retro-yellow mb-4 text-xl">
+          <h3 className="mb-4 font-pixel text-xl text-retro-yellow">
             PLAYER BALANCES
           </h3>
           <div className="space-y-4">
@@ -97,11 +97,11 @@ function ResultsContent() {
               return (
                 <div
                   key={balance.userId}
-                  className="rounded-retro border-retro-gray bg-retro-dark hover:border-retro-green border p-6 transition-colors"
+                  className="rounded-retro border border-retro-gray bg-retro-dark p-6 transition-colors hover:border-retro-green"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-pixel text-retro-green text-2xl">
+                      <h4 className="font-pixel text-2xl text-retro-green">
                         {player?.name || "Unknown"}
                       </h4>
                       <p className="text-retro-light">
@@ -111,35 +111,10 @@ function ResultsContent() {
                       </p>
                     </div>
                     <div
-                      className={`font-pixel text-3xl ${net >= 0 ? "text-retro-green" : "text-retro-red"}`}
+                      className={`font-pixel text-5xl ${net >= 0 ? "text-retro-green" : "text-retro-red"}`}
                     >
                       <MoneyDisplay cents={net} />
                     </div>
-                  </div>
-                  <div className="border-retro-gray text-retro-light mt-4 border-t pt-4">
-                    {net > 0 ? (
-                      <span className="text-retro-green">
-                        Receives{" "}
-                        {
-                          settlement.transfers.filter(
-                            (t: any) => t.toPlayerId === balance.userId
-                          ).length
-                        }{" "}
-                        payment(s)
-                      </span>
-                    ) : net < 0 ? (
-                      <span className="text-retro-red">
-                        Pays{" "}
-                        {
-                          settlement.transfers.filter(
-                            (t: any) => t.fromPlayerId === balance.userId
-                          ).length
-                        }{" "}
-                        payment(s)
-                      </span>
-                    ) : (
-                      <span className="text-retro-gray">Breaks even</span>
-                    )}
                   </div>
                 </div>
               );
@@ -150,11 +125,11 @@ function ResultsContent() {
         {/* Transfers & summary */}
         <div className="space-y-6">
           <div>
-            <h3 className="font-pixel text-retro-blue mb-4 text-xl">
+            <h3 className="mb-4 font-pixel text-xl text-retro-blue">
               TRANSFERS
             </h3>
             {settlement.transfers.length === 0 ? (
-              <div className="rounded-retro border-retro-gray border p-6 text-center">
+              <div className="rounded-retro border border-retro-gray p-6 text-center">
                 <p className="text-retro-gray">
                   No transfers needed — all players break even.
                 </p>
@@ -171,26 +146,23 @@ function ResultsContent() {
                   return (
                     <div
                       key={idx}
-                      className="rounded-retro border-retro-gray bg-retro-dark border p-4"
+                      className="rounded-retro border border-retro-gray bg-retro-dark p-4"
                       data-testid="transfer-item"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="font-pixel text-retro-red">
-                            {from?.name}
-                          </div>
-                          <div className="text-retro-gray">→</div>
-                          <div className="font-pixel text-retro-green">
-                            {to?.name}
-                          </div>
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="font-pixel text-retro-red">
+                          {from?.name}
                         </div>
-                        <div className="font-pixel text-retro-yellow text-xl">
+                        <div className="text-retro-gray">→</div>
+                        <div className="font-pixel text-retro-green">
+                          {to?.name}
+                        </div>
+                      </div>
+                      <div className="mt-4 text-center">
+                        <div className="font-pixel text-3xl text-retro-yellow">
                           <MoneyDisplay cents={transfer.amount} />
                         </div>
                       </div>
-                      <p className="text-retro-gray mt-2 text-sm">
-                        {transfer.description || "Payment"}
-                      </p>
                     </div>
                   );
                 })}
@@ -198,8 +170,8 @@ function ResultsContent() {
             )}
           </div>
 
-          <div className="border-retro-gray border-t pt-6">
-            <h3 className="font-pixel text-retro-purple mb-4 text-xl">
+          <div className="border-t border-retro-gray pt-6">
+            <h3 className="mb-4 font-pixel text-xl text-retro-purple">
               SUMMARY
             </h3>
             <div className="space-y-3">
@@ -216,35 +188,23 @@ function ResultsContent() {
                   )}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-retro-light">Match duration</span>
-                <span className="text-retro-gray text-sm">
-                  {match.startedAt && match.endedAt
-                    ? `${Math.round((new Date(match.endedAt).getTime() - new Date(match.startedAt).getTime()) / 60000)} min`
-                    : "N/A"}
-                </span>
-              </div>
             </div>
           </div>
 
-          <div className="border-retro-gray border-t pt-6">
-            <h3 className="font-pixel text-retro-red mb-4 text-xl">ACTIONS</h3>
+          <div className="border-t border-retro-gray pt-6">
             <div className="space-y-4">
               <button
                 onClick={handleNewMatch}
-                className="rounded-retro font-pixel hover:shadow-retro-outset w-full bg-white px-6 py-4 text-black transition-all hover:bg-gray-200"
+                className="w-full rounded-retro bg-white px-6 py-4 font-pixel text-black transition-all hover:bg-gray-200 hover:shadow-retro-outset"
               >
                 START NEW MATCH
               </button>
               <button
                 onClick={handleViewHistory}
-                className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green hover:text-retro-green w-full border px-6 py-4 transition-all"
+                className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
               >
                 VIEW HISTORY
               </button>
-              <p className="text-retro-gray text-center text-sm">
-                This match settlement is loaded from persisted match data.
-              </p>
             </div>
           </div>
         </div>

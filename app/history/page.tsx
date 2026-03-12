@@ -333,32 +333,6 @@ export default function HistoryPage() {
                       })}
                     </div>
                   </div>
-
-                  {/* Match metadata */}
-                  <div className="mt-6 border-t border-retro-gray pt-6 text-sm text-retro-gray">
-                    <div className="flex flex-wrap gap-4">
-                      <div>
-                        <span className="text-retro-blue">Match ID:</span>{" "}
-                        {match.id}
-                      </div>
-                      <div>
-                        <span className="text-retro-blue">Created:</span>{" "}
-                        {new Date(match.createdAt).toLocaleString()}
-                      </div>
-                      {match.startedAt && (
-                        <div>
-                          <span className="text-retro-blue">Started:</span>{" "}
-                          {new Date(match.startedAt).toLocaleString()}
-                        </div>
-                      )}
-                      {match.endedAt && (
-                        <div>
-                          <span className="text-retro-blue">Ended:</span>{" "}
-                          {new Date(match.endedAt).toLocaleString()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
