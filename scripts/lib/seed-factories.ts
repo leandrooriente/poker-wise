@@ -1,7 +1,15 @@
 import { hash } from "bcryptjs";
-import { randomUUID } from "crypto";
+import { generateId } from "@/lib/uuid";
 import { db } from "@/server/db";
-import { admins, groups, groupAdmins, players, matches, matchEntries, groupShareTokens } from "@/server/db/schema";
+import {
+  admins,
+  groups,
+  groupAdmins,
+  players,
+  matches,
+  matchEntries,
+  groupShareTokens,
+} from "@/server/db/schema";
 
 export async function createAdmin(email: string, password: string) {
   const passwordHash = await hash(password, 10);
@@ -12,7 +20,11 @@ export async function createAdmin(email: string, password: string) {
   return admin;
 }
 
-export async function createGroup(name: string, slug: string, createdByAdminId: string) {
+export async function createGroup(
+  name: string,
+  slug: string,
+  createdByAdminId: string
+) {
   const [group] = await db
     .insert(groups)
     .values({ name, slug, createdByAdminId })
@@ -20,7 +32,11 @@ export async function createGroup(name: string, slug: string, createdByAdminId: 
   return group;
 }
 
-export async function addGroupAdmin(groupId: string, adminId: string, role = "admin") {
+export async function addGroupAdmin(
+  groupId: string,
+  adminId: string,
+  role = "admin"
+) {
   const [groupAdmin] = await db
     .insert(groupAdmins)
     .values({ groupId, adminId, role })
@@ -28,7 +44,11 @@ export async function addGroupAdmin(groupId: string, adminId: string, role = "ad
   return groupAdmin;
 }
 
-export async function createPlayer(groupId: string, name: string, notes?: string) {
+export async function createPlayer(
+  groupId: string,
+  name: string,
+  notes?: string
+) {
   const [player] = await db
     .insert(players)
     .values({ groupId, name, notes })
@@ -39,7 +59,13 @@ export async function createPlayer(groupId: string, name: string, notes?: string
 export async function createMatch(
   groupId: string,
   createdByAdminId: string,
-  options?: { title?: string; buyInAmount?: number; status?: "live" | "settled"; startedAt?: Date; endedAt?: Date }
+  options?: {
+    title?: string;
+    buyInAmount?: number;
+    status?: "live" | "settled";
+    startedAt?: Date;
+    endedAt?: Date;
+  }
 ) {
   const [match] = await db
     .insert(matches)
@@ -56,7 +82,12 @@ export async function createMatch(
   return match;
 }
 
-export async function createMatchEntry(matchId: string, playerId: string, buyIns = 1, finalValue = 0) {
+export async function createMatchEntry(
+  matchId: string,
+  playerId: string,
+  buyIns = 1,
+  finalValue = 0
+) {
   const [entry] = await db
     .insert(matchEntries)
     .values({ matchId, playerId, buyIns, finalValue })
@@ -65,7 +96,7 @@ export async function createMatchEntry(matchId: string, playerId: string, buyIns
 }
 
 export async function createShareToken(groupId: string, token?: string) {
-  const rawToken = token ?? randomUUID();
+  const rawToken = token ?? generateId();
   const tokenHash = await hash(rawToken, 10);
   const [shareToken] = await db
     .insert(groupShareTokens)
