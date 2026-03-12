@@ -144,14 +144,22 @@ export default function NewMatchPage() {
                     >
                       <div className="flex items-center gap-3">
                         <span
+                          data-testid={`player-checkbox-indicator-${player.id}`}
+                          data-state={isSelected ? "checked" : "unchecked"}
                           aria-hidden="true"
-                          className={`font-pixel shadow-retro-outset inline-flex h-8 min-w-8 items-center justify-center border px-1 text-sm leading-none ${
+                          className={`shadow-retro-outset relative inline-flex h-7 w-7 shrink-0 items-center justify-center border-2 transition-all ${
                             isSelected
-                              ? "border-retro-green bg-retro-green text-retro-dark"
-                              : "border-retro-gray bg-retro-dark text-retro-light"
+                              ? "border-retro-green bg-retro-green/20"
+                              : "border-retro-gray bg-retro-dark"
                           }`}
                         >
-                          {isSelected ? "[✓]" : "[ ]"}
+                          <span
+                            className={`h-3.5 w-2 rotate-45 border-r-[3px] border-b-[3px] transition-opacity ${
+                              isSelected
+                                ? "border-retro-green opacity-100"
+                                : "border-transparent opacity-0"
+                            }`}
+                          />
                         </span>
                         <span className="font-pixel text-lg">
                           {player.name}
