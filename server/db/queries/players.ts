@@ -1,7 +1,7 @@
+import { generateId } from "@/lib/uuid";
 import { db } from "@/server/db";
 import { players, groupAdmins } from "@/server/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import crypto from "crypto";
 
 export interface CreatePlayerInput {
   name: string;
@@ -58,7 +58,7 @@ export async function createPlayer(
   const [player] = await db
     .insert(players)
     .values({
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: input.name,
       notes: input.notes,
       groupId: input.groupId,

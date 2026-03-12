@@ -1,7 +1,7 @@
+import { generateId } from "@/lib/uuid";
 import { db } from "@/server/db";
 import { groups, groupAdmins } from "@/server/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import crypto from "crypto";
 
 export interface CreateGroupInput {
   id: string; // slug
@@ -21,19 +21,24 @@ export interface GroupWithAdminRole {
 /**
  * Create a new group and add the creating admin to group_admins with role 'admin'.
  */
-export async function createGroup(input: CreateGroupInput): Promise<GroupWithAdminRole> {
+export async function createGroup(
+  input: CreateGroupInput
+): Promise<GroupWithAdminRole> {
   const { id: slug, name, createdByAdminId } = input;
-  
+
   // Generate UUID for primary key
-  const groupId = crypto.randomUUID();
-  
+  const groupId = generateId();
+
   // Insert group
-  const [group] = await db.insert(groups).values({
-    id: groupId,
-    name,
-    slug,
-    createdByAdminId,
-  }).returning();
+  const [group] = await db
+    .insert(groups)
+    .values({
+      id: groupId,
+      name,
+      slug,
+      createdByAdminId,
+    })
+    .returning();
 
   // Add creating admin to group_admins
   await db.insert(groupAdmins).values({
@@ -51,7 +56,9 @@ export async function createGroup(input: CreateGroupInput): Promise<GroupWithAdm
 /**
  * Get all groups where the given admin is a member (via group_admins).
  */
-export async function getGroupsForAdmin(adminId: string): Promise<GroupWithAdminRole[]> {
+export async function getGroupsForAdmin(
+  adminId: string
+): Promise<GroupWithAdminRole[]> {
   const result = await db
     .select({
       id: groups.id,
@@ -72,7 +79,10 @@ export async function getGroupsForAdmin(adminId: string): Promise<GroupWithAdmin
 /**
  * Get a single group by ID, only if the admin is a member.
  */
-export async function getGroupForAdmin(groupId: string, adminId: string): Promise<GroupWithAdminRole | undefined> {
+export async function getGroupForAdmin(
+  groupId: string,
+  adminId: string
+): Promise<GroupWithAdminRole | undefined> {
   const [result] = await db
     .select({
       id: groups.id,
@@ -99,7 +109,10 @@ export async function updateGroupForAdmin(
 ): Promise<GroupWithAdminRole | undefined> {
   // First verify admin is a member (and optionally check role)
   const membership = await db.query.groupAdmins.findFirst({
-    where: and(eq(groupAdmins.groupId, groupId), eq(groupAdmins.adminId, adminId)),
+    where: and(
+      eq(groupAdmins.groupId, groupId),
+      eq(groupAdmins.adminId, adminId)
+    ),
   });
   if (!membership) {
     return undefined;
@@ -124,9 +137,16 @@ export async function updateGroupForAdmin(
  * Delete a group (cascading deletes will clean up group_admins, players, matches, etc.)
  * Only allowed if the admin is a member with role 'admin'.
  */
-export async function deleteGroupForAdmin(groupId: string, adminId: string): Promise<boolean> {
+export async function deleteGroupForAdmin(
+  groupId: string,
+  adminId: string
+): Promise<boolean> {
   const membership = await db.query.groupAdmins.findFirst({
-    where: and(eq(groupAdmins.groupId, groupId), eq(groupAdmins.adminId, adminId), eq(groupAdmins.role, "admin")),
+    where: and(
+      eq(groupAdmins.groupId, groupId),
+      eq(groupAdmins.adminId, adminId),
+      eq(groupAdmins.role, "admin")
+    ),
   });
   if (!membership) {
     return false;
@@ -146,17 +166,26 @@ export async function addAdminToGroup(
   role: string = "member"
 ): Promise<boolean> {
   const membership = await db.query.groupAdmins.findFirst({
-    where: and(eq(groupAdmins.groupId, groupId), eq(groupAdmins.adminId, adminId), eq(groupAdmins.role, "admin")),
+    where: and(
+      eq(groupAdmins.groupId, groupId),
+      eq(groupAdmins.adminId, adminId),
+      eq(groupAdmins.role, "admin")
+    ),
   });
   if (!membership) {
     return false;
   }
 
-  await db.insert(groupAdmins).values({
-    groupId,
-    adminId: targetAdminId,
-    role,
-  }).onConflictDoNothing({ target: [groupAdmins.groupId, groupAdmins.adminId] });
+  await db
+    .insert(groupAdmins)
+    .values({
+      groupId,
+      adminId: targetAdminId,
+      role,
+    })
+    .onConflictDoNothing({
+      target: [groupAdmins.groupId, groupAdmins.adminId],
+    });
 
   return true;
 }
@@ -164,7 +193,10 @@ export async function addAdminToGroup(
 /**
  * Get a single group by slug, only if the admin is a member.
  */
-export async function getGroupBySlugForAdmin(slug: string, adminId: string): Promise<GroupWithAdminRole | undefined> {
+export async function getGroupBySlugForAdmin(
+  slug: string,
+  adminId: string
+): Promise<GroupWithAdminRole | undefined> {
   const [result] = await db
     .select({
       id: groups.id,
