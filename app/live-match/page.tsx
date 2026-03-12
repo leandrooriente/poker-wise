@@ -125,7 +125,7 @@ function LiveMatchContent() {
         LIVE MATCH
       </h2>
       <p className="text-retro-light mb-6">
-        Track rebuys during the game. Tap <span>&quot;Rebuy&quot;</span> when a
+        Track rebuys during game. Tap <span>&quot;Rebuy&quot;</span> when a
         player adds another buy-in.
       </p>
 
