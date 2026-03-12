@@ -24,6 +24,7 @@
     "db:reset": "tsx scripts/db-reset.ts",
     "db:init": "tsx scripts/db-init.ts",
     "db:seed": "tsx scripts/db-seed.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
   },
