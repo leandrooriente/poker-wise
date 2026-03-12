@@ -58,7 +58,9 @@ export async function createNamespacedGroup(
 ): Promise<string> {
   const groupSlug = `test-group-${namespace}`
     .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-");
+    .replace(/[^a-z-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 
   await page.getByLabel("Group *").fill(groupSlug);
 
@@ -213,11 +215,11 @@ export async function loginAdmin(page: Page) {
  * Create a group via UI (must be on groups page).
  */
 export async function createGroup(page: Page, id: string, name: string) {
-  // Use id as the group slug (form only has one field now, sets name=id)
-  await page.getByLabel("Group *").fill(id);
+  await page.getByLabel("Group *").fill(id || name);
   await page.getByRole("button", { name: "CREATE GROUP" }).click();
-  // Wait for group to appear in list (heading shows id since form sets name=id)
-  await expect(page.getByRole("heading", { name: id }).first()).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: id || name }).first()
+  ).toBeVisible();
 }
 
 export interface PlayerData {
