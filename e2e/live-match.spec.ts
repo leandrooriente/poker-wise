@@ -48,7 +48,7 @@ test.describe("Live Match", () => {
     ).toBeVisible();
 
     // Initial state
-    await expect(page.getByText("Alice")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Alice" })).toBeVisible();
     await expect(
       page
         .getByTestId("player-row")
@@ -201,8 +201,8 @@ test.describe("Live Match", () => {
 
     // Should be on cashout page with same match
     await expect(page.getByRole("heading", { name: "CASHOUT" })).toBeVisible();
-    await expect(page.getByText("Alice")).toBeVisible();
-    await expect(page.getByText("Bob")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Alice" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Bob" })).toBeVisible();
 
     // Verify buy-ins carried over (Alice: 3, Bob: 2)
     // Check that buy-ins are correct

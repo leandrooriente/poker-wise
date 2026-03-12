@@ -1,7 +1,10 @@
 import { z } from "zod";
 import dotenv from "dotenv";
 
-dotenv.config();
+// dotenv is not needed in Edge Runtime (environment variables are already loaded)
+if ((globalThis as any).EdgeRuntime === undefined) {
+  dotenv.config();
+}
 
 const envSchema = z.object({
   POSTGRES_URL: z.string().url(),
