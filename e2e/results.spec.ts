@@ -52,8 +52,8 @@ test.describe("Results Page", () => {
     await expect(page.getByText("PLAYER BALANCES")).toBeVisible();
 
     // Both players show net zero
-    await expect(page.getByText("Alice")).toBeVisible();
-    await expect(page.getByText("Bob")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Alice" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Bob" })).toBeVisible();
     const aliceBalance = page
       .getByRole("heading", { name: "Alice" })
       .locator("../..");

@@ -1,10 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,9 +26,9 @@ export default function LoginPage() {
         throw new Error(data.error || "Login failed");
       }
 
-      // Redirect to groups page (or admin dashboard)
-      router.push("/");
-      router.refresh(); // Ensure session state is updated
+      const redirectTarget =
+        new URLSearchParams(window.location.search).get("from") || "/";
+      window.location.assign(redirectTarget);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -101,6 +99,12 @@ export default function LoginPage() {
             {loading ? "LOGGING IN..." : "LOGIN"}
           </button>
         </form>
+
+        <div className="text-retro-gray mt-8 text-center text-sm">
+          <p>
+            Use the seeded admin credentials from your environment variables.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -175,8 +175,8 @@ test.describe("New Match Setup", () => {
     await expect(
       page.getByRole("heading", { name: "LIVE MATCH" })
     ).toBeVisible();
-    await expect(page.getByText("Alice")).toBeVisible();
-    await expect(page.getByText("Bob")).toBeVisible();
+    await expect(page.getByText("Alice", { exact: true })).toBeVisible();
+    await expect(page.getByText("Bob", { exact: true })).toBeVisible();
     await expect(
       page.locator("span.font-pixel.text-retro-yellow.text-2xl")
     ).toHaveCount(2); // Each player has buy‑ins count display
