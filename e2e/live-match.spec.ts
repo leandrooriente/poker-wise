@@ -201,7 +201,9 @@ test.describe("Live Match", () => {
     ).toBeVisible();
   });
 
-  test("match info displays correct timestamps", async ({ page }) => {
+  test("match info shows buy-in totals without started timestamp", async ({
+    page,
+  }) => {
     const matchId = "test-match-5";
     const startedAt = new Date("2026-01-01T20:00:00Z").toISOString();
 
@@ -222,10 +224,16 @@ test.describe("Live Match", () => {
 
     await page.goto(`/live-match?match=${matchId}`);
 
-    // Should show started time (format depends on locale, but should contain time)
-    await expect(page.getByText("Started")).toBeVisible();
-    // Just verify something time-like appears (regex for HH:MM or H:MM)
-    await expect(page.getByText(/\d{1,2}:\d{2}/)).toBeVisible();
+    const matchInfo = page
+      .getByRole("heading", { name: "MATCH INFO" })
+      .locator("..");
+
+    await expect(matchInfo.getByText("Buy‑in each")).toBeVisible();
+    await expect(matchInfo.getByText("10.00 EUR").first()).toBeVisible();
+    await expect(matchInfo.getByText("Total buy‑ins")).toBeVisible();
+    await expect(matchInfo.getByText("1").first()).toBeVisible();
+    await expect(matchInfo.getByText("Total pot")).toBeVisible();
+    await expect(page.getByText("Started")).toHaveCount(0);
   });
 
   test("error state when match not found", async ({ page }) => {

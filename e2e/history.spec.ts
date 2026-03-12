@@ -219,8 +219,8 @@ test.describe("History Page", () => {
 
     // Create a match via UI steps
     await page.goto("/new-match");
-    await page.getByRole("button", { name: "Alice" }).click();
-    await page.getByRole("button", { name: "Bob" }).click();
+    await page.locator("label", { hasText: "Alice" }).click();
+    await page.locator("label", { hasText: "Bob" }).click();
     await page.getByRole("button", { name: "START MATCH" }).click();
 
     // Live match: immediate cashout

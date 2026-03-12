@@ -179,14 +179,6 @@ function LiveMatchContent() {
                 <span className="text-retro-light">Buy‑in each</span>
                 <MoneyDisplay cents={match.buyInAmount} />
               </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-retro-light">Started</span>
-                <span className="text-retro-light text-right">
-                  {match.startedAt
-                    ? new Date(match.startedAt).toLocaleString()
-                    : "Unknown"}
-                </span>
-              </div>
               <div className="flex justify-between">
                 <span className="text-retro-light">Total buy‑ins</span>
                 <span className="font-pixel">{totalBuyIns}</span>
