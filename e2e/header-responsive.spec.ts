@@ -76,4 +76,25 @@ test.describe("Header responsive layout", () => {
       expect(selectorBox.y).toBeGreaterThan(titleBox.y + titleBox.height / 2);
     }
   });
+
+  test("selects the first available group when none is active", async ({
+    page,
+  }) => {
+    await page.evaluate(() => {
+      window.localStorage.removeItem("poker-wise-active-group");
+    });
+
+    await page.reload();
+
+    const selector = page.getByLabel("Select group");
+    await expect(selector).not.toHaveValue("");
+
+    const activeGroupId = await page.evaluate(() =>
+      window.localStorage.getItem("poker-wise-active-group")
+    );
+    expect(activeGroupId).toBeTruthy();
+
+    await expect(page.getByText("ACTIVE GROUP DETAILS")).toBeVisible();
+    await expect(page.getByText("No group selected.")).not.toBeVisible();
+  });
 });

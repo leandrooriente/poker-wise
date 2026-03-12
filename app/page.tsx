@@ -42,6 +42,9 @@ export default function GroupsPage() {
     try {
       const loaded = await getGroups();
       setGroups(loaded);
+      if (!activeGroupId && loaded.length > 0) {
+        setActiveGroupId(loaded[0].id);
+      }
     } catch {
       // Failed to load groups
     } finally {
