@@ -22,7 +22,7 @@ test.describe("Basic poker match flow", () => {
     // 2. Navigate to New Match
     await page.getByRole("link", { name: "New Match" }).click();
     await expect(
-      page.getByRole("heading", { name: "NEW MATCH SETUP" })
+      page.getByRole("heading", { name: "NEW MATCH" })
     ).toBeVisible();
 
     // 3. Select both players

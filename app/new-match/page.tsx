@@ -84,9 +84,7 @@ export default function NewMatchPage() {
   if (!activeGroupId) {
     return (
       <div className="border-retro-gray rounded-retro bg-retro-dark shadow-retro-outset border p-6">
-        <h2 className="font-pixel text-retro-green mb-4 text-2xl">
-          NEW MATCH SETUP
-        </h2>
+        <h2 className="font-pixel text-retro-green mb-4 text-2xl">NEW MATCH</h2>
         <div className="py-8 text-center">
           <p className="text-retro-gray">No group selected.</p>
           <p className="text-retro-gray mt-2 text-sm">
@@ -100,9 +98,7 @@ export default function NewMatchPage() {
 
   return (
     <div className="border-retro-gray rounded-retro bg-retro-dark shadow-retro-outset border p-6">
-      <h2 className="font-pixel text-retro-green mb-4 text-2xl">
-        NEW MATCH SETUP
-      </h2>
+      <h2 className="font-pixel text-retro-green mb-4 text-2xl">NEW MATCH</h2>
       <p className="text-retro-light mb-6">
         Select players and configure buy‑in amount for a new Texas Hold’em
         match.
@@ -181,9 +177,6 @@ export default function NewMatchPage() {
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-retro-light font-pixel mb-2 block text-sm">
-                  BUY‑IN AMOUNT (EUR)
-                </label>
                 <MoneyInput
                   value={buyInAmount}
                   onChange={setBuyInAmount}

@@ -27,7 +27,7 @@ test.describe("New Match Setup", () => {
     await page.goto("/new-match");
 
     await expect(
-      page.getByRole("heading", { name: "NEW MATCH SETUP" })
+      page.getByRole("heading", { name: "NEW MATCH" })
     ).toBeVisible();
     await expect(page.getByText("No players found.")).toBeVisible();
     await expect(
