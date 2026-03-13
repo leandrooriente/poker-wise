@@ -22,7 +22,6 @@ test.describe("History Page", () => {
     await seedNamespacedLocalStorage(page, namespace, {});
     // Log in as admin and create a namespaced server group (required for admin UI)
     await loginAdminAndCreateNamespacedGroup(page);
-    await page.goto("about:blank");
   });
 
   test("empty state shows no matches message", async ({ page }) => {
@@ -300,15 +299,6 @@ test.describe("History Page", () => {
     // Results page: we can go to history
     await page.getByRole("button", { name: "VIEW HISTORY" }).click();
 
-    // Debug: log matches in storage
-    const matchCountBefore = await page.evaluate(() => {
-      const matches = JSON.parse(
-        localStorage.getItem("poker-wise-matches") || "[]"
-      );
-      return matches.length;
-    });
-    console.log(`Matches in localStorage before reload: ${matchCountBefore}`);
-
     // Should see the match in history
     await expect(
       page.getByRole("heading", { name: "MATCH HISTORY" })
@@ -319,15 +309,6 @@ test.describe("History Page", () => {
 
     // Reload page
     await page.reload();
-
-    // Debug: log matches after reload
-    const matchCountAfter = await page.evaluate(() => {
-      const matches = JSON.parse(
-        localStorage.getItem("poker-wise-matches") || "[]"
-      );
-      return matches.length;
-    });
-    console.log(`Matches in localStorage after reload: ${matchCountAfter}`);
 
     await expect(
       page.getByRole("heading", { name: "MATCH HISTORY" })

@@ -5,6 +5,7 @@ import {
   loginAdminAndCreateNamespacedGroup,
   generateNamespace,
   addRebuy,
+  resolveSeededMatchId,
 } from "./helpers";
 
 test.describe("Results Page", () => {
@@ -20,7 +21,6 @@ test.describe("Results Page", () => {
     await seedNamespacedLocalStorage(page, namespace, {});
     // Log in as admin and create a namespaced server group (required for admin UI)
     await loginAdminAndCreateNamespacedGroup(page);
-    await page.goto("about:blank");
   });
 
   test("break‑even shows no transfers", async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe("Results Page", () => {
       ],
     });
 
-    await page.goto(`/results?match=${matchId}`);
+    await page.goto(`/results?match=${resolveSeededMatchId(page, matchId)}`);
     await expect(
       page.getByRole("heading", { name: "SETTLEMENT RESULTS" })
     ).toBeVisible();
@@ -98,7 +98,7 @@ test.describe("Results Page", () => {
       ],
     });
 
-    await page.goto(`/results?match=${matchId}`);
+    await page.goto(`/results?match=${resolveSeededMatchId(page, matchId)}`);
 
     // Verify player balances display correct net amounts
     await expect(page.getByRole("heading", { name: "Alice" })).toBeVisible();
@@ -156,7 +156,7 @@ test.describe("Results Page", () => {
       ],
     });
 
-    await page.goto(`/results?match=${matchId}`);
+    await page.goto(`/results?match=${resolveSeededMatchId(page, matchId)}`);
 
     // Verify net amounts
     await expect(page.getByRole("heading", { name: "Alice" })).toBeVisible();
@@ -308,7 +308,7 @@ test.describe("Results Page", () => {
       };
     });
 
-    await page.goto(`/results?match=${matchId}`);
+    await page.goto(`/results?match=${resolveSeededMatchId(page, matchId)}`);
     await expect(page.getByRole("heading", { name: "SETTLEMENT RESULTS" })).toBeVisible();
     await expect(page.getByRole("button", { name: "SHARE" })).toBeVisible();
 
