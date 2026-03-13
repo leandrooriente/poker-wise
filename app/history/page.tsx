@@ -226,17 +226,8 @@ export default function HistoryPage() {
                 </div>
                 <div className="font-pixel text-retro-green">
                   {isExpanded ? "▲" : "▼"}
-                  </div>
-                  {/* Share button */}
-                  <div className="mt-6 border-t border-retro-gray pt-6">
-                    <button
-                      onClick={(e) => handleShare(match, e)}
-                      className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
-                    >
-                      SHARE
-                    </button>
-                  </div>
                 </div>
+              </div>
 
               {isExpanded && (
                 <div className="mt-6 border-t border-retro-gray pt-6">
@@ -371,6 +362,15 @@ export default function HistoryPage() {
                         );
                       })}
                     </div>
+                  </div>
+
+                  <div className="mt-6 border-t border-retro-gray pt-6">
+                    <button
+                      onClick={(e) => handleShare(match, e)}
+                      className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
+                    >
+                      SHARE
+                    </button>
                   </div>
                 </div>
               )}
