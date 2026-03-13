@@ -6,7 +6,7 @@ import MoneyDisplay from "@/components/MoneyDisplay";
 import { getMatchesByGroup } from "@/db/matches";
 import { getPlayersForGroup } from "@/db/players";
 import { useActiveGroup } from "@/lib/active-group";
-import { calculateSettlement } from "@/lib/settlement";
+import { calculateSettlement, formatSettlementShareText } from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
 
@@ -94,6 +94,23 @@ export default function HistoryPage() {
 
   const toggleExpand = (matchId: string) => {
     setExpandedMatchId(expandedMatchId === matchId ? null : matchId);
+  };
+
+  const handleShare = (match: MatchWithDetails, e: React.MouseEvent) => {
+    e.stopPropagation(); // prevent toggling expansion
+    const players = match.playerDetails.map(pd => ({
+      id: pd.player.id,
+      name: pd.player.name,
+    }));
+    const text = formatSettlementShareText({
+      createdAt: match.createdAt,
+      matchPlayers: match.players,
+      players,
+      settlement: match.settlement,
+    });
+    const encoded = encodeURIComponent(text);
+    const url = `https://wa.me/?text=${encoded}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const formatDate = (isoString: string) => {
@@ -196,8 +213,17 @@ export default function HistoryPage() {
                 </div>
                 <div className="font-pixel text-retro-green">
                   {isExpanded ? "▲" : "▼"}
+                  </div>
+                  {/* Share button */}
+                  <div className="mt-6 border-t border-retro-gray pt-6">
+                    <button
+                      onClick={(e) => handleShare(match, e)}
+                      className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
+                    >
+                      SHARE
+                    </button>
+                  </div>
                 </div>
-              </div>
 
               {isExpanded && (
                 <div className="mt-6 border-t border-retro-gray pt-6">
