@@ -231,11 +231,15 @@ export interface PlayerData {
  * Get the currently active group slug from session API.
  */
 async function getActiveGroupSlug(page: Page): Promise<string> {
-  const response = await page.request.get("/api/admin/active-group");
-  if (!response.ok()) {
-    throw new Error(`Failed to fetch active group: ${response.status()}`);
-  }
-  const data = await response.json();
+  const data = await page.evaluate(async () => {
+    const response = await fetch("/api/admin/active-group", {
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch active group: ${response.status}`);
+    }
+    return response.json();
+  });
   if (!data.activeGroupSlug) {
     throw new Error("No active group set for E2E player management");
   }

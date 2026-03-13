@@ -53,8 +53,12 @@ test.describe("New Match Setup", () => {
 
     await page.goto("/new-match");
 
-    const aliceIndicator = page.getByTestId("player-checkbox-indicator-1");
-    const bobIndicator = page.getByTestId("player-checkbox-indicator-2");
+    const aliceIndicator = page
+      .locator("label", { hasText: "Alice" })
+      .locator("[data-testid^='player-checkbox-indicator-']");
+    const bobIndicator = page
+      .locator("label", { hasText: "Bob" })
+      .locator("[data-testid^='player-checkbox-indicator-']");
 
     await expect(aliceIndicator).toHaveAttribute("data-state", "unchecked");
     await expect(bobIndicator).toHaveAttribute("data-state", "unchecked");
