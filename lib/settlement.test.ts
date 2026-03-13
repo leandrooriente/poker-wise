@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { calculateSettlement, validateTotals, formatCents } from "./settlement";
+import { calculateSettlement, validateTotals, formatCents, formatSettlementShareText } from "./settlement";
 
 import type { MatchPlayer } from "@/types/match";
 
@@ -116,6 +116,99 @@ describe("settlement", () => {
       expect(formatCents(1234)).toBe("12.34 EUR");
       expect(formatCents(0)).toBe("0.00 EUR");
       expect(formatCents(-500)).toBe("-5.00 EUR");
+    });
+  });
+
+  describe("formatSettlementShareText", () => {
+    it("formats three-player mixed outcome with transfers", () => {
+      const createdAt = "2026-03-13T20:00:00.000Z";
+      const buyInAmount = 1000;
+      const matchPlayers: MatchPlayer[] = [
+        { userId: "a", buyIns: 1, finalValue: 2500 }, // Alice: 1 buy-in, net +15 => finalValue = paidIn + 15 = 10 + 15 = 25 EUR => 2500 cents
+        { userId: "c", buyIns: 1, finalValue: 500 },  // Charlie: 1 buy-in, net -5 => finalValue = 10 - 5 = 5 EUR => 500 cents
+        { userId: "b", buyIns: 2, finalValue: 1000 }, // Bob: 2 buy-ins, net -10 => paidIn 20, finalValue = 20 - 10 = 10 EUR => 1000 cents
+      ];
+      const players = [
+        { id: "a", name: "Alice" },
+        { id: "b", name: "Bob" },
+        { id: "c", name: "Charlie" },
+      ];
+      const settlement = calculateSettlement(matchPlayers, buyInAmount);
+      const text = formatSettlementShareText({
+        createdAt,
+        matchPlayers,
+        players,
+        settlement,
+      });
+      expect(text).toBe(`13 Mar 2026
+
+Results:
+1. Alice: +15.00 EUR (1 buy-in)
+2. Charlie: -5.00 EUR (1 buy-in)
+3. Bob: -10.00 EUR (2 buy-ins)
+
+Transfers:
+Bob -> Alice: 10.00 EUR
+Charlie -> Alice: 5.00 EUR`);
+    });
+
+    it("formats break-even match with no transfers", () => {
+      const createdAt = "2026-03-14T12:00:00.000Z";
+      const matchPlayers: MatchPlayer[] = [
+        { userId: "a", buyIns: 1, finalValue: 1000 },
+        { userId: "b", buyIns: 1, finalValue: 1000 },
+      ];
+      const players = [
+        { id: "a", name: "Alice" },
+        { id: "b", name: "Bob" },
+      ];
+      const settlement = calculateSettlement(matchPlayers, 1000);
+      const text = formatSettlementShareText({
+        createdAt,
+        matchPlayers,
+        players,
+        settlement,
+      });
+      expect(text).toBe(`14 Mar 2026
+
+Results:
+1. Alice: 0.00 EUR (1 buy-in)
+2. Bob: 0.00 EUR (1 buy-in)
+
+Transfers:
+No transfers needed.`);
+    });
+
+    it("sorts by highest net first, preserving order on tie", () => {
+      const createdAt = "2026-03-15T12:00:00.000Z";
+      const matchPlayers: MatchPlayer[] = [
+        { userId: "a", buyIns: 1, finalValue: 2000 }, // +10
+        { userId: "b", buyIns: 1, finalValue: 0 },    // -10
+        { userId: "c", buyIns: 1, finalValue: 2000 }, // +10 tie
+      ];
+      const players = [
+        { id: "a", name: "Alice" },
+        { id: "b", name: "Bob" },
+        { id: "c", name: "Charlie" },
+      ];
+      const settlement = calculateSettlement(matchPlayers, 1000);
+      const text = formatSettlementShareText({
+        createdAt,
+        matchPlayers,
+        players,
+        settlement,
+      });
+      // Both Alice and Charlie have +10, Bob -10.
+      // Should list Alice first (original order), then Charlie, then Bob.
+      // Actually sorting by net descending: +10, +10, -10.
+      // Tie-breaking: preserve original order.
+      const lines = text.split("\n");
+      // Find results lines
+      const resultsStart = lines.findIndex(l => l.startsWith("Results:")) + 1;
+      const resultLines = lines.slice(resultsStart, resultsStart + 3).filter(l => l.trim() !== "");
+      expect(resultLines[0]).toContain("Alice");
+      expect(resultLines[1]).toContain("Charlie");
+      expect(resultLines[2]).toContain("Bob");
     });
   });
 });

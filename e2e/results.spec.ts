@@ -274,4 +274,64 @@ test.describe("Results Page", () => {
     await expect(transferItems.getByText("Alice")).toBeVisible();
     await expect(transferItems.getByText("5.00 EUR").first()).toBeVisible();
   });
+
+  test("share button opens WhatsApp with formatted message", async ({ page }) => {
+    const matchId = "share-test-match";
+    // Three players with known nets
+    await seedNamespacedLocalStorage(page, namespace, {
+      players: [
+        { id: "a", name: "Alice", createdAt: new Date().toISOString() },
+        { id: "b", name: "Bob", createdAt: new Date().toISOString() },
+        { id: "c", name: "Charlie", createdAt: new Date().toISOString() },
+      ],
+      matches: [
+        {
+          id: matchId,
+          buyInAmount: 1000,
+          players: [
+            { userId: "a", buyIns: 1, finalValue: 2500 },
+            { userId: "c", buyIns: 1, finalValue: 500 },
+            { userId: "b", buyIns: 2, finalValue: 1000 },
+          ],
+          startedAt: new Date().toISOString(),
+          createdAt: "2026-03-13T20:00:00.000Z",
+        },
+      ],
+    });
+
+    // Stub window.open before navigation
+    await page.addInitScript(() => {
+      (window as any).__lastOpenUrl = "";
+      window.open = (url?: string | URL, target?: string, features?: string) => {
+        (window as any).__lastOpenUrl = url?.toString() || "";
+        return null;
+      };
+    });
+
+    await page.goto(`/results?match=${matchId}`);
+    await expect(page.getByRole("heading", { name: "SETTLEMENT RESULTS" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "SHARE" })).toBeVisible();
+
+    // Click Share button
+    await page.getByRole("button", { name: "SHARE" }).click();
+
+    // Retrieve captured URL
+    const capturedUrl = await page.evaluate(() => (window as any).__lastOpenUrl);
+    expect(capturedUrl).toBeDefined();
+    expect(capturedUrl).toMatch(/^https:\/\/wa\.me\/\?text=/);
+    const encodedText = capturedUrl.replace("https://wa.me/?text=", "");
+    const decodedText = decodeURIComponent(encodedText);
+
+    // Verify date line
+    expect(decodedText).toContain("13 Mar 2026");
+    // Verify results section
+    expect(decodedText).toContain("Results:");
+    expect(decodedText).toContain("1. Alice: +15.00 EUR (1 buy-in)");
+    expect(decodedText).toContain("2. Charlie: -5.00 EUR (1 buy-in)");
+    expect(decodedText).toContain("3. Bob: -10.00 EUR (2 buy-ins)");
+    // Verify transfers section
+    expect(decodedText).toContain("Transfers:");
+    expect(decodedText).toContain("Bob -> Alice: 10.00 EUR");
+    expect(decodedText).toContain("Charlie -> Alice: 5.00 EUR");
+  });
 });
