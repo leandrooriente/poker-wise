@@ -10,9 +10,10 @@ afterEach(() => {
 });
 
 describe("getPlayersForGroup", () => {
-  it("falls back to current localStorage users and memberships", async () => {
+  it("throws when offline (no localStorage fallback)", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
 
+    // localStorage data should be ignored
     localStorage.setItem(
       "poker-wise-users",
       JSON.stringify([
@@ -28,9 +29,7 @@ describe("getPlayersForGroup", () => {
       ])
     );
 
-    await expect(getPlayersForGroup("g1")).resolves.toEqual([
-      { id: "p1", name: "Alice", createdAt: "2026-03-11T00:00:00.000Z" },
-    ]);
+    await expect(getPlayersForGroup("g1")).rejects.toThrow("offline");
   });
 
   it("does not depend on legacy player storage", async () => {
@@ -54,6 +53,6 @@ describe("getPlayersForGroup", () => {
       ])
     );
 
-    await expect(getPlayersForGroup("g1")).resolves.toEqual([]);
+    await expect(getPlayersForGroup("g1")).rejects.toThrow("offline");
   });
 });

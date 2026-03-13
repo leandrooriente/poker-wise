@@ -5,6 +5,7 @@ import {
   loginAdminAndCreateNamespacedGroup,
   generateNamespace,
 } from "./helpers";
+import { getActiveGroupSlug, setActiveGroupSlug } from "./api-helpers";
 
 test.describe("Header responsive layout", () => {
   let namespace: string;
@@ -80,18 +81,14 @@ test.describe("Header responsive layout", () => {
   test("selects the first available group when none is active", async ({
     page,
   }) => {
-    await page.evaluate(() => {
-      window.localStorage.removeItem("poker-wise-active-group");
-    });
+    await setActiveGroupSlug(page, null);
 
     await page.reload();
 
     const selector = page.getByLabel("Select group");
     await expect(selector).not.toHaveValue("");
 
-    const activeGroupId = await page.evaluate(() =>
-      window.localStorage.getItem("poker-wise-active-group")
-    );
+    const activeGroupId = await getActiveGroupSlug(page);
     expect(activeGroupId).toBeTruthy();
 
     await expect(page.getByText("ACTIVE GROUP DETAILS")).toBeVisible();

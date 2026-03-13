@@ -22,7 +22,6 @@ test.describe("History Page", () => {
     await seedNamespacedLocalStorage(page, namespace, {});
     // Log in as admin and create a namespaced server group (required for admin UI)
     await loginAdminAndCreateNamespacedGroup(page);
-    await page.goto("about:blank");
   });
 
   test("empty state shows no matches message", async ({ page }) => {
@@ -50,6 +49,7 @@ test.describe("History Page", () => {
       matches: [
         {
           id: "match-old",
+          title: "Old Match",
           buyInAmount: 1000,
           players: [
             { userId: "p1", buyIns: 1, finalValue: 1000 },
@@ -60,6 +60,7 @@ test.describe("History Page", () => {
         },
         {
           id: "match-middle",
+          title: "Middle Match",
           buyInAmount: 1500,
           players: [{ userId: "p1", buyIns: 2, finalValue: 3000 }],
           startedAt: middleMatch,
@@ -67,6 +68,7 @@ test.describe("History Page", () => {
         },
         {
           id: "match-newest",
+          title: "Newest Match",
           buyInAmount: 1000,
           players: [
             { userId: "p1", buyIns: 1, finalValue: 2000 },
@@ -87,12 +89,10 @@ test.describe("History Page", () => {
     const matchEntries = page.getByTestId("match-entry");
     await expect(matchEntries).toHaveCount(3);
 
-    // First entry should be newest (Mar 9)
-    await expect(matchEntries.nth(0)).toContainText("Match on 09 Mar 2026");
-    // Second entry middle (Mar 5)
-    await expect(matchEntries.nth(1)).toContainText("Match on 05 Mar 2026");
-    // Third entry oldest (Mar 1)
-    await expect(matchEntries.nth(2)).toContainText("Match on 01 Mar 2026");
+    // Entries should be newest first based on API creation order.
+    await expect(matchEntries.nth(0)).toContainText("Newest Match");
+    await expect(matchEntries.nth(1)).toContainText("Middle Match");
+    await expect(matchEntries.nth(2)).toContainText("Old Match");
 
     // Verify each match shows buy‑in and pot
     await expect(page.getByText("Buy‑in: 10.00 EUR")).toHaveCount(2); // old and newest
@@ -300,15 +300,6 @@ test.describe("History Page", () => {
     // Results page: we can go to history
     await page.getByRole("button", { name: "VIEW HISTORY" }).click();
 
-    // Debug: log matches in storage
-    const matchCountBefore = await page.evaluate(() => {
-      const matches = JSON.parse(
-        localStorage.getItem("poker-wise-matches") || "[]"
-      );
-      return matches.length;
-    });
-    console.log(`Matches in localStorage before reload: ${matchCountBefore}`);
-
     // Should see the match in history
     await expect(
       page.getByRole("heading", { name: "MATCH HISTORY" })
@@ -319,15 +310,6 @@ test.describe("History Page", () => {
 
     // Reload page
     await page.reload();
-
-    // Debug: log matches after reload
-    const matchCountAfter = await page.evaluate(() => {
-      const matches = JSON.parse(
-        localStorage.getItem("poker-wise-matches") || "[]"
-      );
-      return matches.length;
-    });
-    console.log(`Matches in localStorage after reload: ${matchCountAfter}`);
 
     await expect(
       page.getByRole("heading", { name: "MATCH HISTORY" })
@@ -351,6 +333,7 @@ test.describe("History Page", () => {
       matches: [
         {
           id: "old",
+          title: "Old Match",
           buyInAmount: 1000,
           players: [
             { userId: "p1", buyIns: 1, finalValue: 1000 },
@@ -361,6 +344,7 @@ test.describe("History Page", () => {
         },
         {
           id: "new",
+          title: "Newest Match",
           buyInAmount: 1500,
           players: [{ userId: "p1", buyIns: 2, finalValue: 3000 }],
           startedAt: newMatch,
@@ -370,9 +354,9 @@ test.describe("History Page", () => {
     });
 
     await openLatestHistoryMatch(page);
-    // Should have expanded the newest match (Mar 9)
+    // Should have expanded the newest match.
     const matchEntry = page.getByTestId("match-entry").first();
-    await expect(matchEntry.getByText("Match on 09 Mar 2026")).toBeVisible();
+    await expect(matchEntry.getByText("Newest Match")).toBeVisible();
     await expect(matchEntry.getByText("SETTLEMENT")).toBeVisible(); // expanded
     // Verify it's the correct match (buy‑in 15.00)
     await expect(page.getByText("Buy‑in: 15.00 EUR")).toBeVisible();

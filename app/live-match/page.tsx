@@ -17,7 +17,7 @@ type LiveMatchPlayer = {
 function LiveMatchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { activeGroupId } = useActiveGroup();
+  const { activeGroupId, error: activeGroupError, clearError } = useActiveGroup();
   const [players, setPlayers] = useState<LiveMatchPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,14 +86,14 @@ function LiveMatchContent() {
     );
   }
 
-  if (error || !activeGroupId) {
+  if (error || activeGroupError || !activeGroupId) {
     return (
       <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
         <h2 className="font-pixel text-retro-red mb-4 text-xl sm:text-2xl">
           ERROR
         </h2>
         <p className="text-retro-light">
-          {error || "No match found or no active group"}
+          {error || activeGroupError || "No match found or no active group"}
         </p>
         <button
           onClick={() => router.push("/new-match")}
@@ -121,6 +121,19 @@ function LiveMatchContent() {
 
   return (
     <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
+      {activeGroupError && (
+        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-pixel text-retro-red text-sm">{activeGroupError}</span>
+            <button
+              onClick={clearError}
+              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+            >
+              DISMISS
+            </button>
+          </div>
+        </div>
+      )}
       <h2 className="font-pixel text-retro-green mb-4 text-xl sm:text-2xl">
         LIVE MATCH
       </h2>

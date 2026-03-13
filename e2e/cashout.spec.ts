@@ -5,6 +5,7 @@ import {
   fillCashoutValues,
   loginAdminAndCreateNamespacedGroup,
   generateNamespace,
+  resolveSeededMatchId,
 } from "./helpers";
 
 test.describe("Cashout", () => {
@@ -23,7 +24,6 @@ test.describe("Cashout", () => {
     await seedNamespacedLocalStorage(page, namespace, {});
     // Log in as admin and create a namespaced server group (required for admin UI)
     await loginAdminAndCreateNamespacedGroup(page);
-    await page.goto("about:blank");
     // Capture console logs from the page
     page.on("console", (msg) => console.log(`[page] ${msg.text()}`));
   });
@@ -53,7 +53,7 @@ test.describe("Cashout", () => {
       ],
     });
 
-    await page.goto(`/cashout?match=${matchId}`);
+    await page.goto(`/cashout?match=${resolveSeededMatchId(page, matchId)}`);
     await expect(page.getByRole("heading", { name: "CASHOUT" })).toBeVisible();
 
     // Total paid-in: 20.00 EUR (2 * 10)
@@ -110,7 +110,7 @@ test.describe("Cashout", () => {
       ],
     });
 
-    await page.goto(`/cashout?match=${matchId}`);
+    await page.goto(`/cashout?match=${resolveSeededMatchId(page, matchId)}`);
     const validationSection = page
       .getByRole("heading", { name: "VALIDATION" })
       .locator("..");
@@ -166,7 +166,7 @@ test.describe("Cashout", () => {
       ],
     });
 
-    await page.goto(`/cashout?match=${matchId}`);
+    await page.goto(`/cashout?match=${resolveSeededMatchId(page, matchId)}`);
 
     // Total paid-in: 20.00 EUR
     const validationSection = page
@@ -235,7 +235,7 @@ test.describe("Cashout", () => {
       ],
     });
 
-    await page.goto(`/cashout?match=${matchId}`);
+    await page.goto(`/cashout?match=${resolveSeededMatchId(page, matchId)}`);
     const validationSection = page
       .getByRole("heading", { name: "VALIDATION" })
       .locator("..");
@@ -292,7 +292,7 @@ test.describe("Cashout", () => {
       ],
     });
 
-    await page.goto(`/cashout?match=${matchId}`);
+    await page.goto(`/cashout?match=${resolveSeededMatchId(page, matchId)}`);
 
     // Enter exact value
     await fillCashoutValues(page, {
@@ -347,7 +347,7 @@ test.describe("Cashout", () => {
       ],
     });
 
-    await page.goto(`/cashout?match=${matchId}`);
+    await page.goto(`/cashout?match=${resolveSeededMatchId(page, matchId)}`);
 
     // Ensure player headings are visible
     await expect(page.getByRole("heading", { name: "Winner" })).toBeVisible();

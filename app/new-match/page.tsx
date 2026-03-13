@@ -13,7 +13,7 @@ import { Player } from "@/types/player";
 
 export default function NewMatchPage() {
   const router = useRouter();
-  const { activeGroupId } = useActiveGroup();
+  const { activeGroupId, error, clearError } = useActiveGroup();
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [buyInAmount, setBuyInAmount] = useState<number>(1000); // cents
@@ -98,7 +98,23 @@ export default function NewMatchPage() {
 
   return (
     <div className="border-retro-gray rounded-retro bg-retro-dark shadow-retro-outset border p-6">
-      <h2 className="font-pixel text-retro-green mb-4 text-2xl">NEW MATCH</h2>
+
+      {error && (
+        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-pixel text-retro-red text-sm">{error}</span>
+            <button
+              onClick={clearError}
+              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+            >
+              DISMISS
+            </button>
+          </div>
+        </div>
+      )}
+      <h2 className="font-pixel text-retro-green mb-4 text-2xl">
+        NEW MATCH SETUP
+      </h2>
       <p className="text-retro-light mb-6">
         Select players and configure buy‑in amount for a new Texas Hold’em
         match.

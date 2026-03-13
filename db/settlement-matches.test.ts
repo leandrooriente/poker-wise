@@ -155,7 +155,7 @@ describe("history match wrappers", () => {
     expect(matches[1].settlement).toBeUndefined();
   });
 
-  it("falls back to local matches and computes settlement for settled matches", async () => {
+  it("throws when offline (no localStorage fallback)", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockRejectedValue(new Error("Network error"))
@@ -183,14 +183,6 @@ describe("history match wrappers", () => {
       ])
     );
 
-    const matches = await getMatchesByGroup("group-1");
-
-    expect(matches).toHaveLength(2);
-    expect(matches[0].id).toBe("local-match-1");
-    expect(matches[0].status).toBe("settled");
-    expect(matches[0].settlement).toBeDefined();
-    expect(matches[0].settlement?.isValid).toBe(true);
-    expect(matches[1].id).toBe("local-match-2");
-    expect(matches[1].settlement).toBeUndefined();
+    await expect(getMatchesByGroup("group-1")).rejects.toThrow("Network error");
   });
 });

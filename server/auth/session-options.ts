@@ -4,6 +4,7 @@ export interface SessionData {
   adminId: string;
   email: string;
   isLoggedIn: boolean;
+  activeGroupSlug: string | null;
 }
 
 export function getSessionOptions() {

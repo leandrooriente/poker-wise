@@ -142,48 +142,54 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-/**
- * DELETE /api/admin/groups
- * Deletes a group (cascading) if the authenticated admin is an admin member.
- */
-export async function DELETE(request: NextRequest) {
-  try {
-    const session = await requireAdmin();
-    const adminId = session.adminId;
+  /**
+   * DELETE /api/admin/groups
+   * Deletes a group (cascading) if the authenticated admin is an admin member.
+   */
+  export async function DELETE(request: NextRequest) {
+    try {
+      const session = await requireAdmin();
+      const adminId = session.adminId;
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    if (!id) {
+      const { searchParams } = new URL(request.url);
+      const id = searchParams.get("id");
+      if (!id) {
+        return NextResponse.json(
+          { error: "Group id is required as query parameter" },
+          { status: 400 }
+        );
+      }
+
+      // Look up group by slug to get UUID
+      const group = await groupsQueries.getGroupBySlugForAdmin(id, adminId);
+      if (!group) {
+        return NextResponse.json(
+          { error: "Group not found or you do not have admin permission" },
+          { status: 404 }
+        );
+      }
+
+      const deleted = await groupsQueries.deleteGroupForAdmin(group.id, adminId);
+      if (!deleted) {
+        return NextResponse.json(
+          { error: "Group not found or you do not have admin permission" },
+          { status: 404 }
+        );
+      }
+
+      // If the deleted group was the active group, clear it from session
+      if (session.activeGroupSlug === id) {
+        session.activeGroupSlug = null;
+        await session.save();
+      }
+
+      return NextResponse.json({ success: true }, { status: 200 });
+    } catch (error) {
+      console.error("DELETE /api/admin/groups error:", error);
+      if (error instanceof Response) throw error;
       return NextResponse.json(
-        { error: "Group id is required as query parameter" },
-        { status: 400 }
+        { error: "Internal server error" },
+        { status: 500 }
       );
     }
-
-    // Look up group by slug to get UUID
-    const group = await groupsQueries.getGroupBySlugForAdmin(id, adminId);
-    if (!group) {
-      return NextResponse.json(
-        { error: "Group not found or you do not have admin permission" },
-        { status: 404 }
-      );
-    }
-
-    const deleted = await groupsQueries.deleteGroupForAdmin(group.id, adminId);
-    if (!deleted) {
-      return NextResponse.json(
-        { error: "Group not found or you do not have admin permission" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    console.error("DELETE /api/admin/groups error:", error);
-    if (error instanceof Response) throw error;
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
   }
-}

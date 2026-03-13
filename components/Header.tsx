@@ -12,6 +12,8 @@ export default function Header() {
     activeGroupId,
     setActiveGroupId,
     isLoading: activeGroupLoading,
+    error,
+    clearError,
   } = useActiveGroup();
   const [groups, setGroups] = useState<Group[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(true);
@@ -55,11 +57,27 @@ export default function Header() {
 
   const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setActiveGroupId(value || null);
+    setActiveGroupId(value || null).catch((err) => {
+      console.error("Failed to update active group:", err);
+      // TODO: show error to user
+    });
   };
 
   return (
     <header className="border-retro-width rounded-retro border-retro bg-retro-dark shadow-retro-outset p-4">
+      {error && (
+        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-3">
+          <div className="flex items-center justify-between">
+            <span className="font-pixel text-retro-red text-sm">{error}</span>
+            <button
+              onClick={clearError}
+              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+            >
+              DISMISS
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="flex items-center gap-3">

@@ -1,6 +1,33 @@
 /* eslint-disable */
 import { Page } from "@playwright/test";
 
+import { seedViaApi } from "./api-helpers";
+
+type SeedOptions = {
+  players?: Array<{
+    id: string;
+    name: string;
+    notes?: string;
+    preferredBuyIn?: number;
+    createdAt: string;
+  }>;
+  matches?: any[];
+  settings?: { defaultBuyIn: number };
+};
+
+const pendingSeedByPage = new WeakMap<
+  Page,
+  { namespace: string; options: SeedOptions }
+>();
+const seedMappingsByPage = new WeakMap<
+  Page,
+  {
+    playerIdMap: Record<string, string>;
+    matchIdMap: Record<string, string>;
+  }
+>();
+const activeGroupSlugByPage = new WeakMap<Page, string>();
+
 // -----------------------------------------------------------------------------
 // Namespace helpers for shard-safe test data
 // -----------------------------------------------------------------------------
@@ -84,16 +111,7 @@ export async function createNamespacedGroup(
 
   await expect(groupCard.getByRole("button", { name: "ACTIVE" })).toBeVisible();
 
-  await page.evaluate((slug) => {
-    window.localStorage.setItem("poker-wise-active-group", slug);
-    window.dispatchEvent(
-      new StorageEvent("storage", {
-        key: "poker-wise-active-group",
-        newValue: slug,
-      })
-    );
-  }, groupSlug);
-
+  // Active group is now set via session (SELECT button triggers API)
   return groupSlug;
 }
 
@@ -107,6 +125,15 @@ export async function loginAdminAndCreateNamespacedGroup(
   const namespace = generateNamespace();
   await loginAdmin(page);
   const groupSlug = await createNamespacedGroup(page, namespace);
+  activeGroupSlugByPage.set(page, groupSlug);
+
+   const pendingSeed = pendingSeedByPage.get(page);
+   if (pendingSeed) {
+    const mappings = await seedViaApi(page, groupSlug, pendingSeed.options);
+    seedMappingsByPage.set(page, mappings);
+    pendingSeedByPage.delete(page);
+   }
+
   return { namespace, groupSlug };
 }
 
@@ -117,79 +144,53 @@ export async function loginAdminAndCreateNamespacedGroup(
 export async function seedNamespacedLocalStorage(
   page: Page,
   namespace: string,
-  options: {
-    players?: Array<{
-      id: string;
-      name: string;
-      notes?: string;
-      preferredBuyIn?: number;
-      createdAt: string;
-    }>;
-    matches?: any[];
-    settings?: { defaultBuyIn: number };
-  }
+  options: SeedOptions
 ) {
-  const groupId = `home-game-${namespace}`;
+  const rememberedGroupSlug = activeGroupSlugByPage.get(page);
+  if (rememberedGroupSlug) {
+    const mappings = await seedViaApi(page, rememberedGroupSlug, options);
+    seedMappingsByPage.set(page, mappings);
+    pendingSeedByPage.delete(page);
+    return;
+  }
 
-  await page.addInitScript(
-    (opts: any) => {
-      // Seed users in new storage key (poker-wise-users)
-      if (opts.players) {
-        const users = opts.players.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          createdAt: p.createdAt,
-        }));
-        localStorage.setItem("poker-wise-users", JSON.stringify(users));
-      }
-      // Create namespace-specific group
-      const groups = [
-        { id: opts.groupId, createdAt: new Date().toISOString() },
-      ];
-      localStorage.setItem("poker-wise-groups", JSON.stringify(groups));
-      // Set active group to the namespace-specific one
-      localStorage.setItem("poker-wise-active-group", opts.groupId);
+  try {
+    await page.waitForSelector("#group-select", { timeout: 1_000 });
+    const activeGroupSlug = await page.locator("#group-select").evaluate(
+      (select) =>
+        (select as HTMLSelectElement).selectedOptions[0]?.textContent?.trim() ||
+        ""
+    );
+    if (activeGroupSlug) {
+      const mappings = await seedViaApi(page, activeGroupSlug, options);
+      seedMappingsByPage.set(page, mappings);
+      pendingSeedByPage.delete(page);
+      return;
+    }
+  } catch {
+    // Ignore and fall back to API check or pending seed storage.
+  }
 
-      // Ensure group memberships exist for seeded users
-      if (opts.players) {
-        const members = opts.players.map((p: any) => ({
-          groupId: opts.groupId,
-          userId: p.id,
-          joinedAt: new Date().toISOString(),
-        }));
-        localStorage.setItem(
-          "poker-wise-group-members",
-          JSON.stringify(members)
-        );
+  try {
+    const response = await page.request.get("/api/admin/active-group");
+    if (response.ok()) {
+      const data = await response.json();
+      if (data.activeGroupSlug) {
+        const mappings = await seedViaApi(page, data.activeGroupSlug, options);
+        seedMappingsByPage.set(page, mappings);
+        pendingSeedByPage.delete(page);
+        return;
       }
+    }
+  } catch {
+    // Ignore and fall back to pending seed storage.
+  }
 
-      if (opts.matches) {
-        // Normalize all seeded matches to the namespaced group for this test.
-        const convertedMatches = opts.matches.map((match: any) => ({
-          ...match,
-          groupId: opts.groupId,
-          players: match.players.map((mp: any) => {
-            const { playerId, ...rest } = mp;
-            return {
-              ...rest,
-              userId: mp.userId || mp.playerId,
-            };
-          }),
-        }));
-        localStorage.setItem(
-          "poker-wise-matches",
-          JSON.stringify(convertedMatches)
-        );
-      }
-      if (opts.settings) {
-        localStorage.setItem(
-          "poker-wise-settings",
-          JSON.stringify(opts.settings)
-        );
-      }
-    },
-    { ...options, groupId }
-  );
+  pendingSeedByPage.set(page, { namespace, options });
+}
+
+export function resolveSeededMatchId(page: Page, matchId: string) {
+  return seedMappingsByPage.get(page)?.matchIdMap[matchId] ?? matchId;
 }
 
 // -----------------------------------------------------------------------------
@@ -226,21 +227,34 @@ export interface PlayerData {
   notes?: string;
 }
 
-export async function gotoActiveGroupPlayersPage(page: Page) {
-  const activeGroupId = await page.evaluate(() =>
-    window.localStorage.getItem("poker-wise-active-group")
-  );
-
-  if (!activeGroupId) {
+/**
+ * Get the currently active group slug from session API.
+ */
+async function getActiveGroupSlug(page: Page): Promise<string> {
+  const data = await page.evaluate(async () => {
+    const response = await fetch("/api/admin/active-group", {
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch active group: ${response.status}`);
+    }
+    return response.json();
+  });
+  if (!data.activeGroupSlug) {
     throw new Error("No active group set for E2E player management");
   }
+  return data.activeGroupSlug;
+}
 
-  await page.goto(`/admin/groups/${activeGroupId}/players`);
+export async function gotoActiveGroupPlayersPage(page: Page) {
+  const activeGroupSlug = await getActiveGroupSlug(page);
+
+  await page.goto(`/admin/groups/${activeGroupSlug}/players`);
   await expect(
     page.getByRole("heading", { name: "Players in Group" })
   ).toBeVisible();
 
-  return activeGroupId;
+  return activeGroupSlug;
 }
 
 export interface MatchSetup {
