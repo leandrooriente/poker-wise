@@ -3,7 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 import { getE2ELocalEnv } from "./lib/e2e-local-config";
 
 // Determine base URL: use environment variable if set, otherwise default to local dev server
-const baseURL = process.env.BASE_URL || "http://localhost:3001";
+const port = process.env.PORT || "3001";
+const baseURL = process.env.BASE_URL || `http://localhost:${port}`;
 
 // Web server configuration: only start local server when testing against localhost
 // (i.e., when BASE_URL is not provided or is the default localhost)
@@ -15,7 +16,7 @@ const localEnv = getE2ELocalEnv(process.env);
 const webServerConfig = useLocalServer
   ? {
       command: "npx tsx scripts/e2e-local-server.ts",
-      url: "http://localhost:3001",
+      url: `http://localhost:${port}`,
       reuseExistingServer: true,
       env: localEnv,
     }

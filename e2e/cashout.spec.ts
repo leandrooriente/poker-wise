@@ -375,20 +375,20 @@ test.describe("Cashout", () => {
       page.getByRole("heading", { name: "SETTLEMENT RESULTS" })
     ).toBeVisible();
     const balancesSection = page
-      .getByRole("heading", { name: "Balances" })
+      .getByRole("heading", { name: "PLAYER BALANCES" })
       .locator("..");
     await expect(balancesSection.getByText("Winner")).toBeVisible();
     await expect(balancesSection.getByText("Loser")).toBeVisible();
     const winnerBalance = page
       .getByRole("heading", { name: "Winner" })
       .locator("../..");
-    await expect(winnerBalance.locator(".text-5xl.font-pixel")).toHaveText(
+    await expect(winnerBalance.locator('[data-testid="net-amount"]')).toHaveText(
       "5.00 EUR"
     );
     const loserBalance = page
       .getByRole("heading", { name: "Loser" })
       .locator("../..");
-    await expect(loserBalance.locator(".text-5xl.font-pixel")).toHaveText(
+    await expect(loserBalance.locator('[data-testid="net-amount"]')).toHaveText(
       "5.00 EUR"
     );
     await expect(winnerBalance.getByText("TO RECEIVE")).toBeVisible();
