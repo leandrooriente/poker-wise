@@ -302,8 +302,8 @@ test.describe("Results Page", () => {
     // Stub window.open before navigation
     await page.addInitScript(() => {
       (window as any).__lastOpenUrl = "";
-      window.open = (url: string, target?: string, features?: string) => {
-        (window as any).__lastOpenUrl = url;
+      window.open = (url?: string | URL, target?: string, features?: string) => {
+        (window as any).__lastOpenUrl = url?.toString() || "";
         return null;
       };
     });
