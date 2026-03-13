@@ -124,3 +124,75 @@ export function validateTotals(
 export function formatCents(cents: number): string {
   return formatMoney(cents);
 }
+
+/**
+ * Format settlement data as a plain-text message suitable for sharing.
+ * Output matches the format:
+ *
+ * 13 Mar 2026
+ *
+ * Results:
+ * 1. Alice: +15.00 EUR (1 buy-in)
+ * 2. Charlie: -5.00 EUR (1 buy-in)
+ * 3. Bob: -10.00 EUR (2 buy-ins)
+ *
+ * Transfers:
+ * Bob -> Alice: 10.00 EUR
+ * Charlie -> Alice: 5.00 EUR
+ */
+export function formatSettlementShareText({
+  createdAt,
+  matchPlayers,
+  players,
+  settlement,
+}: {
+  createdAt: string;
+  matchPlayers: MatchPlayer[];
+  players: Array<{ id: string; name: string }>;
+  settlement: SettlementResult;
+}): string {
+  // Format date as "13 Mar 2026"
+  const date = new Date(createdAt);
+  const dateStr = date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+  // Build maps
+  const playerNameMap = new Map(players.map(p => [p.id, p.name]));
+  const buyInsMap = new Map(matchPlayers.map(mp => [mp.userId, mp.buyIns]));
+
+  // Combine balances with name and buy-ins
+  const combined = settlement.playerBalances.map(balance => ({
+    ...balance,
+    name: playerNameMap.get(balance.userId) || "Unknown",
+    buyIns: buyInsMap.get(balance.userId) || 0,
+  }));
+
+  // Sort by net descending, preserving original order on tie (stable sort)
+  const sorted = [...combined].sort((a, b) => b.net - a.net);
+
+  // Build results lines
+  const resultsLines = sorted.map((balance, idx) => {
+    const signedAmount = formatMoney(balance.net, { showPlus: true });
+    const buyInLabel = balance.buyIns === 1 ? "buy-in" : "buy-ins";
+    return `${idx + 1}. ${balance.name}: ${signedAmount} (${balance.buyIns} ${buyInLabel})`;
+  });
+
+  // Build transfers lines
+  let transfersLines: string[];
+  if (settlement.transfers.length === 0) {
+    transfersLines = ["No transfers needed."];
+  } else {
+    transfersLines = settlement.transfers.map(transfer => {
+      const fromName = playerNameMap.get(transfer.fromPlayerId) || "Unknown";
+      const toName = playerNameMap.get(transfer.toPlayerId) || "Unknown";
+      const amount = formatMoney(transfer.amount);
+      return `${fromName} -> ${toName}: ${amount}`;
+    });
+  }
+
+  // Combine all parts
+  return `${dateStr}\n\nResults:\n${resultsLines.join("\n")}\n\nTransfers:\n${transfersLines.join("\n")}`;
+}

@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
 import { getMatchWithUsers } from "@/db/matches";
-import { calculateSettlement } from "@/lib/settlement";
+import { calculateSettlement, formatSettlementShareText } from "@/lib/settlement";
 
 function ResultsContent() {
   const router = useRouter();
@@ -48,6 +48,20 @@ function ResultsContent() {
 
   const handleViewHistory = () => {
     router.push("/history");
+  };
+
+  const handleShare = () => {
+    if (!match || !players || !settlement) return;
+
+    const text = formatSettlementShareText({
+      createdAt: match.createdAt,
+      matchPlayers: match.players,
+      players: players.map((p: any) => ({ id: p.user.id, name: p.user.name })),
+      settlement,
+    });
+    const encoded = encodeURIComponent(text);
+    const url = `https://wa.me/?text=${encoded}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   if (loading) {
@@ -204,6 +218,12 @@ function ResultsContent() {
 
           <div className="border-t border-retro-gray pt-6">
             <div className="space-y-4">
+              <button
+                onClick={handleShare}
+                className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
+              >
+                SHARE
+              </button>
               <button
                 onClick={handleNewMatch}
                 className="w-full rounded-retro bg-white px-6 py-4 font-pixel text-black transition-all hover:bg-gray-200 hover:shadow-retro-outset"
