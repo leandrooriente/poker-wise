@@ -6,29 +6,16 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultBuyIn: 1000, // 10.00 EUR
 };
 
-const STORAGE_KEY = "poker-wise-settings";
-
 export async function getSettings(): Promise<AppSettings> {
-  if (typeof window === "undefined") return DEFAULT_SETTINGS;
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : DEFAULT_SETTINGS;
-  } catch {
-    return DEFAULT_SETTINGS;
-  }
+  // TODO: Fetch default buy-in from backend per-group settings
+  return DEFAULT_SETTINGS;
 }
 
-export async function saveSettings(settings: AppSettings): Promise<void> {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  } catch {
-    // Failed to save settings
-  }
+export async function saveSettings(_settings: AppSettings): Promise<void> {
+  // No-op; settings are not persisted locally anymore
 }
 
 export async function updateDefaultBuyIn(buyInCents: number): Promise<void> {
-  const settings = await getSettings();
-  settings.defaultBuyIn = buyInCents;
-  await saveSettings(settings);
+  // TODO: Update backend per-group settings
+  console.warn("updateDefaultBuyIn is not yet implemented for backend");
 }
