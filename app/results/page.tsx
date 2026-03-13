@@ -103,47 +103,50 @@ function ResultsContent() {
             PLAYER BALANCES
           </h3>
           <div className="space-y-4">
-            {settlement.playerBalances.map((balance: any) => {
-              const player = players.find(
-                (p) => p.user.id === balance.userId
-              )?.user;
-              const net = balance.net;
-              const statusLabel =
-                net > 0 ? "TO RECEIVE" : net < 0 ? "TO PAY" : "BREAK EVEN";
-              const statusColor =
-                net > 0
-                  ? "text-retro-green"
-                  : net < 0
-                    ? "text-retro-red"
-                    : "text-retro-gray";
-              return (
-                <div
-                  key={balance.userId}
-                  className="rounded-retro border border-retro-gray bg-retro-dark p-6 transition-colors hover:border-retro-green"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
+            {[...settlement.playerBalances]
+              .sort((a, b) => b.net - a.net)
+              .map((balance: any) => {
+                const player = players.find(
+                  (p) => p.user.id === balance.userId
+                )?.user;
+                const net = balance.net;
+                const statusLabel =
+                  net > 0 ? "TO RECEIVE" : net < 0 ? "TO PAY" : "BREAK EVEN";
+                const statusColor =
+                  net > 0
+                    ? "text-retro-green"
+                    : net < 0
+                      ? "text-retro-red"
+                      : "text-retro-gray";
+                return (
+                  <div
+                    key={balance.userId}
+                    className="rounded-retro border border-retro-gray bg-retro-dark p-6 transition-colors hover:border-retro-green"
+                  >
+                    <div className="flex flex-col">
                       <h4 className="font-pixel text-2xl text-retro-green">
                         {player?.name || "Unknown"}
                       </h4>
-                      <p className="text-retro-light">
-                        Paid in: <MoneyDisplay cents={balance.paidIn} />
-                        {" • "}
-                        Final value: <MoneyDisplay cents={balance.finalValue} />
-                      </p>
-                    </div>
-                    <div className={`text-right ${statusColor}`}>
-                      <div className="mb-2 font-pixel text-sm">
-                        {statusLabel}
+                      <div className="mt-2 space-y-1">
+                        <p className="text-retro-light">
+                          Paid in: <MoneyDisplay cents={balance.paidIn} />
+                        </p>
+                        <p className="text-retro-light">
+                          Final value: <MoneyDisplay cents={balance.finalValue} />
+                        </p>
                       </div>
-                      <div className="font-pixel text-5xl">
-                        <MoneyDisplay cents={Math.abs(net)} />
+                      <div className={`mt-4 ${statusColor}`}>
+                        <div className="font-pixel text-2xl">
+                          {statusLabel}
+                        </div>
+                        <div className="font-pixel text-2xl" data-testid="net-amount">
+                          <MoneyDisplay cents={Math.abs(net)} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
 
