@@ -129,6 +129,7 @@ export async function seedViaApi(
       id: string; // seeded match ID
       title?: string;
       buyInAmount: number;
+      status?: string;
       players: Array<{ userId: string; buyIns: number; finalValue: number }>;
       startedAt: string;
       createdAt: string;
@@ -159,7 +160,7 @@ export async function seedViaApi(
         buyInAmount: seededMatch.buyInAmount,
         players,
         startedAt: seededMatch.startedAt,
-        status: "live",
+        status: seededMatch.status || "live",
       });
       matchIdMap[seededMatch.id] = realMatch.id;
     }
