@@ -15,7 +15,7 @@ import { Group } from "@/types/group";
 import { Player } from "@/types/player";
 
 export default function GroupsPage() {
-  const { activeGroupId, setActiveGroupId } = useActiveGroup();
+  const { activeGroupId, setActiveGroupId, isLoading: activeGroupLoading, error, clearError } = useActiveGroup();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [newGroupId, setNewGroupId] = useState("");
@@ -108,7 +108,7 @@ export default function GroupsPage() {
       setNewGroupId("");
       await loadGroups();
       // Optionally set as active group
-      setActiveGroupId(slug);
+      await setActiveGroupId(slug);
     } catch {
       // Failed to create group
     }
@@ -124,7 +124,7 @@ export default function GroupsPage() {
     try {
       await deleteGroup(id);
       if (activeGroupId === id) {
-        setActiveGroupId(null);
+        await setActiveGroupId(null);
       }
       await loadGroups();
     } catch {
@@ -132,8 +132,13 @@ export default function GroupsPage() {
     }
   };
 
-  const handleSelectGroup = (id: string) => {
-    setActiveGroupId(id);
+  const handleSelectGroup = async (id: string) => {
+    try {
+      await setActiveGroupId(id);
+    } catch (err) {
+      console.error("Failed to select group:", err);
+      // TODO: show error to user
+    }
   };
 
   if (loading) {
@@ -146,6 +151,19 @@ export default function GroupsPage() {
 
   return (
     <div className="space-y-8">
+      {error && (
+        <div className="rounded-retro border-retro-red bg-retro-red/10 border p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-pixel text-retro-red text-sm">{error}</span>
+            <button
+              onClick={clearError}
+              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+            >
+              DISMISS
+            </button>
+          </div>
+        </div>
+      )}
       <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
         <h2 className="font-pixel text-retro-green mb-4 text-2xl">
           GROUP MANAGEMENT

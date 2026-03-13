@@ -22,7 +22,7 @@ interface MatchWithDetails extends Match {
 }
 
 export default function HistoryPage() {
-  const { activeGroupId } = useActiveGroup();
+  const { activeGroupId, error, clearError } = useActiveGroup();
   const [matches, setMatches] = useState<MatchWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
@@ -172,6 +172,19 @@ export default function HistoryPage() {
 
   return (
     <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
+      {error && (
+        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-pixel text-retro-red text-sm">{error}</span>
+            <button
+              onClick={clearError}
+              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+            >
+              DISMISS
+            </button>
+          </div>
+        </div>
+      )}
       <h2 className="mb-6 font-pixel text-2xl text-retro-green">
         MATCH HISTORY
       </h2>
