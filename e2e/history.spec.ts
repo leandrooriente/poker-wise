@@ -243,14 +243,15 @@ test.describe("History Page", () => {
 
     await page.goto("/history");
     await expect(page.getByRole("heading", { name: "MATCH HISTORY" })).toBeVisible();
-    
+
     // Expand the match
     const matchEntry = page.getByTestId("match-entry").first();
+    await expect(matchEntry.getByRole("button", { name: "SHARE" })).toHaveCount(0);
     await matchEntry.click();
-    
+
     // Wait for expanded content
     await expect(matchEntry.getByRole("heading", { name: "SETTLEMENT" })).toBeVisible();
-    
+
     // Find and click the SHARE button inside the expanded match
     const shareButton = matchEntry.getByRole("button", { name: "SHARE" });
     await expect(shareButton).toBeVisible();
