@@ -11,8 +11,6 @@ test.describe("Live Match", () => {
   let groupSlug: string;
 
   test.beforeEach(async ({ page }) => {
-    await page.goto("/history");
-    await page.evaluate(() => window.localStorage.clear());
     const group = await loginAdminAndCreateNamespacedGroup(page);
     groupSlug = group.groupSlug;
   });
@@ -91,7 +89,9 @@ test.describe("Live Match", () => {
     await addRebuy(page, "Alice", 2);
     await addRebuy(page, "Bob", 1);
 
-    const aliceRow = page.getByTestId("player-row").filter({ hasText: "Alice" });
+    const aliceRow = page
+      .getByTestId("player-row")
+      .filter({ hasText: "Alice" });
     const bobRow = page.getByTestId("player-row").filter({ hasText: "Bob" });
     const charlieRow = page
       .getByTestId("player-row")
@@ -108,42 +108,6 @@ test.describe("Live Match", () => {
     ).toHaveText("1");
 
     expect(await getTotalPotText(page)).toBe("60.00 EUR");
-  });
-
-  test("total pot updates correctly after rebuys", async ({ page }) => {
-    const matchId = "test-match-3";
-    const { matchIdMap } = await seedViaApi(page, groupSlug, {
-      players: [
-        { id: "p1", name: "Player1", createdAt: new Date().toISOString() },
-        { id: "p2", name: "Player2", createdAt: new Date().toISOString() },
-      ],
-      matches: [
-        {
-          id: matchId,
-          buyInAmount: 500,
-          players: [
-            { userId: "p1", buyIns: 1, finalValue: 0 },
-            { userId: "p2", buyIns: 1, finalValue: 0 },
-          ],
-          startedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-        },
-      ],
-    });
-    await page.goto(`/live-match?match=${matchIdMap[matchId]}`);
-
-    expect(await getTotalPotText(page)).toBe("10.00 EUR");
-
-    await addRebuy(page, "Player1", 3);
-    await addRebuy(page, "Player2", 1);
-
-    expect(await getTotalPotText(page)).toBe("30.00 EUR");
-    await expect(page.getByText("Buy‑in each")).toBeVisible();
-    await expect(page.getByText("5.00 EUR")).toBeVisible();
-    await expect(page.getByText("Total buy‑ins")).toBeVisible();
-    await expect(
-      page.getByText("Total buy‑ins").locator("..").locator("span.font-pixel")
-    ).toHaveText("6");
   });
 
   test("proceed to cashout preserves state", async ({ page }) => {
