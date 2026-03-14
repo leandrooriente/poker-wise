@@ -7,6 +7,7 @@ import {
   getMatchWithUsers,
   getMatchesByGroup,
   updateMatch,
+  deleteMatch,
 } from "./matches";
 
 afterEach(() => {
@@ -151,6 +152,23 @@ describe("matches API wrapper", () => {
         createdAt: "2026-03-11T00:00:00.000Z",
         startedAt: "2026-03-11T00:00:00.000Z",
       }),
+    });
+  });
+
+  it("deletes a match through the admin match endpoint", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true }),
+      })
+    );
+
+    await expect(deleteMatch("match-1")).resolves.toBeUndefined();
+
+    expect(fetch).toHaveBeenCalledWith("/api/admin/matches/match-1", {
+      method: "DELETE",
+      credentials: "include",
     });
   });
 });
