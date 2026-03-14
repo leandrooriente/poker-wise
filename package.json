@@ -20,6 +20,7 @@
     "e2e": "playwright test",
     "e2e:local": "playwright test --project=chromium --workers=1 --max-failures=1",
     "e2e:ui": "playwright test --ui",
+    "preview:wait": "tsx scripts/wait-for-preview-ready.ts",
     "e2e:install": "playwright install",
     "db:reset": "tsx scripts/db-reset.ts",
     "db:init": "tsx scripts/db-init.ts",

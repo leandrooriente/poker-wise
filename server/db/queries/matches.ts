@@ -110,6 +110,7 @@ export async function createMatchForAdmin(
     buyInAmount: number;
     players: MatchEntryInput[];
     startedAt?: string;
+    createdAt?: string;
     endedAt?: string;
     status?: string;
   },
@@ -136,6 +137,7 @@ export async function createMatchForAdmin(
       buyInAmount: input.buyInAmount,
       status: input.status ?? "live",
       startedAt: input.startedAt ? new Date(input.startedAt) : new Date(),
+      createdAt: input.createdAt ? new Date(input.createdAt) : new Date(),
       endedAt: input.endedAt ? new Date(input.endedAt) : null,
       createdByAdminId: adminId,
     });

@@ -180,6 +180,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Wait for preview app content
+        run: npm run preview:wait
+
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:

@@ -52,6 +52,7 @@ export default function Header() {
     { label: "Groups", href: "/" },
     { label: "New Match", href: "/new-match" },
     { label: "History", href: "/history" },
+    { label: "Score", href: "/score" },
     { label: "Login", href: "/login" },
   ];
 
