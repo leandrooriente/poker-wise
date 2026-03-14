@@ -4,6 +4,7 @@ import {
   seedNamespacedLocalStorage,
   loginAdminAndCreateNamespacedGroup,
   generateNamespace,
+  openLatestHistoryMatch,
 } from "./helpers";
 
 test.describe("History Page", () => {
@@ -238,5 +239,119 @@ test.describe("History Page", () => {
     await expect(
       page.getByTestId("match-entry").getByText("Match on")
     ).toBeVisible(); // still there
+  });
+
+  test("openLatestHistoryMatch helper works", async ({ page }) => {
+    // Seed two matches, helper should open the newest
+    const oldMatch = new Date("2026-03-01T12:00:00Z").toISOString();
+    const newMatch = new Date("2026-03-09T18:45:00Z").toISOString();
+
+    await seedNamespacedLocalStorage(page, namespace, {
+      players: [
+        { id: "p1", name: "Alice", createdAt: new Date().toISOString() },
+        { id: "p2", name: "Bob", createdAt: new Date().toISOString() },
+      ],
+      matches: [
+        {
+          id: "old",
+          title: "Old Match",
+          buyInAmount: 1000,
+          players: [
+            { userId: "p1", buyIns: 1, finalValue: 1000 },
+            { userId: "p2", buyIns: 1, finalValue: 1000 },
+          ],
+          startedAt: oldMatch,
+          createdAt: oldMatch,
+        },
+        {
+          id: "new",
+          title: "Newest Match",
+          buyInAmount: 1500,
+          players: [{ userId: "p1", buyIns: 2, finalValue: 3000 }],
+          startedAt: newMatch,
+          createdAt: newMatch,
+        },
+      ],
+    });
+
+    await openLatestHistoryMatch(page);
+    // Should have expanded the newest match.
+    const matchEntry = page.getByTestId("match-entry").first();
+    await expect(matchEntry.getByText("Newest Match")).toBeVisible();
+    await expect(matchEntry.getByText("SETTLEMENT")).toBeVisible(); // expanded
+    // Verify it's the correct match (buy‑in 15.00)
+    await expect(page.getByText("Buy‑in: 15.00 EUR")).toBeVisible();
+  });
+
+  test("delete button removes match from history after confirmation", async ({
+    page,
+  }) => {
+    page.on("console", (msg) => console.log("PAGE:", msg.type(), msg.text()));
+    page.on("pageerror", (error) => console.log("PAGE ERROR:", error.message));
+    await seedNamespacedLocalStorage(page, namespace, {
+      players: [
+        { id: "p1", name: "Alice", createdAt: new Date().toISOString() },
+        { id: "p2", name: "Bob", createdAt: new Date().toISOString() },
+      ],
+      matches: [
+        {
+          id: "match-to-delete",
+          title: "Match to Delete",
+          buyInAmount: 1000,
+          players: [
+            { userId: "p1", buyIns: 1, finalValue: 1500 },
+            { userId: "p2", buyIns: 1, finalValue: 500 },
+          ],
+          startedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "match-keep",
+          title: "Match to Keep",
+          buyInAmount: 1000,
+          players: [
+            { userId: "p1", buyIns: 1, finalValue: 1000 },
+            { userId: "p2", buyIns: 1, finalValue: 1000 },
+          ],
+          startedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    await page.goto("/history");
+    const matchEntries = page.getByTestId("match-entry");
+    await expect(matchEntries).toHaveCount(2);
+
+    // Expand the match we want to delete (by title)
+    const matchToDelete = matchEntries.filter({ hasText: "Match to Delete" });
+    await expect(matchToDelete).toBeVisible();
+    await matchToDelete.click();
+    const firstMatch = matchToDelete;
+    await expect(
+      firstMatch.getByRole("heading", { name: "SETTLEMENT" })
+    ).toBeVisible();
+
+    // Find and click DELETE button
+    // Check SHARE button also exists
+    await expect(
+      firstMatch.getByRole("button", { name: "SHARE" })
+    ).toBeVisible();
+    const deleteButton = firstMatch.getByTestId("delete-button");
+    await expect(deleteButton).toBeVisible();
+    await deleteButton.click();
+
+    // Confirm deletion (browser confirm dialog)
+    page.on("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+
+    // Wait for deletion to complete
+    await page.waitForTimeout(500);
+
+    // Should now have only 1 match left
+    await expect(matchEntries).toHaveCount(1);
+    await expect(matchEntries.getByText("Match to Keep")).toBeVisible();
+    await expect(matchEntries.getByText("Match to Delete")).not.toBeVisible();
   });
 });

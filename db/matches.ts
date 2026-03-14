@@ -1,8 +1,6 @@
 import { SettlementResult } from "../lib/settlement";
 import { Match } from "../types/match";
 
-
-
 function normalizeMatch(match: any): Match {
   return {
     ...match,
@@ -11,10 +9,6 @@ function normalizeMatch(match: any): Match {
     settlement: match.settlement,
   };
 }
-
-
-
-
 
 export async function addMatch(
   match: Omit<Match, "id" | "createdAt">
@@ -60,8 +54,6 @@ export async function updateMatch(updatedMatch: Match): Promise<void> {
   }
 }
 
-
-
 export async function getMatchesByGroup(groupId: string): Promise<Match[]> {
   const res = await fetch(`/api/admin/groups/${groupId}/matches`, {
     credentials: "include",
@@ -74,8 +66,6 @@ export async function getMatchesByGroup(groupId: string): Promise<Match[]> {
   const data = await res.json();
   return data.map((match: any) => normalizeMatch(match));
 }
-
-
 
 export async function getMatchWithUsers(id: string): Promise<{
   match: Match;
@@ -132,4 +122,16 @@ export async function settleMatch(
     players: data.players,
     settlement: data.settlement,
   };
+}
+
+export async function deleteMatch(id: string): Promise<void> {
+  const res = await fetch(`/api/admin/matches/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Failed to delete match: ${res.status} ${errorText}`);
+  }
 }

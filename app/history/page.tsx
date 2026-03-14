@@ -3,10 +3,13 @@
 import { useState, useEffect } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
-import { getMatchesByGroup } from "@/db/matches";
+import { getMatchesByGroup, deleteMatch } from "@/db/matches";
 import { getPlayersForGroup } from "@/db/players";
 import { useActiveGroup } from "@/lib/active-group";
-import { calculateSettlement, formatSettlementShareText } from "@/lib/settlement";
+import {
+  calculateSettlement,
+  formatSettlementShareText,
+} from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
 
@@ -98,7 +101,7 @@ export default function HistoryPage() {
 
   const handleShare = (match: MatchWithDetails, e: React.MouseEvent) => {
     e.stopPropagation(); // prevent toggling expansion
-    const players = match.playerDetails.map(pd => ({
+    const players = match.playerDetails.map((pd) => ({
       id: pd.player.id,
       name: pd.player.name,
     }));
@@ -113,6 +116,21 @@ export default function HistoryPage() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const handleDelete = async (matchId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Delete this match?")) {
+      return;
+    }
+
+    try {
+      await deleteMatch(matchId);
+      setMatches(matches.filter((m) => m.id !== matchId));
+    } catch (err) {
+      console.error("Failed to delete match:", err);
+      // Could add error state display here if needed
+    }
+  };
+
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB", {
@@ -124,8 +142,8 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-6 font-pixel text-2xl text-retro-green">
+      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
+        <h2 className="font-pixel text-retro-green mb-6 text-2xl">
           MATCH HISTORY
         </h2>
         <div className="flex h-64 items-center justify-center">
@@ -137,11 +155,11 @@ export default function HistoryPage() {
 
   if (!activeGroupId) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-6 font-pixel text-2xl text-retro-green">
+      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
+        <h2 className="font-pixel text-retro-green mb-6 text-2xl">
           MATCH HISTORY
         </h2>
-        <div className="rounded-retro border border-retro-gray p-8 text-center">
+        <div className="rounded-retro border-retro-gray border p-8 text-center">
           <p className="text-retro-gray">No group selected.</p>
           <p className="mt-2 text-sm">
             Please select a group from the header dropdown or create one on the
@@ -154,12 +172,12 @@ export default function HistoryPage() {
 
   if (matches.length === 0) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-6 font-pixel text-2xl text-retro-green">
+      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
+        <h2 className="font-pixel text-retro-green mb-6 text-2xl">
           MATCH HISTORY
         </h2>
 
-        <div className="rounded-retro border border-retro-gray p-8 text-center">
+        <div className="rounded-retro border-retro-gray border p-8 text-center">
           <p className="text-retro-gray">No matches yet.</p>
           <p className="mt-2 text-sm">
             Start a new match from the &quot;New Match&quot; tab to see history
@@ -171,21 +189,21 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
+    <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
       {error && (
-        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-4">
+        <div className="rounded-retro border-retro-red bg-retro-red/10 mb-4 border p-4">
           <div className="flex items-center justify-between">
             <span className="font-pixel text-retro-red text-sm">{error}</span>
             <button
               onClick={clearError}
-              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+              className="font-pixel text-retro-red hover:text-retro-red/80 text-xs"
             >
               DISMISS
             </button>
           </div>
         </div>
       )}
-      <h2 className="mb-6 font-pixel text-2xl text-retro-green">
+      <h2 className="font-pixel text-retro-green mb-6 text-2xl">
         MATCH HISTORY
       </h2>
 
@@ -199,17 +217,17 @@ export default function HistoryPage() {
           return (
             <div
               key={match.id}
-              className="bg-retro-darker cursor-pointer rounded-retro border border-retro-gray p-4 transition-colors hover:border-retro-green"
+              className="bg-retro-darker rounded-retro border-retro-gray hover:border-retro-green cursor-pointer border p-4 transition-colors"
               data-testid="match-entry"
               onClick={() => toggleExpand(match.id)}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-pixel text-xl text-retro-yellow">
+                  <h3 className="font-pixel text-retro-yellow text-xl">
                     Match on {dateStr}
                     {match.title && `: ${match.title}`}
                   </h3>
-                  <div className="mt-1 text-retro-light">
+                  <div className="text-retro-light mt-1">
                     <span className="mr-4 inline-block">
                       <span className="text-retro-blue">Buy‑in:</span>{" "}
                       <MoneyDisplay cents={match.buyInAmount} />
@@ -230,15 +248,15 @@ export default function HistoryPage() {
               </div>
 
               {isExpanded && (
-                <div className="mt-6 border-t border-retro-gray pt-6">
+                <div className="border-retro-gray mt-6 border-t pt-6">
                   {/* Settlement summary */}
                   <div className="mb-6">
-                    <h4 className="mb-3 font-pixel text-lg text-retro-green">
+                    <h4 className="font-pixel text-retro-green mb-3 text-lg">
                       SETTLEMENT
                     </h4>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div className="rounded-retro border border-retro-gray p-4">
-                        <h5 className="mb-2 font-pixel text-retro-yellow">
+                      <div className="rounded-retro border-retro-gray border p-4">
+                        <h5 className="font-pixel text-retro-yellow mb-2">
                           Balances
                         </h5>
                         <ul className="space-y-1">
@@ -266,12 +284,12 @@ export default function HistoryPage() {
                           })}
                         </ul>
                       </div>
-                      <div className="rounded-retro border border-retro-gray p-4">
-                        <h5 className="mb-2 font-pixel text-retro-yellow">
+                      <div className="rounded-retro border-retro-gray border p-4">
+                        <h5 className="font-pixel text-retro-yellow mb-2">
                           Transfers
                         </h5>
                         {match.settlement.transfers.length === 0 ? (
-                          <p className="text-sm text-retro-gray">
+                          <p className="text-retro-gray text-sm">
                             No transfers needed.
                           </p>
                         ) : (
@@ -306,7 +324,7 @@ export default function HistoryPage() {
 
                   {/* Player details */}
                   <div>
-                    <h4 className="mb-3 font-pixel text-lg text-retro-green">
+                    <h4 className="font-pixel text-retro-green mb-3 text-lg">
                       PLAYER DETAILS
                     </h4>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -317,9 +335,9 @@ export default function HistoryPage() {
                         return (
                           <div
                             key={pd.player.id}
-                            className="rounded-retro border border-retro-gray bg-retro-dark p-4"
+                            className="rounded-retro border-retro-gray bg-retro-dark border p-4"
                           >
-                            <h5 className="mb-2 font-pixel text-retro-yellow">
+                            <h5 className="font-pixel text-retro-yellow mb-2">
                               {pd.player.name}
                             </h5>
                             <div className="space-y-1 text-sm">
@@ -343,7 +361,7 @@ export default function HistoryPage() {
                                   cents={pd.buyIns * match.buyInAmount}
                                 />
                               </div>
-                              <div className="mt-1 flex justify-between border-t border-retro-gray pt-1">
+                              <div className="border-retro-gray mt-1 flex justify-between border-t pt-1">
                                 <span className="text-retro-light">
                                   Net result:
                                 </span>
@@ -364,12 +382,19 @@ export default function HistoryPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 border-t border-retro-gray pt-6">
+                  <div className="border-retro-gray mt-6 border-t pt-6">
                     <button
                       onClick={(e) => handleShare(match, e)}
-                      className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
+                      className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green hover:text-retro-green w-full border px-6 py-4 transition-all"
                     >
                       SHARE
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(match.id, e)}
+                      className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green hover:text-retro-green mt-4 w-full border px-6 py-4 transition-all"
+                      data-testid="delete-button"
+                    >
+                      DELETE
                     </button>
                   </div>
                 </div>
