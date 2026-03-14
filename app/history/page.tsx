@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
+import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
 import { getMatchesByGroup, deleteMatch } from "@/db/matches";
 import { getPlayersForGroup } from "@/db/players";
 import { useActiveGroup } from "@/lib/active-group";
@@ -12,6 +14,7 @@ import {
 } from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
+import { Heading } from "@/components/ui/Typography";
 
 interface MatchWithDetails extends Match {
   playerDetails: Array<{
@@ -191,21 +194,16 @@ export default function HistoryPage() {
   return (
     <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
       {error && (
-        <div className="rounded-retro border-retro-red bg-retro-red/10 mb-4 border p-4">
-          <div className="flex items-center justify-between">
-            <span className="font-pixel text-retro-red text-sm">{error}</span>
-            <button
-              onClick={clearError}
-              className="font-pixel text-retro-red hover:text-retro-red/80 text-xs"
-            >
-              DISMISS
-            </button>
-          </div>
-        </div>
+        <Alert
+          variant="error"
+          dismissible
+          onDismiss={clearError}
+          className="mb-4"
+        >
+          {error}
+        </Alert>
       )}
-      <h2 className="font-pixel text-retro-green mb-6 text-2xl">
-        MATCH HISTORY
-      </h2>
+      <Heading>MATCH HISTORY</Heading>
 
       <div className="space-y-6">
         {matches.map((match) => {
@@ -383,19 +381,24 @@ export default function HistoryPage() {
                   </div>
 
                   <div className="border-retro-gray mt-6 border-t pt-6">
-                    <button
+                    <Button
                       onClick={(e) => handleShare(match, e)}
-                      className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green hover:text-retro-green w-full border px-6 py-4 transition-all"
+                      variant="secondary"
+                      size="lg"
+                      fullWidth
                     >
                       SHARE
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={(e) => handleDelete(match.id, e)}
-                      className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green hover:text-retro-green mt-4 w-full border px-6 py-4 transition-all"
+                      variant="danger"
+                      size="lg"
+                      fullWidth
+                      className="mt-4"
                       data-testid="delete-button"
                     >
                       DELETE
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
