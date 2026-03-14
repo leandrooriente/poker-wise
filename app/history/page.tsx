@@ -381,19 +381,24 @@ export default function HistoryPage() {
                   </div>
 
                   <div className="border-retro-gray mt-6 border-t pt-6">
-                    <button
+                    <Button
                       onClick={(e) => handleShare(match, e)}
-                      className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green hover:text-retro-green w-full border px-6 py-4 transition-all"
+                      variant="secondary"
+                      size="lg"
+                      fullWidth
                     >
                       SHARE
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={(e) => handleDelete(match.id, e)}
-                      className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green hover:text-retro-green mt-4 w-full border px-6 py-4 transition-all"
+                      variant="danger"
+                      size="lg"
+                      fullWidth
+                      className="mt-4"
                       data-testid="delete-button"
                     >
                       DELETE
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
