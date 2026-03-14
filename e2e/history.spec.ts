@@ -339,12 +339,12 @@ test.describe("History Page", () => {
     ).toBeVisible();
     const deleteButton = firstMatch.getByTestId("delete-button");
     await expect(deleteButton).toBeVisible();
-    await deleteButton.click();
 
-    // Confirm deletion (browser confirm dialog)
+    // Register dialog handler BEFORE clicking (Playwright best practice)
     page.on("dialog", async (dialog) => {
       await dialog.accept();
     });
+    await deleteButton.click();
 
     // Wait for deletion to complete
     await page.waitForTimeout(500);
