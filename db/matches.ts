@@ -131,6 +131,7 @@ export async function deleteMatch(id: string): Promise<void> {
   });
 
   if (!res.ok) {
-    throw new Error(`Failed to delete match: ${res.status}`);
+    const errorText = await res.text();
+    throw new Error(`Failed to delete match: ${res.status} ${errorText}`);
   }
 }

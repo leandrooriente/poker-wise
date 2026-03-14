@@ -130,6 +130,7 @@ export async function DELETE(
   try {
     const session = await requireAdmin();
     const { id } = await params;
+    console.log("DELETE match", id);
 
     if (!isUuid(id)) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });

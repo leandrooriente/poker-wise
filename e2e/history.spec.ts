@@ -4,6 +4,7 @@ import {
   seedNamespacedLocalStorage,
   loginAdminAndCreateNamespacedGroup,
   generateNamespace,
+  openLatestHistoryMatch,
 } from "./helpers";
 
 test.describe("History Page", () => {
@@ -285,6 +286,8 @@ test.describe("History Page", () => {
   test("delete button removes match from history after confirmation", async ({
     page,
   }) => {
+    page.on("console", (msg) => console.log("PAGE:", msg.type(), msg.text()));
+    page.on("pageerror", (error) => console.log("PAGE ERROR:", error.message));
     await seedNamespacedLocalStorage(page, namespace, {
       players: [
         { id: "p1", name: "Alice", createdAt: new Date().toISOString() },
@@ -320,15 +323,21 @@ test.describe("History Page", () => {
     const matchEntries = page.getByTestId("match-entry");
     await expect(matchEntries).toHaveCount(2);
 
-    // Expand the first match
-    const firstMatch = matchEntries.first();
-    await firstMatch.click();
+    // Expand the match we want to delete (by title)
+    const matchToDelete = matchEntries.filter({ hasText: "Match to Delete" });
+    await expect(matchToDelete).toBeVisible();
+    await matchToDelete.click();
+    const firstMatch = matchToDelete;
     await expect(
       firstMatch.getByRole("heading", { name: "SETTLEMENT" })
     ).toBeVisible();
 
     // Find and click DELETE button
-    const deleteButton = firstMatch.getByRole("button", { name: "DELETE" });
+    // Check SHARE button also exists
+    await expect(
+      firstMatch.getByRole("button", { name: "SHARE" })
+    ).toBeVisible();
+    const deleteButton = firstMatch.getByTestId("delete-button");
     await expect(deleteButton).toBeVisible();
     await deleteButton.click();
 
