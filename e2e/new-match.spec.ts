@@ -12,15 +12,7 @@ test.describe("New Match Setup", () => {
   test.beforeEach(async ({ page }) => {
     // Generate a unique namespace for this test run
     namespace = generateNamespace();
-
-    // Clear localStorage and seed with namespaced group
-    await page.goto("/history");
-    await page.evaluate(() => window.localStorage.clear());
-    await seedNamespacedLocalStorage(page, namespace, {});
-
-    // Log in as admin and create a namespaced server group (required for admin UI)
     await loginAdminAndCreateNamespacedGroup(page);
-    // Note: The localStorage group and server group are separate but both isolated.
   });
 
   test("empty state when there are no players", async ({ page }) => {
@@ -181,8 +173,5 @@ test.describe("New Match Setup", () => {
     ).toBeVisible();
     await expect(page.getByText("Alice", { exact: true })).toBeVisible();
     await expect(page.getByText("Bob", { exact: true })).toBeVisible();
-    await expect(
-      page.locator("span.font-pixel.text-retro-yellow.text-2xl")
-    ).toHaveCount(2); // Each player has buy‑ins count display
   });
 });

@@ -1,7 +1,12 @@
 /* eslint-disable */
 import { Page } from "@playwright/test";
 
-import { seedViaApi } from "./api-helpers";
+import {
+  createGroupViaApi,
+  getActiveGroupSlug as getActiveGroupSlugViaApi,
+  seedViaApi,
+  setActiveGroupSlug,
+} from "./api-helpers";
 
 type SeedOptions = {
   players?: Array<{
@@ -123,16 +128,21 @@ export async function loginAdminAndCreateNamespacedGroup(
   page: Page
 ): Promise<{ namespace: string; groupSlug: string }> {
   const namespace = generateNamespace();
-  await loginAdmin(page);
-  const groupSlug = await createNamespacedGroup(page, namespace);
+  const groupSlug = `test-group-${namespace}`
+    .toLowerCase()
+    .replace(/[^a-z-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  await createGroupViaApi(page, groupSlug);
+  await setActiveGroupSlug(page, groupSlug);
   activeGroupSlugByPage.set(page, groupSlug);
 
-   const pendingSeed = pendingSeedByPage.get(page);
-   if (pendingSeed) {
+  const pendingSeed = pendingSeedByPage.get(page);
+  if (pendingSeed) {
     const mappings = await seedViaApi(page, groupSlug, pendingSeed.options);
     seedMappingsByPage.set(page, mappings);
     pendingSeedByPage.delete(page);
-   }
+  }
 
   return { namespace, groupSlug };
 }
@@ -156,11 +166,14 @@ export async function seedNamespacedLocalStorage(
 
   try {
     await page.waitForSelector("#group-select", { timeout: 1_000 });
-    const activeGroupSlug = await page.locator("#group-select").evaluate(
-      (select) =>
-        (select as HTMLSelectElement).selectedOptions[0]?.textContent?.trim() ||
-        ""
-    );
+    const activeGroupSlug = await page
+      .locator("#group-select")
+      .evaluate(
+        (select) =>
+          (
+            select as HTMLSelectElement
+          ).selectedOptions[0]?.textContent?.trim() || ""
+      );
     if (activeGroupSlug) {
       const mappings = await seedViaApi(page, activeGroupSlug, options);
       seedMappingsByPage.set(page, mappings);
@@ -231,19 +244,7 @@ export interface PlayerData {
  * Get the currently active group slug from session API.
  */
 async function getActiveGroupSlug(page: Page): Promise<string> {
-  const data = await page.evaluate(async () => {
-    const response = await fetch("/api/admin/active-group", {
-      credentials: "include",
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch active group: ${response.status}`);
-    }
-    return response.json();
-  });
-  if (!data.activeGroupSlug) {
-    throw new Error("No active group set for E2E player management");
-  }
-  return data.activeGroupSlug;
+  return getActiveGroupSlugViaApi(page);
 }
 
 export async function gotoActiveGroupPlayersPage(page: Page) {

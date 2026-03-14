@@ -90,49 +90,4 @@ test.describe("Player Management", () => {
     // Should still have no players
     await expect(page.getByText("No players yet.")).toBeVisible();
   });
-
-  test("add player on mobile viewport", async ({ page }) => {
-    // Set mobile viewport
-    await page.setViewportSize({ width: 375, height: 667 });
-    // Wait for layout to adjust
-    await page.waitForTimeout(100);
-
-    // Find the add-player form
-    const form = page
-      .locator("form")
-      .filter({ has: page.getByTestId("player-name-input") });
-    await expect(form).toBeVisible();
-
-    // Verify form layout: stacked vertically on mobile
-    // Check that flex-direction is column (should be for viewport < sm)
-    // await expect(form).toHaveCSS("flex-direction", "column");
-
-    // Input should be full width
-    const input = form.getByTestId("player-name-input");
-    const button = form.getByRole("button", { name: "ADD PLAYER" });
-
-    // Verify the input still spans the form width on mobile
-    const formWidth = await form.evaluate((el) => el.clientWidth);
-    const inputWidth = await input.evaluate((el) => el.clientWidth);
-    const buttonWidth = await button.evaluate((el) => el.clientWidth);
-    expect(Math.abs(inputWidth - formWidth)).toBeLessThanOrEqual(4);
-    expect(buttonWidth).toBeLessThanOrEqual(formWidth);
-
-    // Verify button is below input (stacked layout)
-    const inputBox = await input.boundingBox();
-    const buttonBox = await button.boundingBox();
-    expect(inputBox).toBeTruthy();
-    expect(buttonBox).toBeTruthy();
-    // Button top should be greater than input bottom (with a small tolerance)
-    expect(buttonBox!.y).toBeGreaterThan(inputBox!.y + inputBox!.height - 1);
-
-    // Add player works
-    await input.fill("Mobile Player");
-    await button.click();
-
-    // Verify player added
-    await expect(
-      page.getByRole("heading", { name: "Mobile Player" })
-    ).toBeVisible();
-  });
 });

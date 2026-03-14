@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test.describe("Admin Login", () => {
   test("login page loads", async ({ page }) => {
     await page.goto("/login");
