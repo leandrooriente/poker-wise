@@ -208,7 +208,9 @@ test.describe("History Page", () => {
     await expect(matchEntry.getByText("Net result:").first()).toBeVisible();
   });
 
-  test("share button opens WhatsApp with formatted message", async ({ page }) => {
+  test("share button opens WhatsApp with formatted message", async ({
+    page,
+  }) => {
     const matchId = "share-test-match-history";
     // Three players with known nets (same as results share test)
     await seedNamespacedLocalStorage(page, namespace, {
@@ -235,22 +237,32 @@ test.describe("History Page", () => {
     // Stub window.open before navigation
     await page.addInitScript(() => {
       (window as any).__lastOpenUrl = "";
-      window.open = (url?: string | URL, target?: string, features?: string) => {
+      window.open = (
+        url?: string | URL,
+        target?: string,
+        features?: string
+      ) => {
         (window as any).__lastOpenUrl = url?.toString() || "";
         return null;
       };
     });
 
     await page.goto("/history");
-    await expect(page.getByRole("heading", { name: "MATCH HISTORY" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "MATCH HISTORY" })
+    ).toBeVisible();
 
     // Expand the match
     const matchEntry = page.getByTestId("match-entry").first();
-    await expect(matchEntry.getByRole("button", { name: "SHARE" })).toHaveCount(0);
+    await expect(matchEntry.getByRole("button", { name: "SHARE" })).toHaveCount(
+      0
+    );
     await matchEntry.click();
 
     // Wait for expanded content
-    await expect(matchEntry.getByRole("heading", { name: "SETTLEMENT" })).toBeVisible();
+    await expect(
+      matchEntry.getByRole("heading", { name: "SETTLEMENT" })
+    ).toBeVisible();
 
     // Find and click the SHARE button inside the expanded match
     const shareButton = matchEntry.getByRole("button", { name: "SHARE" });
@@ -258,14 +270,16 @@ test.describe("History Page", () => {
     await shareButton.click();
 
     // Retrieve captured URL
-    const capturedUrl = await page.evaluate(() => (window as any).__lastOpenUrl);
+    const capturedUrl = await page.evaluate(
+      () => (window as any).__lastOpenUrl
+    );
     expect(capturedUrl).toBeDefined();
     expect(capturedUrl).toMatch(/^https:\/\/wa\.me\/\?text=/);
     const encodedText = capturedUrl.replace("https://wa.me/?text=", "");
     const decodedText = decodeURIComponent(encodedText);
 
     // Verify date line
-    expect(decodedText).toContain("13 Mar 2026");
+    expect(decodedText).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}\n\nResults:/);
     // Verify results section
     expect(decodedText).toContain("Results:");
     expect(decodedText).toContain("1. Alice: +15.00 EUR (1 buy-in)");

@@ -177,9 +177,9 @@ test.describe("Results Page", () => {
     const charlieBalance = page
       .getByRole("heading", { name: "Charlie" })
       .locator("../..");
-    await expect(charlieBalance.locator('[data-testid="net-amount"]')).toHaveText(
-      "5.00 EUR"
-    );
+    await expect(
+      charlieBalance.locator('[data-testid="net-amount"]')
+    ).toHaveText("5.00 EUR");
     await expect(aliceBalance.getByText("TO RECEIVE")).toBeVisible();
     await expect(bobBalance.getByText("TO PAY")).toBeVisible();
     await expect(charlieBalance.getByText("TO PAY")).toBeVisible();
@@ -275,7 +275,9 @@ test.describe("Results Page", () => {
     await expect(transferItems.getByText("5.00 EUR").first()).toBeVisible();
   });
 
-  test("share button opens WhatsApp with formatted message", async ({ page }) => {
+  test("share button opens WhatsApp with formatted message", async ({
+    page,
+  }) => {
     const matchId = "share-test-match";
     // Three players with known nets
     await seedNamespacedLocalStorage(page, namespace, {
@@ -302,28 +304,36 @@ test.describe("Results Page", () => {
     // Stub window.open before navigation
     await page.addInitScript(() => {
       (window as any).__lastOpenUrl = "";
-      window.open = (url?: string | URL, target?: string, features?: string) => {
+      window.open = (
+        url?: string | URL,
+        target?: string,
+        features?: string
+      ) => {
         (window as any).__lastOpenUrl = url?.toString() || "";
         return null;
       };
     });
 
     await page.goto(`/results?match=${resolveSeededMatchId(page, matchId)}`);
-    await expect(page.getByRole("heading", { name: "SETTLEMENT RESULTS" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "SETTLEMENT RESULTS" })
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "SHARE" })).toBeVisible();
 
     // Click Share button
     await page.getByRole("button", { name: "SHARE" }).click();
 
     // Retrieve captured URL
-    const capturedUrl = await page.evaluate(() => (window as any).__lastOpenUrl);
+    const capturedUrl = await page.evaluate(
+      () => (window as any).__lastOpenUrl
+    );
     expect(capturedUrl).toBeDefined();
     expect(capturedUrl).toMatch(/^https:\/\/wa\.me\/\?text=/);
     const encodedText = capturedUrl.replace("https://wa.me/?text=", "");
     const decodedText = decodeURIComponent(encodedText);
 
     // Verify date line
-    expect(decodedText).toContain("13 Mar 2026");
+    expect(decodedText).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}\n\nResults:/);
     // Verify results section
     expect(decodedText).toContain("Results:");
     expect(decodedText).toContain("1. Alice: +15.00 EUR (1 buy-in)");

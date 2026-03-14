@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 
-import { calculateSettlement, validateTotals, formatCents, formatSettlementShareText } from "./settlement";
+import {
+  calculateSettlement,
+  validateTotals,
+  formatCents,
+  formatSettlementShareText,
+} from "./settlement";
 
 import type { MatchPlayer } from "@/types/match";
 
@@ -43,8 +48,8 @@ describe("settlement", () => {
       expect(result.totalPaidIn).toBe(3000);
       expect(result.totalFinalValue).toBe(3000);
 
-       const max = result.playerBalances.find((b) => b.userId === "max");
-       const ana = result.playerBalances.find((b) => b.userId === "ana");
+      const max = result.playerBalances.find((b) => b.userId === "max");
+      const ana = result.playerBalances.find((b) => b.userId === "ana");
 
       expect(max?.paidIn).toBe(2000);
       expect(max?.finalValue).toBe(1400);
@@ -64,8 +69,8 @@ describe("settlement", () => {
     });
 
     it("handles multiple debtors and creditors with minimized transfers", () => {
-       const players: MatchPlayer[] = [
-        { userId: "a", buyIns: 1, finalValue: 500 },  // owes 500
+      const players: MatchPlayer[] = [
+        { userId: "a", buyIns: 1, finalValue: 500 }, // owes 500
         { userId: "b", buyIns: 1, finalValue: 1500 }, // owed 500
         { userId: "c", buyIns: 2, finalValue: 1000 }, // owes 1000
         { userId: "d", buyIns: 1, finalValue: 2000 }, // owed 1000
@@ -88,7 +93,7 @@ describe("settlement", () => {
     });
 
     it("returns error when totals do not match", () => {
-       const players: MatchPlayer[] = [
+      const players: MatchPlayer[] = [
         { userId: "1", buyIns: 1, finalValue: 1200 },
         { userId: "2", buyIns: 1, finalValue: 900 },
       ];
@@ -99,7 +104,7 @@ describe("settlement", () => {
     });
 
     it("handles zero‑net player (no transfers)", () => {
-       const players: MatchPlayer[] = [
+      const players: MatchPlayer[] = [
         { userId: "1", buyIns: 2, finalValue: 2000 },
         { userId: "2", buyIns: 1, finalValue: 1000 },
         { userId: "3", buyIns: 1, finalValue: 1000 },
@@ -125,7 +130,7 @@ describe("settlement", () => {
       const buyInAmount = 1000;
       const matchPlayers: MatchPlayer[] = [
         { userId: "a", buyIns: 1, finalValue: 2500 }, // Alice: 1 buy-in, net +15 => finalValue = paidIn + 15 = 10 + 15 = 25 EUR => 2500 cents
-        { userId: "c", buyIns: 1, finalValue: 500 },  // Charlie: 1 buy-in, net -5 => finalValue = 10 - 5 = 5 EUR => 500 cents
+        { userId: "c", buyIns: 1, finalValue: 500 }, // Charlie: 1 buy-in, net -5 => finalValue = 10 - 5 = 5 EUR => 500 cents
         { userId: "b", buyIns: 2, finalValue: 1000 }, // Bob: 2 buy-ins, net -10 => paidIn 20, finalValue = 20 - 10 = 10 EUR => 1000 cents
       ];
       const players = [
@@ -179,11 +184,32 @@ Transfers:
 No transfers needed.`);
     });
 
+    it("formats the share date in UTC to avoid timezone drift", () => {
+      const createdAt = "2026-03-13T20:00:00.000Z";
+      const matchPlayers: MatchPlayer[] = [
+        { userId: "a", buyIns: 1, finalValue: 1000 },
+        { userId: "b", buyIns: 1, finalValue: 1000 },
+      ];
+      const players = [
+        { id: "a", name: "Alice" },
+        { id: "b", name: "Bob" },
+      ];
+      const settlement = calculateSettlement(matchPlayers, 1000);
+      const text = formatSettlementShareText({
+        createdAt,
+        matchPlayers,
+        players,
+        settlement,
+      });
+
+      expect(text.startsWith("13 Mar 2026")).toBe(true);
+    });
+
     it("sorts by highest net first, preserving order on tie", () => {
       const createdAt = "2026-03-15T12:00:00.000Z";
       const matchPlayers: MatchPlayer[] = [
         { userId: "a", buyIns: 1, finalValue: 2000 }, // +10
-        { userId: "b", buyIns: 1, finalValue: 0 },    // -10
+        { userId: "b", buyIns: 1, finalValue: 0 }, // -10
         { userId: "c", buyIns: 1, finalValue: 2000 }, // +10 tie
       ];
       const players = [
@@ -204,8 +230,10 @@ No transfers needed.`);
       // Tie-breaking: preserve original order.
       const lines = text.split("\n");
       // Find results lines
-      const resultsStart = lines.findIndex(l => l.startsWith("Results:")) + 1;
-      const resultLines = lines.slice(resultsStart, resultsStart + 3).filter(l => l.trim() !== "");
+      const resultsStart = lines.findIndex((l) => l.startsWith("Results:")) + 1;
+      const resultLines = lines
+        .slice(resultsStart, resultsStart + 3)
+        .filter((l) => l.trim() !== "");
       expect(resultLines[0]).toContain("Alice");
       expect(resultLines[1]).toContain("Charlie");
       expect(resultLines[2]).toContain("Bob");

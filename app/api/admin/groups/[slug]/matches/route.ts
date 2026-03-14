@@ -70,7 +70,15 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { title, buyInAmount, players, startedAt, endedAt, status } = body;
+    const {
+      title,
+      buyInAmount,
+      players,
+      startedAt,
+      createdAt,
+      endedAt,
+      status,
+    } = body;
 
     if (!Array.isArray(players) || players.length === 0) {
       return NextResponse.json(
@@ -94,6 +102,7 @@ export async function POST(
         buyInAmount,
         players,
         startedAt,
+        createdAt,
         endedAt,
         status,
       },

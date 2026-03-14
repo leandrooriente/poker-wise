@@ -1,6 +1,7 @@
 import { Page } from "@playwright/test";
 
-const testBaseUrl = process.env.BASE_URL || "http://localhost:3001";
+const testPort = process.env.PORT || "3001";
+const testBaseUrl = process.env.BASE_URL || `http://localhost:${testPort}`;
 
 /**
  * Create a player via API.
@@ -11,15 +12,23 @@ export async function createPlayerViaApi(
   groupSlug: string,
   name: string,
   notes?: string
-): Promise<{ id: string; name: string; notes: string | null; createdAt: string }> {
+): Promise<{
+  id: string;
+  name: string;
+  notes: string | null;
+  createdAt: string;
+}> {
   return await page.evaluate(
     async ({ baseUrl, groupSlug, name, notes }) => {
-      const response = await fetch(`${baseUrl}/api/admin/groups/${groupSlug}/players`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ name, notes }),
-      });
+      const response = await fetch(
+        `${baseUrl}/api/admin/groups/${groupSlug}/players`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ name, notes }),
+        }
+      );
       const text = await response.text();
       if (!response.ok) {
         throw new Error(`Failed to create player: ${response.status} ${text}`);
@@ -42,25 +51,36 @@ export async function createMatchViaApi(
     buyInAmount: number; // cents
     players: Array<{ userId: string; buyIns: number; finalValue: number }>;
     startedAt?: string; // ISO string
+    createdAt?: string; // ISO string
     endedAt?: string; // ISO string
     status?: string; // default "live"
   }
-): Promise<{ id: string; title?: string; buyInAmount: number; startedAt: string; createdAt: string }> {
+): Promise<{
+  id: string;
+  title?: string;
+  buyInAmount: number;
+  startedAt: string;
+  createdAt: string;
+}> {
   return await page.evaluate(
     async ({ baseUrl, groupSlug, options }) => {
-      const response = await fetch(`${baseUrl}/api/admin/groups/${groupSlug}/matches`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          title: options.title,
-          buyInAmount: options.buyInAmount,
-          players: options.players,
-          startedAt: options.startedAt || new Date().toISOString(),
-          endedAt: options.endedAt,
-          status: options.status || "live",
-        }),
-      });
+      const response = await fetch(
+        `${baseUrl}/api/admin/groups/${groupSlug}/matches`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            title: options.title,
+            buyInAmount: options.buyInAmount,
+            players: options.players,
+            startedAt: options.startedAt || new Date().toISOString(),
+            createdAt: options.createdAt,
+            endedAt: options.endedAt,
+            status: options.status || "live",
+          }),
+        }
+      );
       const text = await response.text();
       if (!response.ok) {
         throw new Error(`Failed to create match: ${response.status} ${text}`);
@@ -75,15 +95,18 @@ export async function createMatchViaApi(
  * Get active group slug from session API.
  */
 export async function getActiveGroupSlug(page: Page): Promise<string> {
-  const data = await page.evaluate(async ({ baseUrl }) => {
-    const response = await fetch(`${baseUrl}/api/admin/active-group`, {
-      credentials: "include",
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch active group: ${response.status}`);
-    }
-    return response.json();
-  }, { baseUrl: testBaseUrl });
+  const data = await page.evaluate(
+    async ({ baseUrl }) => {
+      const response = await fetch(`${baseUrl}/api/admin/active-group`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch active group: ${response.status}`);
+      }
+      return response.json();
+    },
+    { baseUrl: testBaseUrl }
+  );
   if (!data.activeGroupSlug) {
     throw new Error("No active group set for E2E player management");
   }
@@ -93,20 +116,26 @@ export async function getActiveGroupSlug(page: Page): Promise<string> {
 /**
  * Set active group via API.
  */
-export async function setActiveGroupSlug(page: Page, slug: string | null): Promise<void> {
-  await page.evaluate(async ({ baseUrl, slug }) => {
-    const response = await fetch(`${baseUrl}/api/admin/active-group`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ slug }),
-    });
-    if (!response.ok) {
-      throw new Error(
-        `Failed to set active group: ${response.status} ${await response.text()}`
-      );
-    }
-  }, { baseUrl: testBaseUrl, slug });
+export async function setActiveGroupSlug(
+  page: Page,
+  slug: string | null
+): Promise<void> {
+  await page.evaluate(
+    async ({ baseUrl, slug }) => {
+      const response = await fetch(`${baseUrl}/api/admin/active-group`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ slug }),
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Failed to set active group: ${response.status} ${await response.text()}`
+        );
+      }
+    },
+    { baseUrl: testBaseUrl, slug }
+  );
 }
 
 /**
@@ -136,12 +165,20 @@ export async function seedViaApi(
     }>;
     settings?: { defaultBuyIn: number };
   }
-): Promise<{ playerIdMap: Record<string, string>; matchIdMap: Record<string, string> }> {
+): Promise<{
+  playerIdMap: Record<string, string>;
+  matchIdMap: Record<string, string>;
+}> {
   const playerIdMap: Record<string, string> = {};
   // Create players
   if (options.players) {
     for (const seededPlayer of options.players) {
-      const realPlayer = await createPlayerViaApi(page, groupSlug, seededPlayer.name, seededPlayer.notes);
+      const realPlayer = await createPlayerViaApi(
+        page,
+        groupSlug,
+        seededPlayer.name,
+        seededPlayer.notes
+      );
       playerIdMap[seededPlayer.id] = realPlayer.id;
     }
   }
@@ -150,7 +187,7 @@ export async function seedViaApi(
   // Create matches (need to map seeded userIds to real player IDs)
   if (options.matches) {
     for (const seededMatch of options.matches) {
-      const players = seededMatch.players.map(p => ({
+      const players = seededMatch.players.map((p) => ({
         userId: playerIdMap[p.userId] || p.userId, // if mapping not found, assume real ID
         buyIns: p.buyIns,
         finalValue: p.finalValue,
@@ -160,6 +197,7 @@ export async function seedViaApi(
         buyInAmount: seededMatch.buyInAmount,
         players,
         startedAt: seededMatch.startedAt,
+        createdAt: seededMatch.createdAt,
         status: seededMatch.status || "live",
       });
       matchIdMap[seededMatch.id] = realMatch.id;

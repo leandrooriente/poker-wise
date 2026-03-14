@@ -36,7 +36,10 @@ export function calculateSettlement(
   });
 
   const totalPaidIn = playerBalances.reduce((sum, b) => sum + b.paidIn, 0);
-  const totalFinalValue = playerBalances.reduce((sum, b) => sum + b.finalValue, 0);
+  const totalFinalValue = playerBalances.reduce(
+    (sum, b) => sum + b.finalValue,
+    0
+  );
   const totalPot = totalPaidIn; // total money in the pot equals total paid in
 
   const isValid = totalPaidIn === totalFinalValue;
@@ -63,15 +66,21 @@ export function calculateSettlement(
  * Generate minimized list of transfers between debtors and creditors.
  * Simple greedy algorithm: sort debtors and creditors, match amounts.
  */
-function computeMinimizedTransfers(balances: PlayerBalance[]): SettlementTransfer[] {
-  const debtors = balances.filter((b) => b.net < 0).map((b) => ({
-    userId: b.userId,
-    amount: -b.net, // positive amount they owe
-  }));
-  const creditors = balances.filter((b) => b.net > 0).map((b) => ({
-    userId: b.userId,
-    amount: b.net, // positive amount they are owed
-  }));
+function computeMinimizedTransfers(
+  balances: PlayerBalance[]
+): SettlementTransfer[] {
+  const debtors = balances
+    .filter((b) => b.net < 0)
+    .map((b) => ({
+      userId: b.userId,
+      amount: -b.net, // positive amount they owe
+    }));
+  const creditors = balances
+    .filter((b) => b.net > 0)
+    .map((b) => ({
+      userId: b.userId,
+      amount: b.net, // positive amount they are owed
+    }));
 
   // Sort descending by amount
   debtors.sort((a, b) => b.amount - a.amount);
@@ -109,8 +118,16 @@ function computeMinimizedTransfers(balances: PlayerBalance[]): SettlementTransfe
 export function validateTotals(
   players: MatchPlayer[],
   buyInAmount: number
-): { isValid: boolean; totalPaidIn: number; totalFinalValue: number; diff: number } {
-  const totalPaidIn = players.reduce((sum, p) => sum + p.buyIns * buyInAmount, 0);
+): {
+  isValid: boolean;
+  totalPaidIn: number;
+  totalFinalValue: number;
+  diff: number;
+} {
+  const totalPaidIn = players.reduce(
+    (sum, p) => sum + p.buyIns * buyInAmount,
+    0
+  );
   const totalFinalValue = players.reduce((sum, p) => sum + p.finalValue, 0);
   const diff = totalFinalValue - totalPaidIn;
   const isValid = diff === 0;
@@ -157,14 +174,15 @@ export function formatSettlementShareText({
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   });
 
   // Build maps
-  const playerNameMap = new Map(players.map(p => [p.id, p.name]));
-  const buyInsMap = new Map(matchPlayers.map(mp => [mp.userId, mp.buyIns]));
+  const playerNameMap = new Map(players.map((p) => [p.id, p.name]));
+  const buyInsMap = new Map(matchPlayers.map((mp) => [mp.userId, mp.buyIns]));
 
   // Combine balances with name and buy-ins
-  const combined = settlement.playerBalances.map(balance => ({
+  const combined = settlement.playerBalances.map((balance) => ({
     ...balance,
     name: playerNameMap.get(balance.userId) || "Unknown",
     buyIns: buyInsMap.get(balance.userId) || 0,
@@ -185,7 +203,7 @@ export function formatSettlementShareText({
   if (settlement.transfers.length === 0) {
     transfersLines = ["No transfers needed."];
   } else {
-    transfersLines = settlement.transfers.map(transfer => {
+    transfersLines = settlement.transfers.map((transfer) => {
       const fromName = playerNameMap.get(transfer.fromPlayerId) || "Unknown";
       const toName = playerNameMap.get(transfer.toPlayerId) || "Unknown";
       const amount = formatMoney(transfer.amount);
