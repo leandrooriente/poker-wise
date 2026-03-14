@@ -363,3 +363,20 @@ export async function settleMatchForAdmin(
     settlement: result.settlement ?? buildSettlement(result.match),
   };
 }
+
+export async function deleteMatchForAdmin(
+  matchId: string,
+  adminId: string
+): Promise<boolean> {
+  const matchRow = await getMatchBase(matchId);
+  if (!matchRow) {
+    return false;
+  }
+
+  if (!(await verifyAdminMembership(matchRow.groupId, adminId))) {
+    return false;
+  }
+
+  await db.delete(matches).where(eq(matches.id, matchId));
+  return true;
+}

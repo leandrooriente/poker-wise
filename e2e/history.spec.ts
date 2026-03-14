@@ -376,4 +376,68 @@ test.describe("History Page", () => {
     // Verify it's the correct match (buy‑in 15.00)
     await expect(page.getByText("Buy‑in: 15.00 EUR")).toBeVisible();
   });
+
+  test("delete button removes match from history after confirmation", async ({
+    page,
+  }) => {
+    await seedNamespacedLocalStorage(page, namespace, {
+      players: [
+        { id: "p1", name: "Alice", createdAt: new Date().toISOString() },
+        { id: "p2", name: "Bob", createdAt: new Date().toISOString() },
+      ],
+      matches: [
+        {
+          id: "match-to-delete",
+          title: "Match to Delete",
+          buyInAmount: 1000,
+          players: [
+            { userId: "p1", buyIns: 1, finalValue: 1500 },
+            { userId: "p2", buyIns: 1, finalValue: 500 },
+          ],
+          startedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "match-keep",
+          title: "Match to Keep",
+          buyInAmount: 1000,
+          players: [
+            { userId: "p1", buyIns: 1, finalValue: 1000 },
+            { userId: "p2", buyIns: 1, finalValue: 1000 },
+          ],
+          startedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    await page.goto("/history");
+    const matchEntries = page.getByTestId("match-entry");
+    await expect(matchEntries).toHaveCount(2);
+
+    // Expand the first match
+    const firstMatch = matchEntries.first();
+    await firstMatch.click();
+    await expect(
+      firstMatch.getByRole("heading", { name: "SETTLEMENT" })
+    ).toBeVisible();
+
+    // Find and click DELETE button
+    const deleteButton = firstMatch.getByRole("button", { name: "DELETE" });
+    await expect(deleteButton).toBeVisible();
+    await deleteButton.click();
+
+    // Confirm deletion (browser confirm dialog)
+    page.on("dialog", async (dialog) => {
+      await dialog.accept();
+    });
+
+    // Wait for deletion to complete
+    await page.waitForTimeout(500);
+
+    // Should now have only 1 match left
+    await expect(matchEntries).toHaveCount(1);
+    await expect(matchEntries.getByText("Match to Keep")).toBeVisible();
+    await expect(matchEntries.getByText("Match to Delete")).not.toBeVisible();
+  });
 });

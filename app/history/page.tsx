@@ -3,10 +3,13 @@
 import { useState, useEffect } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
-import { getMatchesByGroup } from "@/db/matches";
+import { getMatchesByGroup, deleteMatch } from "@/db/matches";
 import { getPlayersForGroup } from "@/db/players";
 import { useActiveGroup } from "@/lib/active-group";
-import { calculateSettlement, formatSettlementShareText } from "@/lib/settlement";
+import {
+  calculateSettlement,
+  formatSettlementShareText,
+} from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
 
@@ -98,7 +101,7 @@ export default function HistoryPage() {
 
   const handleShare = (match: MatchWithDetails, e: React.MouseEvent) => {
     e.stopPropagation(); // prevent toggling expansion
-    const players = match.playerDetails.map(pd => ({
+    const players = match.playerDetails.map((pd) => ({
       id: pd.player.id,
       name: pd.player.name,
     }));
@@ -111,6 +114,21 @@ export default function HistoryPage() {
     const encoded = encodeURIComponent(text);
     const url = `https://wa.me/?text=${encoded}`;
     window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleDelete = async (matchId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Delete this match?")) {
+      return;
+    }
+
+    try {
+      await deleteMatch(matchId);
+      setMatches(matches.filter((m) => m.id !== matchId));
+    } catch (err) {
+      console.error("Failed to delete match:", err);
+      // Could add error state display here if needed
+    }
   };
 
   const formatDate = (isoString: string) => {
@@ -173,12 +191,12 @@ export default function HistoryPage() {
   return (
     <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
       {error && (
-        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-4">
+        <div className="mb-4 rounded-retro border border-retro-red bg-retro-red/10 p-4">
           <div className="flex items-center justify-between">
-            <span className="font-pixel text-retro-red text-sm">{error}</span>
+            <span className="font-pixel text-sm text-retro-red">{error}</span>
             <button
               onClick={clearError}
-              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+              className="font-pixel text-xs text-retro-red hover:text-retro-red/80"
             >
               DISMISS
             </button>
@@ -370,6 +388,12 @@ export default function HistoryPage() {
                       className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
                     >
                       SHARE
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(match.id, e)}
+                      className="mt-4 w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
+                    >
+                      DELETE
                     </button>
                   </div>
                 </div>
