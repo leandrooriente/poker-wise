@@ -34,11 +34,8 @@ export default function PlayerCard({
 
   return (
     <div
-      className="nes-container is-bordered p-4"
+      className="nes-container is-bordered is-dark p-4"
       data-testid="player-card"
-      style={{ background: "#212529" }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#48c774")}
-      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#ccc")}
     >
       {editing ? (
         <div className="space-y-3">
@@ -64,22 +61,20 @@ export default function PlayerCard({
         <>
           <div className="flex items-start justify-between">
             <div>
-              <h4 className="font-pixel text-xl" style={{ color: "#48c774" }}>
+              <h4 className="font-pixel nes-text is-success text-xl">
                 {player.name}
               </h4>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setEditing(true)}
-                className="nes-btn"
-                style={{ fontSize: "12px", padding: "4px 8px" }}
+                className="nes-btn px-2 py-1 text-xs"
               >
                 Edit
               </button>
               <button
                 onClick={() => onDelete(player.id)}
-                className="nes-btn is-error"
-                style={{ fontSize: "12px", padding: "4px 8px" }}
+                className="nes-btn is-error px-2 py-1 text-xs"
               >
                 Delete
               </button>

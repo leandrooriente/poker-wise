@@ -37,20 +37,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="py-4">
-      <div className="nes-container with-title is-dark mx-auto w-full max-w-md">
+    <div className="nes-main-content">
+      <div className="nes-container with-title is-dark">
         <p className="title">ADMIN LOGIN</p>
-        <p className="mb-6 text-center" style={{ color: "#999" }}>
+        <p className="nes-text-sm">
           Enter your credentials to access admin panel.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="font-pixel mb-2 block text-sm"
-              style={{ color: "#ffdd57" }}
-            >
+        <form onSubmit={handleSubmit} className="nes-stack">
+          <div className="nes-field">
+            <label htmlFor="email" className="nes-text-sm">
               EMAIL
             </label>
             <input
@@ -58,19 +54,15 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="nes-input w-full"
+              className="nes-input"
               placeholder="admin@example.com"
               required
               autoComplete="email"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="font-pixel mb-2 block text-sm"
-              style={{ color: "#ffdd57" }}
-            >
+          <div className="nes-field">
+            <label htmlFor="password" className="nes-text-sm">
               PASSWORD
             </label>
             <input
@@ -78,37 +70,29 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="nes-input w-full"
-              placeholder="•••••••••"
+              className="nes-input"
+              placeholder="••••••••••"
               required
               autoComplete="current-password"
             />
           </div>
 
           {error && (
-            <div
-              className="nes-container is-bordered px-3 py-2 text-sm"
-              style={{
-                background: "#fee",
-                borderColor: "#e74c3c",
-                color: "#e74c3c",
-              }}
-            >
-              ⚠️ {error}
+            <div className="nes-container is-rounded is-error">
+              <p className="nes-text is-error">⚠️ {error}</p>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="nes-btn is-primary w-full"
-            style={{ padding: "12px 24px" }}
+            className="nes-btn is-primary"
           >
             {loading ? "LOGGING IN..." : "LOGIN"}
           </button>
         </form>
 
-        <div className="mt-8 text-center text-sm" style={{ color: "#999" }}>
+        <div className="nes-mt-4 nes-text-center nes-text-sm">
           <p>Use seeded admin credentials from your environment variables.</p>
         </div>
       </div>

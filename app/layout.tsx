@@ -1,32 +1,14 @@
-import type { Metadata, Viewport } from "next";
-import { Press_Start_2P, Courier_Prime } from "next/font/google";
-
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
-
 import Header from "@/components/Header";
+import { ActiveGroupProvider } from "@/lib/active-group";
 
-const pixelFont = Press_Start_2P({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-pixel",
-});
-
-const retroFont = Courier_Prime({
-  weight: ["400", "700"],
-  subsets: ["latin"],
-  variable: "--font-retro-sans",
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Poker Wise",
-  description: "Poker match organizer and settlement app",
-};
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
+  title: "Poker Wise - Poker Match Settlement",
+  description: "Track and settle poker matches with ease",
 };
 
 export default function RootLayout({
@@ -35,26 +17,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${pixelFont.variable} ${retroFont.variable}`}>
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"
-        />
-      </head>
-      <body className="font-retro-sans min-h-screen bg-[#212529] text-[#fff]">
-        <Providers>
-          <div className="relative mx-auto max-w-4xl p-4">
+    <html lang="en">
+      <body
+        className={
+          inter.className +
+          " font-retro-sans min-h-screen bg-[#212529] text-[#fff]"
+        }
+      >
+        <ActiveGroupProvider>
+          <div className="nes-main-content">
             <Header />
-            <main className="nes-container is-dark mt-6">{children}</main>
-            <footer className="mt-12 border-t pt-4 text-center text-sm">
-              <p>Poker Wise © 2026 — Poker match settlement</p>
+            <main className="nes-container is-dark nes-mt-2">{children}</main>
+            <footer className="nes-mt-4 nes-text-center">
+              <p className="nes-text is-disabled">
+                Poker Wise © 2026 — Poker match settlement
+              </p>
             </footer>
           </div>
-        </Providers>
+        </ActiveGroupProvider>
       </body>
     </html>
   );

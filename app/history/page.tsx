@@ -12,7 +12,6 @@ import {
 } from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
-import { Heading } from "@/components/ui/Typography";
 
 interface MatchWithDetails extends Match {
   playerDetails: Array<{
@@ -20,8 +19,6 @@ interface MatchWithDetails extends Match {
     buyIns: number;
     finalValue: number;
   }>;
-  totalBuyIns: number;
-  totalValue: number;
   settlement: ReturnType<typeof calculateSettlement>;
 }
 
@@ -56,15 +53,6 @@ export default function HistoryPage() {
             })
             .filter((pd) => pd.player);
 
-          const totalBuyIns = playerDetails.reduce(
-            (sum, pd) => sum + pd.buyIns,
-            0
-          );
-          const totalValue = playerDetails.reduce(
-            (sum, pd) => sum + pd.finalValue,
-            0
-          );
-
           // Use persisted settlement if available, otherwise compute
           const settlement =
             match.settlement ??
@@ -73,8 +61,6 @@ export default function HistoryPage() {
           return {
             ...match,
             playerDetails,
-            totalBuyIns,
-            totalValue,
             settlement,
           };
         });
@@ -101,7 +87,7 @@ export default function HistoryPage() {
   };
 
   const handleShare = (match: MatchWithDetails, e: React.MouseEvent) => {
-    e.stopPropagation(); // prevent toggling expansion
+    e.stopPropagation();
     const players = match.playerDetails.map((pd) => ({
       id: pd.player.id,
       name: pd.player.name,
@@ -145,8 +131,8 @@ export default function HistoryPage() {
     return (
       <div className="nes-container with-title is-dark">
         <p className="title">MATCH HISTORY</p>
-        <div className="flex h-64 items-center justify-center">
-          <div className="font-pixel">Loading matches...</div>
+        <div className="nes-container is-dark nes-v-center nes-min-h-content">
+          <i className="nes-loader"></i>
         </div>
       </div>
     );
@@ -156,10 +142,10 @@ export default function HistoryPage() {
     return (
       <div className="nes-container with-title is-dark">
         <p className="title">MATCH HISTORY</p>
-        <div className="nes-container is-bordered py-8 text-center">
-          <p style={{ color: "#999" }}>No group selected.</p>
-          <p className="mt-2 text-sm" style={{ color: "#999" }}>
-            Please select a group from the header dropdown or create one on the
+        <div className="nes-container is-rounded nes-text-center">
+          <p className="nes-text is-disabled">No group selected.</p>
+          <p className="nes-text is-disabled nes-text-sm">
+            Please select a group from header dropdown or create one on the
             Groups page.
           </p>
         </div>
@@ -172,11 +158,10 @@ export default function HistoryPage() {
       <div className="nes-container with-title is-dark">
         <p className="title">MATCH HISTORY</p>
 
-        <div className="nes-container is-bordered py-8 text-center">
-          <p style={{ color: "#999" }}>No matches yet.</p>
-          <p className="mt-2 text-sm">
-            Start a new match from the &quot;New Match&quot; tab to see history
-            here.
+        <div className="nes-container is-rounded nes-text-center">
+          <p className="nes-text is-disabled">No matches yet.</p>
+          <p className="nes-text-sm">
+            Start a new match from "New Match" tab to see history here.
           </p>
         </div>
       </div>
@@ -186,27 +171,19 @@ export default function HistoryPage() {
   return (
     <div className="nes-container is-dark">
       {error && (
-        <div
-          className="nes-container is-bordered mb-4"
-          style={{ background: "#fee", border: "4px solid #e74c3c" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
-              {error}
-            </span>
-            <button
-              onClick={clearError}
-              className="nes-btn is-error"
-              style={{ padding: "4px 8px", fontSize: "10px" }}
-            >
+        <div className="nes-container is-rounded is-error nes-mb-2">
+          <div className="nes-flex nes-justify-between nes-items-center">
+            <span className="nes-text is-error">{error}</span>
+            <button onClick={clearError} className="nes-btn is-error">
               DISMISS
             </button>
           </div>
         </div>
       )}
-      <Heading>MATCH HISTORY</Heading>
 
-      <div className="space-y-6">
+      <h1>MATCH HISTORY</h1>
+
+      <div className="nes-stack">
         {matches.map((match) => {
           const isExpanded = expandedMatchId === match.id;
           const dateStr = formatDate(match.createdAt);
@@ -216,229 +193,87 @@ export default function HistoryPage() {
           return (
             <div
               key={match.id}
-              className="nes-container is-bordered cursor-pointer"
-              style={{
-                background: "#212529",
-                borderColor: "#ccc",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.borderColor = "#48c774")
-              }
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#ccc")}
-              data-testid="match-entry"
-              onClick={() => toggleExpand(match.id)}
+              className="nes-container is-rounded"
+              onClick={() => setExpandedMatchId(isExpanded ? null : match.id)}
             >
-              <div className="flex items-center justify-between">
+              <div className="nes-flex nes-justify-between nes-items-center">
                 <div>
-                  <h3
-                    className="font-pixel text-xl"
-                    style={{ color: "#ffdd57" }}
-                  >
-                    Match on {dateStr}
-                    {match.title && `: ${match.title}`}
-                  </h3>
-                  <div className="mt-1" style={{ color: "#fff" }}>
-                    <span className="mr-4 inline-block">
-                      <span style={{ color: "#3273dc" }}>Buy‑in:</span>{" "}
-                      <MoneyDisplay cents={match.buyInAmount} />
-                    </span>
-                    <span className="mr-4 inline-block">
-                      <span style={{ color: "#3273dc" }}>Players:</span>{" "}
-                      {playerCount}
-                    </span>
-                    <span className="inline-block">
-                      <span style={{ color: "#3273dc" }}>Pot:</span>{" "}
-                      <MoneyDisplay cents={match.settlement.totalPot} />
-                    </span>
-                  </div>
+                  <h2>{dateStr}</h2>
+                  <p>
+                    Buy-in: <MoneyDisplay cents={match.buyInAmount} /> |
+                    Players: {playerCount} | Pot:{" "}
+                    <MoneyDisplay cents={match.settlement.totalPot} />
+                  </p>
                 </div>
-                <div className="font-pixel" style={{ color: "#48c774" }}>
-                  {isExpanded ? "▲" : "▼"}
-                </div>
+                <i className={`nes-icon ${isExpanded ? "close" : "star"}`}></i>
               </div>
 
               {isExpanded && (
-                <div
-                  className="mt-6 pt-6"
-                  style={{ borderTop: "4px solid #ccc" }}
-                >
-                  {/* Settlement summary */}
-                  <div className="mb-6">
-                    <h4
-                      className="font-pixel mb-3 text-lg"
-                      style={{ color: "#48c774" }}
-                    >
-                      SETTLEMENT
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div className="nes-container is-bordered p-4">
-                        <h5
-                          className="font-pixel mb-2"
-                          style={{ color: "#ffdd57" }}
-                        >
-                          Balances
-                        </h5>
-                        <ul className="space-y-1">
-                          {match.settlement.playerBalances.map((balance) => {
-                            const player = match.playerDetails.find(
-                              (pd) => pd.player.id === balance.userId
-                            );
-                            const netColor =
-                              balance.net >= 0
-                                ? "color: #48c774"
-                                : "color: #e74c3c";
-                            return (
-                              <li
-                                key={balance.userId}
-                                className="flex justify-between"
+                <div className="nes-mt-3">
+                  <h3>SETTLEMENT</h3>
+                  <div className="nes-grid nes-grid-2">
+                    <div className="nes-container is-dark">
+                      <h4>Balances</h4>
+                      <ul className="nes-list is-disc">
+                        {match.settlement.playerBalances.map((balance) => {
+                          const player = match.playerDetails.find(
+                            (pd) => pd.player.id === balance.userId
+                          );
+                          return (
+                            <li key={balance.userId}>
+                              {player?.player.name || "Unknown"}:{" "}
+                              <span
+                                className={
+                                  balance.net >= 0
+                                    ? "nes-text is-success"
+                                    : "nes-text is-error"
+                                }
                               >
-                                <span style={{ color: "#fff" }}>
-                                  {player?.player.name || "Unknown"}
-                                </span>
-                                <span
-                                  className={`font-pixel`}
-                                  style={{
-                                    color:
-                                      balance.net >= 0 ? "#48c774" : "#e74c3c",
-                                  }}
-                                >
-                                  <MoneyDisplay cents={balance.net} />
-                                </span>
+                                <MoneyDisplay cents={balance.net} />
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                    <div className="nes-container is-dark">
+                      <h4>Transfers</h4>
+                      {match.settlement.transfers.length === 0 ? (
+                        <p className="nes-text is-disabled">
+                          No transfers needed.
+                        </p>
+                      ) : (
+                        <ul className="nes-list is-disc">
+                          {match.settlement.transfers.map((t, i) => {
+                            const from = match.playerDetails.find(
+                              (pd) => pd.player.id === t.fromPlayerId
+                            );
+                            const to = match.playerDetails.find(
+                              (pd) => pd.player.id === t.toPlayerId
+                            );
+                            return (
+                              <li key={i}>
+                                {from?.player.name || "Unknown"} →{" "}
+                                {to?.player.name || "Unknown"}:{" "}
+                                <MoneyDisplay cents={t.amount} />
                               </li>
                             );
                           })}
                         </ul>
-                      </div>
-                      <div className="nes-container is-bordered p-4">
-                        <h5
-                          className="font-pixel mb-2"
-                          style={{ color: "#ffdd57" }}
-                        >
-                          Transfers
-                        </h5>
-                        {match.settlement.transfers.length === 0 ? (
-                          <p className="text-sm" style={{ color: "#999" }}>
-                            No transfers needed.
-                          </p>
-                        ) : (
-                          <ul className="space-y-2">
-                            {match.settlement.transfers.map((t, idx) => {
-                              const fromPlayer = match.playerDetails.find(
-                                (pd) => pd.player.id === t.fromPlayerId
-                              );
-                              const toPlayer = match.playerDetails.find(
-                                (pd) => pd.player.id === t.toPlayerId
-                              );
-                              return (
-                                <li
-                                  key={idx}
-                                  className="flex items-center justify-between"
-                                >
-                                  <span style={{ color: "#fff" }}>
-                                    {fromPlayer?.player.name || "Unknown"} →{" "}
-                                    {toPlayer?.player.name || "Unknown"}
-                                  </span>
-                                  <span
-                                    className="font-pixel"
-                                    style={{ color: "#ffdd57" }}
-                                  >
-                                    <MoneyDisplay cents={t.amount} />
-                                  </span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Player details */}
-                  <div>
-                    <h4
-                      className="font-pixel mb-3 text-lg"
-                      style={{ color: "#48c774" }}
-                    >
-                      PLAYER DETAILS
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {match.playerDetails.map((pd) => {
-                        const balance = match.settlement.playerBalances.find(
-                          (b) => b.userId === pd.player.id
-                        );
-                        return (
-                          <div
-                            key={pd.player.id}
-                            className="nes-container is-bordered p-4"
-                            style={{ background: "#212529" }}
-                          >
-                            <h5
-                              className="font-pixel mb-2"
-                              style={{ color: "#ffdd57" }}
-                            >
-                              {pd.player.name}
-                            </h5>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex justify-between">
-                                <span style={{ color: "#fff" }}>Buy‑ins:</span>
-                                <span className="font-pixel">{pd.buyIns}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span style={{ color: "#fff" }}>
-                                  Final value:
-                                </span>
-                                <MoneyDisplay cents={pd.finalValue} />
-                              </div>
-                              <div className="flex justify-between">
-                                <span style={{ color: "#fff" }}>Paid in:</span>
-                                <MoneyDisplay
-                                  cents={pd.buyIns * match.buyInAmount}
-                                />
-                              </div>
-                              <div
-                                className="mt-1 flex justify-between pt-1"
-                                style={{ borderTop: "4px solid #ccc" }}
-                              >
-                                <span style={{ color: "#fff" }}>
-                                  Net result:
-                                </span>
-                                <span
-                                  className="font-pixel"
-                                  style={
-                                    balance?.net && balance.net >= 0
-                                      ? { color: "#48c774" }
-                                      : { color: "#e74c3c" }
-                                  }
-                                >
-                                  {balance ? (
-                                    <MoneyDisplay cents={balance.net} />
-                                  ) : (
-                                    "—"
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div
-                    className="mt-6 pt-6"
-                    style={{ borderTop: "4px solid #ccc" }}
-                  >
+                  <div className="nes-flex nes-gap-1 nes-mt-3">
                     <button
                       onClick={(e) => handleShare(match, e)}
-                      className="nes-btn w-full"
-                      style={{ marginBottom: "16px" }}
+                      className="nes-btn is-primary"
                     >
                       SHARE
                     </button>
                     <button
                       onClick={(e) => handleDelete(match.id, e)}
-                      className="nes-btn is-error w-full"
-                      data-testid="delete-button"
+                      className="nes-btn is-error"
                     >
                       DELETE
                     </button>

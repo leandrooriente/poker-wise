@@ -101,10 +101,8 @@ function CashoutContent() {
   if (error || !match) {
     return (
       <div className="nes-container is-bordered p-6">
-        <h2 className="font-pixel mb-4 text-2xl" style={{ color: "#e74c3c" }}>
-          ERROR
-        </h2>
-        <p style={{ color: "#fff" }}>{error || "Match not found"}</p>
+        <h2 className="font-pixel nes-text is-error mb-4 text-2xl">ERROR</h2>
+        <p>{error || "Match not found"}</p>
         <button
           onClick={() => router.push("/new-match")}
           className="nes-btn mt-4"
@@ -121,7 +119,7 @@ function CashoutContent() {
   return (
     <div className="nes-container with-title is-dark">
       <p className="title">CASHOUT</p>
-      <p className="mb-6" style={{ color: "#fff" }}>
+      <p className="mb-6">
         Enter each player&apos;s final chip value in euros. The total must match
         total paid‑in amount.
       </p>
@@ -129,34 +127,28 @@ function CashoutContent() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Player inputs */}
         <div className="lg:col-span-2">
-          <h3 className="font-pixel mb-4 text-xl" style={{ color: "#ffdd57" }}>
+          <h3 className="font-pixel nes-text is-warning mb-4 text-xl">
             FINAL CHIP VALUES
           </h3>
           <div className="space-y-6">
             {players.map(({ user, buyIns }) => {
               const paidIn = buyIns * match.buyInAmount;
               const finalValue = finalValues[user.id] || 0;
+              const netClass =
+                finalValue - paidIn >= 0
+                  ? "nes-text is-success"
+                  : "nes-text is-error";
               return (
                 <div
                   key={user.id}
-                  className="nes-container is-bordered p-6"
-                  style={{ background: "#212529" }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.borderColor = "#48c774")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.borderColor = "#ccc")
-                  }
+                  className="nes-container is-bordered is-dark p-6"
                 >
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
-                      <h4
-                        className="font-pixel text-2xl"
-                        style={{ color: "#48c774" }}
-                      >
+                      <h4 className="font-pixel nes-text is-success text-2xl">
                         {user.name}
                       </h4>
-                      <p style={{ color: "#fff" }}>
+                      <p>
                         Buy‑ins: <span className="font-pixel">{buyIns}</span>
                       </p>
                     </div>
@@ -164,8 +156,7 @@ function CashoutContent() {
                       <div className="text-left">
                         <label
                           htmlFor={`final-value-${user.id}`}
-                          className="font-pixel mb-2 block text-sm"
-                          style={{ color: "#999" }}
+                          className="font-pixel nes-text is-disabled mb-2 block text-sm"
                         >
                           FINAL VALUE
                         </label>
@@ -175,25 +166,14 @@ function CashoutContent() {
                           onChange={(cents) =>
                             handleFinalValueChange(user.id, cents)
                           }
-                          className="w-full text-left md:w-40"
                           data-testid={`final-value-input-${user.id}`}
                         />
                       </div>
                       <div className="text-left">
-                        <div
-                          className="font-pixel text-sm"
-                          style={{ color: "#999" }}
-                        >
+                        <div className="font-pixel nes-text is-disabled text-sm">
                           Net
                         </div>
-                        <div
-                          className="font-pixel text-xl"
-                          style={
-                            finalValue - paidIn >= 0
-                              ? { color: "#48c774" }
-                              : { color: "#e74c3c" }
-                          }
-                        >
+                        <div className={`font-pixel text-xl ${netClass}`}>
                           <MoneyDisplay cents={finalValue - paidIn} />
                         </div>
                       </div>
@@ -208,42 +188,34 @@ function CashoutContent() {
         {/* Validation & actions */}
         <div className="space-y-6">
           <div>
-            <h3
-              className="font-pixel mb-4 text-xl"
-              style={{ color: "#3273dc" }}
-            >
+            <h3 className="font-pixel nes-text is-primary mb-4 text-xl">
               VALIDATION
             </h3>
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span style={{ color: "#fff" }}>Total paid‑in</span>
+                <span>Total paid‑in</span>
                 <MoneyDisplay cents={totalPaidIn} />
               </div>
               <div className="flex justify-between">
-                <span style={{ color: "#fff" }}>Total final value</span>
+                <span>Total final value</span>
                 <MoneyDisplay cents={validation?.totalFinalValue ?? 0} />
               </div>
               <div
-                className="flex justify-between pt-4"
-                style={{
-                  borderTop: "4px solid #ccc",
-                  color: validation?.isValid ? "#48c774" : "#e74c3c",
-                }}
+                className={`flex justify-between border-t-4 pt-4 ${
+                  validation?.isValid
+                    ? "nes-text is-success border-[#48c774]"
+                    : "nes-text is-error border-[#e74c3c]"
+                }`}
               >
-                <span style={{ color: "#fff" }}>Difference</span>
+                <span>Difference</span>
                 <MoneyDisplay cents={validation?.diff ?? 0} />
               </div>
               {validation && (
                 <div
                   data-testid="validation-message"
-                  className="nes-container is-bordered p-3 text-center"
-                  style={{
-                    background: validation.isValid
-                      ? "rgba(72, 199, 116, 0.1)"
-                      : "rgba(231, 76, 60, 0.1)",
-                    borderColor: validation.isValid ? "#48c774" : "#e74c3c",
-                    color: validation.isValid ? "#48c774" : "#e74c3c",
-                  }}
+                  className={`nes-container is-bordered nes-text p-3 text-center ${
+                    validation.isValid ? "is-success" : "is-error"
+                  }`}
                 >
                   {validation.isValid
                     ? "✓ Totals match! Ready to settle."
@@ -253,13 +225,12 @@ function CashoutContent() {
             </div>
           </div>
 
-          <div className="pt-6" style={{ borderTop: "4px solid #ccc" }}>
+          <div className="border-t-4 pt-6">
             <div className="space-y-4">
               <button
                 onClick={handleSaveAndSettle}
                 disabled={!validation || !validation.isValid}
-                className="nes-btn is-primary w-full"
-                style={{ padding: "16px 24px" }}
+                className="nes-btn is-primary w-full px-6 py-4"
               >
                 SETTLE & SHOW RESULTS
               </button>

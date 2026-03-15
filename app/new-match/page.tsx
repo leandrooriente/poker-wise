@@ -16,17 +16,17 @@ export default function NewMatchPage() {
   const { activeGroupId, error, clearError } = useActiveGroup();
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
-  const [buyInAmount, setBuyInAmount] = useState<number>(1000); // cents
+  const [buyInAmount, setBuyInAmount] = useState<number>(1000);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
+      if (!activeGroupId) {
+        setPlayers([]);
+        setLoading(false);
+        return;
+      }
       try {
-        if (!activeGroupId) {
-          setPlayers([]);
-          setLoading(false);
-          return;
-        }
         const [playerList, settings] = await Promise.all([
           getPlayersForGroup(activeGroupId),
           getSettings(),
@@ -75,8 +75,8 @@ export default function NewMatchPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="font-pixel">Loading...</div>
+      <div className="nes-container is-dark nes-v-center nes-min-h-content">
+        <span className="nes-text">Loading...</span>
       </div>
     );
   }
@@ -85,9 +85,9 @@ export default function NewMatchPage() {
     return (
       <div className="nes-container with-title is-dark">
         <p className="title">NEW MATCH</p>
-        <div className="py-8 text-center">
-          <p style={{ color: "#999" }}>No group selected.</p>
-          <p className="mt-2 text-sm" style={{ color: "#999" }}>
+        <div className="nes-container is-rounded nes-text-center">
+          <p className="nes-text is-disabled">No group selected.</p>
+          <p className="nes-text is-disabled nes-text-sm">
             Please select a group from the header dropdown or create one on the
             Groups page.
           </p>
@@ -98,100 +98,50 @@ export default function NewMatchPage() {
 
   return (
     <div className="nes-container with-title is-dark">
+      <p className="title">NEW MATCH SETUP</p>
+
       {error && (
-        <div
-          className="nes-container is-bordered mb-4"
-          style={{ background: "#fee", border: "4px solid #e74c3c" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
-              {error}
-            </span>
-            <button
-              onClick={clearError}
-              className="nes-btn is-error"
-              style={{ padding: "4px 8px", fontSize: "10px" }}
-            >
+        <div className="nes-container is-rounded is-error nes-mb-2">
+          <div className="nes-flex nes-justify-between nes-items-center">
+            <span className="nes-text is-error">{error}</span>
+            <button onClick={clearError} className="nes-btn is-error">
               DISMISS
             </button>
           </div>
         </div>
       )}
-      <p className="title">NEW MATCH SETUP</p>
-      <p className="mb-6" style={{ color: "#fff" }}>
-        Select players and configure buy‑in amount for a new Texas Hold&apos;em
+
+      <p className="nes-mb-3">
+        Select players and configure buy-in amount for a new Texas Hold em
         match.
       </p>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="nes-grid nes-grid-responsive nes-grid-responsive-3">
         {/* Player selection */}
-        <div className="lg:col-span-2">
-          <h3 className="font-pixel mb-4 text-xl" style={{ color: "#ffdd57" }}>
-            SELECT PLAYERS
-          </h3>
+        <div className="nes-grid-responsive-3">
+          <h2>SELECT PLAYERS</h2>
+
           {players.length === 0 ? (
-            <div className="nes-container is-bordered py-8 text-center">
-              <p style={{ color: "#999" }}>No players found.</p>
-              <p className="mt-2 text-sm">
-                Go to <strong>Players</strong> tab to add players first.
+            <div className="nes-container is-rounded nes-text-center">
+              <p className="nes-text is-disabled">No players found.</p>
+              <p className="nes-text-sm">
+                Go to Players tab to add players first.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <div className="nes-grid nes-grid-responsive">
               {players.map((player) => {
                 const isSelected = selectedPlayerIds.includes(player.id);
                 return (
-                  <div key={player.id} className="relative">
+                  <label key={player.id} className="nes-container">
                     <input
                       type="checkbox"
-                      id={`player-${player.id}`}
+                      className="nes-checkbox"
                       checked={isSelected}
                       onChange={() => togglePlayer(player.id)}
-                      className="hidden"
                     />
-                    <label
-                      htmlFor={`player-${player.id}`}
-                      className="nes-container is-bordered block cursor-pointer p-4 transition-all"
-                      style={{
-                        background: isSelected
-                          ? "rgba(72, 199, 116, 0.1)"
-                          : "#212529",
-                        borderColor: isSelected ? "#48c774" : "#ccc",
-                        color: isSelected ? "#48c774" : "#fff",
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span
-                          data-testid={`player-checkbox-indicator-${player.id}`}
-                          data-state={isSelected ? "checked" : "unchecked"}
-                          aria-hidden="true"
-                          className="nes-pointer inline-flex h-7 w-7 shrink-0 items-center justify-center border-2 transition-all"
-                          style={{
-                            borderColor: isSelected ? "#48c774" : "#ccc",
-                            background: isSelected
-                              ? "rgba(72, 199, 116, 0.2)"
-                              : "#212529",
-                          }}
-                        >
-                          <span
-                            className={`h-3.5 w-2 rotate-45 border-r-[3px] border-b-[3px] transition-opacity ${
-                              isSelected
-                                ? "opacity-100"
-                                : "border-transparent opacity-0"
-                            }`}
-                            style={{
-                              borderColor: isSelected
-                                ? "#48c774"
-                                : "transparent",
-                            }}
-                          />
-                        </span>
-                        <span className="font-pixel text-lg">
-                          {player.name}
-                        </span>
-                      </div>
-                    </label>
-                  </div>
+                    <span>{player.name}</span>
+                  </label>
                 );
               })}
             </div>
@@ -199,44 +149,32 @@ export default function NewMatchPage() {
         </div>
 
         {/* Configuration */}
-        <div className="space-y-6">
-          <div>
-            <h3
-              className="font-pixel mb-4 text-xl"
-              style={{ color: "#3273dc" }}
-            >
-              BUY‑IN AMOUNT (EUR)
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <MoneyInput
-                  value={buyInAmount}
-                  onChange={setBuyInAmount}
-                  className="w-full"
-                  data-testid="buy-in-amount-input"
-                />
-              </div>
-            </div>
+        <div>
+          <h2>BUY-IN AMOUNT</h2>
+          <div className="nes-field">
+            <MoneyInput
+              value={buyInAmount}
+              onChange={setBuyInAmount}
+              data-testid="buy-in-amount-input"
+            />
           </div>
 
-          <div className="border-t pt-6" style={{ borderColor: "#ccc" }}>
-            <div className="mb-6 flex justify-between">
-              <span style={{ color: "#fff" }}>Total pot</span>
-              <MoneyDisplay
-                cents={selectedPlayerIds.length * buyInAmount}
-                className="font-pixel"
-                style={{ color: "#48c774" }}
-              />
-            </div>
-            <button
-              onClick={handleStartMatch}
-              disabled={selectedPlayerIds.length < 2}
-              className="nes-btn is-primary w-full"
-              style={{ padding: "16px 24px" }}
-            >
-              START MATCH
-            </button>
+          <div className="nes-container is-dark nes-mt-3">
+            <p>
+              Total pot:{" "}
+              <MoneyDisplay cents={selectedPlayerIds.length * buyInAmount} />
+            </p>
           </div>
+
+          <button
+            onClick={handleStartMatch}
+            disabled={selectedPlayerIds.length < 2}
+            className={`nes-btn is-primary nes-w-full nes-mt-3 ${
+              selectedPlayerIds.length >= 2 ? "" : "is-disabled"
+            }`}
+          >
+            START MATCH
+          </button>
         </div>
       </div>
     </div>

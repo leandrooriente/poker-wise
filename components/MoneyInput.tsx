@@ -18,8 +18,6 @@ interface MoneyInputProps {
   onChange: (cents: number) => void;
   /** Placeholder text */
   placeholder?: string;
-  /** Additional CSS classes */
-  className?: string;
   /** Maximum number of digits allowed (default 10 = up to 9,999,999.99) */
   maxDigits?: number;
   /** Optional id for label association */
@@ -29,7 +27,7 @@ interface MoneyInputProps {
 }
 
 /**
- * Money input with digit‑entry behavior:
+ * Money input with digit-entry behavior:
  * - Typing digits shifts cents from right to left (e.g., 1 → 0.01, 980 → 9.80)
  * - Backspace/delete/arrows/tab behave normally
  * - Empty visual state shows "0.00"
@@ -38,7 +36,6 @@ export default function MoneyInput({
   value,
   onChange,
   placeholder = "0.00",
-  className = "",
   maxDigits = 10,
   id,
   "data-testid": testId,
@@ -140,7 +137,7 @@ export default function MoneyInput({
       onPaste={handlePaste}
       onFocus={handleFocus}
       onBlur={handleBlur}
-      className={`nes-input ${className}`}
+      className="nes-input"
       data-testid={testId}
     />
   );

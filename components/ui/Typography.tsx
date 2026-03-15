@@ -8,11 +8,7 @@ export function Title({
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h1
-      className={cn("font-pixel", className)}
-      style={{ color: "#209cee" }}
-      {...props}
-    >
+    <h1 className={cn("font-pixel nes-text is-primary", className)} {...props}>
       {children}
     </h1>
   );
@@ -24,11 +20,7 @@ export function Heading({
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h2
-      className={cn("font-pixel", className)}
-      style={{ color: "#ffdd57" }}
-      {...props}
-    >
+    <h2 className={cn("font-pixel nes-text is-warning", className)} {...props}>
       {children}
     </h2>
   );
@@ -40,11 +32,7 @@ export function Subheading({
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3
-      className={cn("font-pixel", className)}
-      style={{ color: "#209cee" }}
-      {...props}
-    >
+    <h3 className={cn("font-pixel nes-text is-primary", className)} {...props}>
       {children}
     </h3>
   );
@@ -56,11 +44,7 @@ export function Body({
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p
-      className={cn("font-retro-sans", className)}
-      style={{ color: "#fff" }}
-      {...props}
-    >
+    <p className={cn("font-retro-sans", className)} {...props}>
       {children}
     </p>
   );
@@ -73,8 +57,10 @@ export function Label({
 }: HTMLAttributes<HTMLLabelElement>) {
   return (
     <label
-      className={cn("font-pixel mb-2 block text-sm", className)}
-      style={{ color: "#ffdd57" }}
+      className={cn(
+        "font-pixel nes-text is-warning mb-2 block text-sm",
+        className
+      )}
       {...props}
     >
       {children}
@@ -89,8 +75,7 @@ export function Caption({
 }: HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
-      className={cn("font-retro-sans text-sm", className)}
-      style={{ color: "#999" }}
+      className={cn("font-retro-sans nes-text is-disabled text-sm", className)}
       {...props}
     >
       {children}

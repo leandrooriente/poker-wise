@@ -24,10 +24,7 @@ export default function AddPlayerForm({ onAdd }: AddPlayerFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 gap-4">
         <div>
-          <label
-            className="font-pixel mb-2 block text-sm"
-            style={{ color: "#999" }}
-          >
+          <label className="font-pixel nes-text is-disabled mb-2 block text-sm">
             PLAYER NAME *
           </label>
           <input
@@ -42,11 +39,7 @@ export default function AddPlayerForm({ onAdd }: AddPlayerFormProps) {
         </div>
       </div>
       <div className="flex justify-end">
-        <button
-          type="submit"
-          className="nes-btn is-primary"
-          style={{ padding: "12px 24px" }}
-        >
+        <button type="submit" className="nes-btn is-primary px-6 py-3">
           ADD PLAYER
         </button>
       </div>

@@ -1,0 +1,193 @@
+/* Custom utilities for layout (NES.css doesn't provide these) */
+
+/* Base layout */
+html,
+body {
+  background-color: #212529;
+  color: #fff;
+}
+
+/* Container for main content */
+.nes-main-content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Spacing utilities */
+.nes-mb-0 {
+  margin-bottom: 0;
+}
+.nes-mb-1 {
+  margin-bottom: 0.5rem;
+}
+.nes-mb-2 {
+  margin-bottom: 1rem;
+}
+.nes-mb-3 {
+  margin-bottom: 1.5rem;
+}
+.nes-mb-4 {
+  margin-bottom: 2rem;
+}
+
+.nes-mt-0 {
+  margin-top: 0;
+}
+.nes-mt-1 {
+  margin-top: 0.5rem;
+}
+.nes-mt-2 {
+  margin-top: 1rem;
+}
+.nes-mt-3 {
+  margin-top: 1.5rem;
+}
+.nes-mt-4 {
+  margin-top: 2rem;
+}
+
+/* Flex layout */
+.nes-flex {
+  display: flex;
+}
+.nes-flex-col {
+  display: flex;
+  flex-direction: column;
+}
+.nes-flex-wrap {
+  flex-wrap: wrap;
+}
+.nes-gap-1 {
+  gap: 0.5rem;
+}
+.nes-gap-2 {
+  gap: 1rem;
+}
+.nes-gap-3 {
+  gap: 1.5rem;
+}
+.nes-gap-4 {
+  gap: 2rem;
+}
+.nes-items-center {
+  align-items: center;
+}
+.nes-justify-between {
+  justify-content: space-between;
+}
+.nes-justify-center {
+  justify-content: center;
+}
+
+/* Grid layout */
+.nes-grid {
+  display: grid;
+  gap: 1rem;
+}
+.nes-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.nes-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Responsive grid */
+.nes-grid-responsive {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .nes-grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .nes-grid-responsive-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Text alignment */
+.nes-text-center {
+  text-align: center;
+}
+.nes-text-left {
+  text-align: left;
+}
+.nes-text-right {
+  text-align: right;
+}
+
+/* Width utilities */
+.nes-w-full {
+  width: 100%;
+}
+.nes-max-w-sm {
+  max-width: 24rem;
+}
+.nes-max-w-md {
+  max-width: 28rem;
+}
+.nes-max-w-lg {
+  max-width: 32rem;
+}
+
+/* Hide on mobile */
+@media (max-width: 639px) {
+  .nes-hide-mobile {
+    display: none;
+  }
+}
+
+/* Hide on desktop */
+@media (min-width: 640px) {
+  .nes-hide-desktop {
+    display: none;
+  }
+}
+
+/* Center container */
+.nes-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Full height for loading states */
+.nes-min-h-screen {
+  min-height: 100vh;
+}
+
+/* For vertically centering loading spinners */
+.nes-v-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Aspect ratio for avatar */
+.nes-avatar-wrapper {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+}
+
+/* Form field wrapper */
+.nes-field {
+  margin-bottom: 1rem;
+}
+.nes-field > label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Small text */
+.nes-text-sm {
+  font-size: 0.875rem;
+}
+
+/* Min height for content areas */
+.nes-min-h-content {
+  min-height: 16rem;
+}

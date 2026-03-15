@@ -33,10 +33,7 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    if (activeGroupLoading || groupsLoading || groups.length === 0) {
-      return;
-    }
-
+    if (activeGroupLoading || groupsLoading || groups.length === 0) return;
     if (!activeGroupId) {
       setActiveGroupId(groups[0].id);
     }
@@ -57,93 +54,57 @@ export default function Header() {
   ];
 
   const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setActiveGroupId(value || null).catch((err) => {
-      console.error("Failed to update active group:", err);
-      // TODO: show error to user
-    });
+    setActiveGroupId(e.target.value || null);
   };
 
   return (
     <header className="nes-container is-dark">
       {error && (
-        <div
-          className="nes-container is-bordered mb-4"
-          style={{ background: "#fee", border: "4px solid #e74c3c" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
-              {error}
-            </span>
-            <button
-              onClick={clearError}
-              className="nes-btn is-error"
-              style={{ padding: "4px 8px", fontSize: "10px" }}
-            >
+        <div className="nes-container is-rounded is-error nes-mb-2">
+          <div className="nes-flex nes-justify-between nes-items-center">
+            <span className="nes-text is-error">{error}</span>
+            <button onClick={clearError} className="nes-btn is-error">
               DISMISS
             </button>
           </div>
         </div>
       )}
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-full"
-              style={{
-                background: "linear-gradient(135deg, #209cee 0%, #00d1b2 100%)",
-              }}
-            >
-              <span className="font-pixel text-lg" style={{ color: "#fff" }}>
-                P
-              </span>
-            </div>
-            <h1
-              className="font-pixel text-xl sm:text-2xl"
-              style={{ color: "#209cee" }}
-            >
-              POKER<span style={{ color: "#ffdd57" }}>WISE</span>
-            </h1>
-          </div>
 
-          {/* Group selector */}
-          <div className="ml-0 w-full max-w-xs sm:ml-4 sm:w-auto">
-            <label htmlFor="group-select" className="sr-only">
-              Select group
-            </label>
-            <div className="nes-select">
-              <select
-                id="group-select"
-                value={activeGroupId || ""}
-                onChange={handleGroupChange}
-                disabled={activeGroupLoading || groupsLoading}
-              >
-                <option value="" disabled>
-                  Select group
-                </option>
-                {groups.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+      <div className="nes-flex nes-flex-wrap nes-gap-2 nes-justify-between nes-items-center">
+        <div className="nes-flex nes-gap-2 nes-items-center">
+          <i className="nes-icon trophy is-small"></i>
+          <h1>
+            <span className="nes-text is-primary">POKER</span>
+            <span className="nes-text is-warning">WISE</span>
+          </h1>
         </div>
 
-        <nav className="flex flex-wrap gap-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="nes-btn"
-              style={{ fontSize: "12px", padding: "8px 16px" }}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="nes-select">
+          <select
+            id="group-select"
+            value={activeGroupId || ""}
+            onChange={handleGroupChange}
+            disabled={activeGroupLoading || groupsLoading}
+          >
+            <option value="" disabled>
+              Select group
+            </option>
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
+
+      <nav className="nes-flex nes-flex-wrap nes-gap-1 nes-mt-2">
+        {navItems.map((item) => (
+          <Link key={item.href} href={item.href} className="nes-btn">
+            {item.label}
+          </Link>
+        ))}
+      </nav>
     </header>
   );
 }

@@ -9,7 +9,7 @@ import { useActiveGroup } from "@/lib/active-group";
 import { buildScoreRows, ScoreMode, sortScoreRows } from "@/lib/score";
 
 export default function ScorePage() {
-  const { activeGroupId, error, clearError } = useActiveGroup();
+  const { activeGroupId, error } = useActiveGroup();
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
   const [scoreMode, setScoreMode] = useState<ScoreMode>("total");
@@ -17,29 +17,29 @@ export default function ScorePage() {
 
   useEffect(() => {
     const loadScores = async () => {
-      try {
-        setPageError(null);
+      setPageError(null);
 
-        if (!activeGroupId) {
-          setRows([]);
-          return;
-        }
-
-        const [matches, players] = await Promise.all([
-          getMatchesByGroup(activeGroupId),
-          getPlayersForGroup(activeGroupId),
-        ]);
-
-        setRows(buildScoreRows(matches, players));
-      } catch {
-        setPageError("Failed to load score data");
-      } finally {
-        setLoading(false);
+      if (!activeGroupId) {
+        setRows([]);
+        return;
       }
+
+      const [matches, players] = await Promise.all([
+        getMatchesByGroup(activeGroupId),
+        getPlayersForGroup(activeGroupId),
+      ]);
+
+      setRows(buildScoreRows(matches, players));
     };
 
     setLoading(true);
-    loadScores();
+    loadScores()
+      .catch(() => {
+        setPageError("Failed to load score data");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [activeGroupId]);
 
   const rankedRows = useMemo(
@@ -51,9 +51,9 @@ export default function ScorePage() {
     return (
       <div className="nes-container with-title is-dark">
         <p className="title">SCOREBOARD</p>
-        <p className="mb-6 text-sm">Rankings based on settled matches only.</p>
-        <div className="flex h-64 items-center justify-center">
-          <div className="font-pixel">Loading scores...</div>
+        <p className="nes-text-sm">Rankings based on settled matches only.</p>
+        <div className="nes-container is-dark nes-v-center nes-min-h-content">
+          <i className="nes-loader"></i>
         </div>
       </div>
     );
@@ -63,12 +63,11 @@ export default function ScorePage() {
     return (
       <div className="nes-container with-title is-dark">
         <p className="title">SCOREBOARD</p>
-        <p className="mb-6 text-sm">Rankings based on settled matches only.</p>
-        <div className="nes-container is-bordered py-8 text-center">
-          <p style={{ color: "#999" }}>No group selected.</p>
-          <p className="mt-2 text-sm">
-            Please select a group from the header dropdown or create one on the
-            Groups page.
+        <div className="nes-container is-rounded nes-text-center">
+          <p className="nes-text is-disabled">No group selected.</p>
+          <p className="nes-text is-disabled text-sm">
+            Please select a group from header dropdown or create one on Groups
+            page.
           </p>
         </div>
       </div>
@@ -79,26 +78,20 @@ export default function ScorePage() {
     return (
       <div className="nes-container with-title is-dark">
         <p className="title">ERROR</p>
-        <p style={{ color: "#fff" }}>{pageError}</p>
+        <p className="nes-text is-error">{pageError}</p>
       </div>
     );
   }
 
   return (
     <div className="nes-container is-dark">
-      {error && (
-        <div
-          className="nes-container is-bordered mb-4"
-          style={{ background: "#fee", border: "4px solid #e74c3c" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
-              {error}
-            </span>
+      {pageError && (
+        <div className="nes-container is-rounded is-error nes-mb-2">
+          <div className="nes-flex nes-justify-between nes-items-center">
+            <span className="nes-text is-error">{pageError}</span>
             <button
-              onClick={clearError}
+              onClick={() => setPageError(null)}
               className="nes-btn is-error"
-              style={{ padding: "4px 8px", fontSize: "10px" }}
             >
               DISMISS
             </button>
@@ -106,20 +99,14 @@ export default function ScorePage() {
         </div>
       )}
 
-      <h2 className="font-pixel mb-2 text-2xl" style={{ color: "#48c774" }}>
-        SCOREBOARD
-      </h2>
-      <p className="mb-6 text-sm">Rankings based on settled matches only.</p>
+      <h1>SCOREBOARD</h1>
+      <p className="nes-text-sm">Rankings based on settled matches only.</p>
 
-      <div className="mb-6 grid grid-cols-2 gap-3">
+      <div className="nes-flex nes-gap-1 nes-mb-4">
         <button
           type="button"
           onClick={() => setScoreMode("total")}
           className="nes-btn"
-          style={{
-            background: scoreMode === "total" ? "#fff" : "transparent",
-            color: scoreMode === "total" ? "#000" : "#fff",
-          }}
         >
           TOTAL
         </button>
@@ -127,67 +114,46 @@ export default function ScorePage() {
           type="button"
           onClick={() => setScoreMode("average")}
           className="nes-btn"
-          style={{
-            background: scoreMode === "average" ? "#fff" : "transparent",
-            color: scoreMode === "average" ? "#000" : "#fff",
-          }}
         >
           AVERAGE
         </button>
       </div>
 
       {rankedRows.length === 0 ? (
-        <div className="nes-container is-bordered py-8 text-center">
-          <p style={{ color: "#999" }}>No settled matches yet.</p>
-          <p className="mt-2 text-sm">Settle a match to see player rankings.</p>
+        <div className="nes-container is-rounded nes-text-center">
+          <p className="nes-text is-disabled">No settled matches yet.</p>
+          <p className="nes-text is-disabled text-sm">
+            Settle a match to see player rankings.
+          </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="nes-stack">
           {rankedRows.map((row, index) => {
             const value = scoreMode === "total" ? row.totalNet : row.averageNet;
-            const valueColor =
+            const valueColorClass =
               value > 0
-                ? { color: "#48c774" }
+                ? "nes-text is-success"
                 : value < 0
-                  ? { color: "#e74c3c" }
-                  : { color: "#fff" };
-
+                  ? "nes-text is-error"
+                  : "nes-text is-disabled";
             return (
               <div
                 key={row.id}
                 data-testid="score-row"
-                className="nes-container is-bordered p-5"
-                style={{ background: "#1a1a1a" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor = "#48c774")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "#ccc")
-                }
+                className="nes-container is-rounded"
               >
-                <div className="flex items-start justify-between gap-4">
+                <div className="nes-flex nes-justify-between nes-gap-2">
                   <div>
-                    <p
-                      className="font-pixel mb-1 text-sm"
-                      style={{ color: "#3273dc" }}
-                    >
-                      #{index + 1}
-                    </p>
-                    <h3
-                      className="font-pixel text-xl"
-                      style={{ color: "#ffdd57" }}
-                    >
-                      {row.name}
-                    </h3>
-                    <p className="mt-2 text-sm" style={{ color: "#fff" }}>
+                    <p className="nes-text-sm">#{index + 1}</p>
+                    <h3 className="nes-text is-warning">{row.name}</h3>
+                    <p className="nes-text-sm">
                       {row.matchCount}{" "}
                       {row.matchCount === 1 ? "match" : "matches"}
                     </p>
                   </div>
                   <MoneyDisplay
                     cents={value}
-                    className="font-pixel text-2xl"
-                    style={valueColor}
+                    className={`nes-text-lg ${valueColorClass}`}
                   />
                 </div>
               </div>

@@ -84,28 +84,20 @@ function LiveMatchContent() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="font-pixel">Loading...</div>
+      <div className="nes-container is-dark nes-v-center nes-min-h-content">
+        <i className="nes-loader"></i>
       </div>
     );
   }
 
   if (error || activeGroupError || !activeGroupId) {
     return (
-      <div className="nes-container is-bordered p-6">
-        <h2
-          className="font-pixel mb-4 text-xl sm:text-2xl"
-          style={{ color: "#e74c3c" }}
-        >
-          ERROR
-        </h2>
-        <p style={{ color: "#fff" }}>
+      <div className="nes-container is-dark">
+        <h1 className="nes-text is-error">ERROR</h1>
+        <p>
           {error || activeGroupError || "No match found or no active group"}
         </p>
-        <button
-          onClick={() => router.push("/new-match")}
-          className="nes-btn mt-4"
-        >
+        <button onClick={() => router.push("/new-match")} className="nes-btn">
           Start New Match
         </button>
       </div>
@@ -114,8 +106,8 @@ function LiveMatchContent() {
 
   if (!match) {
     return (
-      <div className="nes-container is-bordered p-6">
-        <p style={{ color: "#fff" }}>Match data not available</p>
+      <div className="nes-container is-dark">
+        <p className="nes-text is-disabled">Match data not available</p>
       </div>
     );
   }
@@ -129,125 +121,66 @@ function LiveMatchContent() {
   return (
     <div className="nes-container with-title is-dark">
       <p className="title">LIVE MATCH</p>
+
       {activeGroupError && (
-        <div
-          className="nes-container is-bordered mb-4"
-          style={{ background: "#fee", border: "4px solid #e74c3c" }}
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
-              {activeGroupError}
-            </span>
-            <button
-              onClick={clearError}
-              className="nes-btn is-error"
-              style={{ padding: "4px 8px", fontSize: "10px" }}
-            >
+        <div className="nes-container is-rounded is-error nes-mb-2">
+          <div className="nes-flex nes-justify-between nes-items-center">
+            <span className="nes-text is-error">{activeGroupError}</span>
+            <button onClick={clearError} className="nes-btn is-error">
               DISMISS
             </button>
           </div>
         </div>
       )}
-      <p className="mb-6" style={{ color: "#fff" }}>
-        Track rebuys during game. Tap <span>&quot;Rebuy&quot;</span> when a
-        player adds another buy-in.
+
+      <p>
+        Track rebuys during game. Tap REBUY when a player adds another buy-in.
       </p>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="nes-grid nes-grid-responsive nes-grid-responsive-3">
         {/* Player list */}
-        <div className="lg:col-span-2">
-          <h3 className="font-pixel mb-4 text-xl" style={{ color: "#ffdd57" }}>
-            PLAYERS
-          </h3>
-          <div className="space-y-4">
-            {players.map(({ user, buyIns }: LiveMatchPlayer) => (
-              <div
-                key={user.id}
-                className="nes-container is-bordered flex flex-col p-4"
-                style={{ background: "#212529" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor = "#48c774")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "#ccc")
-                }
-                data-testid="player-row"
-              >
-                <div className="flex items-center justify-between">
-                  <h4
-                    className="font-pixel text-xl"
-                    style={{ color: "#48c774" }}
-                  >
-                    {user.name}
-                  </h4>
-                  <span
-                    className="font-pixel text-2xl"
-                    style={{ color: "#ffdd57" }}
-                  >
-                    {buyIns}
-                  </span>
+        <div className="nes-grid-responsive-3">
+          <h2>PLAYERS</h2>
+          <div className="nes-stack">
+            {players.map(({ user, buyIns }) => (
+              <div key={user.id} className="nes-container is-rounded">
+                <div className="nes-flex nes-justify-between nes-items-center">
+                  <h3 className="nes-text is-success">{user.name}</h3>
+                  <span className="nes-text is-warning">{buyIns}</span>
                 </div>
-
-                <p className="text-sm" style={{ color: "#999" }}>
+                <p className="nes-text is-disabled">
                   Total paid:{" "}
                   <MoneyDisplay cents={buyIns * match.buyInAmount} />
                 </p>
-                <div className="mt-4">
-                  <button
-                    onClick={() => handleRebuy(user.id)}
-                    className="nes-btn"
-                  >
-                    REBUY
-                  </button>
-                </div>
+                <button
+                  onClick={() => handleRebuy(user.id)}
+                  className="nes-btn nes-mt-2"
+                >
+                  REBUY
+                </button>
               </div>
             ))}
           </div>
         </div>
 
         {/* Match info & actions */}
-        <div className="space-y-6">
-          <div>
-            <h3
-              className="font-pixel mb-4 text-xl"
-              style={{ color: "#3273dc" }}
-            >
-              MATCH INFO
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span style={{ color: "#fff" }}>Buy‑in each</span>
-                <MoneyDisplay cents={match.buyInAmount} />
-              </div>
-              <div className="flex justify-between">
-                <span style={{ color: "#fff" }}>Total buy‑ins</span>
-                <span className="font-pixel">{totalBuyIns}</span>
-              </div>
-              <div
-                className="flex justify-between pt-3"
-                style={{ borderTop: "4px solid #ccc" }}
-              >
-                <span style={{ color: "#fff" }}>Total pot</span>
-                <MoneyDisplay
-                  cents={totalPot}
-                  className="font-pixel"
-                  style={{ color: "#48c774" }}
-                />
-              </div>
-            </div>
+        <div>
+          <h2>MATCH INFO</h2>
+          <div className="nes-container is-dark">
+            <p>
+              Buy-in each: <MoneyDisplay cents={match.buyInAmount} />
+            </p>
+            <p>Total buy-ins: {totalBuyIns}</p>
+            <p className="nes-text is-success">
+              Total pot: <MoneyDisplay cents={totalPot} />
+            </p>
           </div>
-
-          <div className="pt-6" style={{ borderTop: "4px solid #ccc" }}>
-            <div className="space-y-4">
-              <button
-                onClick={handleProceedToCashout}
-                className="nes-btn is-primary w-full"
-                style={{ padding: "16px 24px" }}
-              >
-                PROCEED TO CASHOUT
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={handleProceedToCashout}
+            className="nes-btn is-primary nes-w-full nes-mt-3"
+          >
+            PROCEED TO CASHOUT
+          </button>
         </div>
       </div>
     </div>
@@ -258,8 +191,8 @@ export default function LiveMatchPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex h-64 items-center justify-center">
-          <div className="font-pixel">Loading...</div>
+        <div className="nes-container is-dark nes-v-center nes-min-h-content">
+          <i className="nes-loader"></i>
         </div>
       }
     >
