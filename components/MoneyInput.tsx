@@ -45,14 +45,19 @@ export default function MoneyInput({
 }: MoneyInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const [internalRawDigits, setInternalRawDigits] = useState<string>(() => centsToDigits(value));
+  const [internalRawDigits, setInternalRawDigits] = useState<string>(() =>
+    centsToDigits(value)
+  );
 
   // Derived raw digits: when focused use internal, otherwise compute from value
   const rawDigits = isFocused ? internalRawDigits : centsToDigits(value);
 
   // Display value
   const displayValue = useMemo(
-    () => (isFocused ? formatDigitsForDisplay(rawDigits) : formatMoneyForInput(value)),
+    () =>
+      isFocused
+        ? formatDigitsForDisplay(rawDigits)
+        : formatMoneyForInput(value),
     [isFocused, rawDigits, value]
   );
 
@@ -86,7 +91,11 @@ export default function MoneyInput({
     }
 
     // Handle backspace & delete
-    if ((e.key === "Backspace" || e.key === "Delete") && !e.ctrlKey && !e.metaKey) {
+    if (
+      (e.key === "Backspace" || e.key === "Delete") &&
+      !e.ctrlKey &&
+      !e.metaKey
+    ) {
       e.preventDefault();
       const newDigits = handleMoneyDigitEntry(rawDigits, null, maxDigits);
       updateDigits(newDigits);
@@ -118,7 +127,7 @@ export default function MoneyInput({
     updateDigits(digits);
   };
 
-   return (
+  return (
     <input
       ref={inputRef}
       type="text"
@@ -131,7 +140,7 @@ export default function MoneyInput({
       onPaste={handlePaste}
       onFocus={handleFocus}
       onBlur={handleBlur}
-      className={`px-4 py-3 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans focus:border-retro-green focus:outline-none ${className}`}
+      className={`nes-input ${className}`}
       data-testid={testId}
     />
   );

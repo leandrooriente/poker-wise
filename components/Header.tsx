@@ -65,14 +65,20 @@ export default function Header() {
   };
 
   return (
-    <header className="border-retro-width rounded-retro border-retro bg-retro-dark shadow-retro-outset p-4">
+    <header className="nes-container is-dark">
       {error && (
-        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-3">
+        <div
+          className="nes-container is-bordered mb-4"
+          style={{ background: "#fee", border: "4px solid #e74c3c" }}
+        >
           <div className="flex items-center justify-between">
-            <span className="font-pixel text-retro-red text-sm">{error}</span>
+            <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
+              {error}
+            </span>
             <button
               onClick={clearError}
-              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+              className="nes-btn is-error"
+              style={{ padding: "4px 8px", fontSize: "10px" }}
             >
               DISMISS
             </button>
@@ -82,11 +88,21 @@ export default function Header() {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="flex items-center gap-3">
-            <div className="from-retro-green to-retro-blue flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br">
-              <span className="font-pixel text-retro-dark text-lg">P</span>
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-full"
+              style={{
+                background: "linear-gradient(135deg, #209cee 0%, #00d1b2 100%)",
+              }}
+            >
+              <span className="font-pixel text-lg" style={{ color: "#fff" }}>
+                P
+              </span>
             </div>
-            <h1 className="font-pixel text-retro-green text-xl sm:text-2xl">
-              POKER<span className="text-retro-yellow">WISE</span>
+            <h1
+              className="font-pixel text-xl sm:text-2xl"
+              style={{ color: "#209cee" }}
+            >
+              POKER<span style={{ color: "#ffdd57" }}>WISE</span>
             </h1>
           </div>
 
@@ -95,20 +111,23 @@ export default function Header() {
             <label htmlFor="group-select" className="sr-only">
               Select group
             </label>
-            <select
-              id="group-select"
-              value={activeGroupId || ""}
-              onChange={handleGroupChange}
-              disabled={activeGroupLoading || groupsLoading}
-              className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light hover:border-retro-green hover:bg-retro-green hover:text-retro-dark w-full border px-3 py-2 text-sm transition-all duration-200"
-            >
-              <option value="">Select group</option>
-              {groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
+            <div className="nes-select">
+              <select
+                id="group-select"
+                value={activeGroupId || ""}
+                onChange={handleGroupChange}
+                disabled={activeGroupLoading || groupsLoading}
+              >
+                <option value="" disabled>
+                  Select group
                 </option>
-              ))}
-            </select>
+                {groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -117,7 +136,8 @@ export default function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light hover:border-retro-green hover:bg-retro-green hover:text-retro-dark border px-3 py-2 text-sm transition-all duration-200"
+              className="nes-btn"
+              style={{ fontSize: "12px", padding: "8px 16px" }}
             >
               {item.label}
             </Link>

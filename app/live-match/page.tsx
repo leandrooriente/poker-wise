@@ -17,7 +17,11 @@ type LiveMatchPlayer = {
 function LiveMatchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { activeGroupId, error: activeGroupError, clearError } = useActiveGroup();
+  const {
+    activeGroupId,
+    error: activeGroupError,
+    clearError,
+  } = useActiveGroup();
   const [players, setPlayers] = useState<LiveMatchPlayer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,23 +85,26 @@ function LiveMatchContent() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="font-pixel text-retro-green">Loading...</div>
+        <div className="font-pixel">Loading...</div>
       </div>
     );
   }
 
   if (error || activeGroupError || !activeGroupId) {
     return (
-      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
-        <h2 className="font-pixel text-retro-red mb-4 text-xl sm:text-2xl">
+      <div className="nes-container is-bordered p-6">
+        <h2
+          className="font-pixel mb-4 text-xl sm:text-2xl"
+          style={{ color: "#e74c3c" }}
+        >
           ERROR
         </h2>
-        <p className="text-retro-light">
+        <p style={{ color: "#fff" }}>
           {error || activeGroupError || "No match found or no active group"}
         </p>
         <button
           onClick={() => router.push("/new-match")}
-          className="rounded-retro font-pixel mt-4 bg-white px-4 py-2 text-black hover:bg-gray-200"
+          className="nes-btn mt-4"
         >
           Start New Match
         </button>
@@ -107,8 +114,8 @@ function LiveMatchContent() {
 
   if (!match) {
     return (
-      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
-        <p className="text-retro-light">Match data not available</p>
+      <div className="nes-container is-bordered p-6">
+        <p style={{ color: "#fff" }}>Match data not available</p>
       </div>
     );
   }
@@ -120,24 +127,28 @@ function LiveMatchContent() {
   const totalPot = totalBuyIns * match.buyInAmount;
 
   return (
-    <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
+    <div className="nes-container with-title is-dark">
+      <p className="title">LIVE MATCH</p>
       {activeGroupError && (
-        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-4">
+        <div
+          className="nes-container is-bordered mb-4"
+          style={{ background: "#fee", border: "4px solid #e74c3c" }}
+        >
           <div className="flex items-center justify-between">
-            <span className="font-pixel text-retro-red text-sm">{activeGroupError}</span>
+            <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
+              {activeGroupError}
+            </span>
             <button
               onClick={clearError}
-              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+              className="nes-btn is-error"
+              style={{ padding: "4px 8px", fontSize: "10px" }}
             >
               DISMISS
             </button>
           </div>
         </div>
       )}
-      <h2 className="font-pixel text-retro-green mb-4 text-xl sm:text-2xl">
-        LIVE MATCH
-      </h2>
-      <p className="text-retro-light mb-6">
+      <p className="mb-6" style={{ color: "#fff" }}>
         Track rebuys during game. Tap <span>&quot;Rebuy&quot;</span> when a
         player adds another buy-in.
       </p>
@@ -145,31 +156,46 @@ function LiveMatchContent() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Player list */}
         <div className="lg:col-span-2">
-          <h3 className="font-pixel text-retro-yellow mb-4 text-xl">PLAYERS</h3>
+          <h3 className="font-pixel mb-4 text-xl" style={{ color: "#ffdd57" }}>
+            PLAYERS
+          </h3>
           <div className="space-y-4">
             {players.map(({ user, buyIns }: LiveMatchPlayer) => (
               <div
                 key={user.id}
-                className="rounded-retro border-retro-gray bg-retro-dark hover:border-retro-green flex flex-col border p-4 transition-colors"
+                className="nes-container is-bordered flex flex-col p-4"
+                style={{ background: "#212529" }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderColor = "#48c774")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderColor = "#ccc")
+                }
                 data-testid="player-row"
               >
                 <div className="flex items-center justify-between">
-                  <h4 className="font-pixel text-retro-green text-xl">
+                  <h4
+                    className="font-pixel text-xl"
+                    style={{ color: "#48c774" }}
+                  >
                     {user.name}
                   </h4>
-                  <span className="font-pixel text-retro-yellow text-2xl">
+                  <span
+                    className="font-pixel text-2xl"
+                    style={{ color: "#ffdd57" }}
+                  >
                     {buyIns}
                   </span>
                 </div>
 
-                <p className="text-retro-gray text-sm">
+                <p className="text-sm" style={{ color: "#999" }}>
                   Total paid:{" "}
                   <MoneyDisplay cents={buyIns * match.buyInAmount} />
                 </p>
                 <div className="mt-4">
                   <button
                     onClick={() => handleRebuy(user.id)}
-                    className="rounded-retro font-pixel w-full bg-white px-6 py-3 text-black transition-colors hover:bg-gray-200 sm:w-auto"
+                    className="nes-btn"
                   >
                     REBUY
                   </button>
@@ -182,33 +208,41 @@ function LiveMatchContent() {
         {/* Match info & actions */}
         <div className="space-y-6">
           <div>
-            <h3 className="font-pixel text-retro-blue mb-4 text-xl">
+            <h3
+              className="font-pixel mb-4 text-xl"
+              style={{ color: "#3273dc" }}
+            >
               MATCH INFO
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-retro-light">Buy‑in each</span>
+                <span style={{ color: "#fff" }}>Buy‑in each</span>
                 <MoneyDisplay cents={match.buyInAmount} />
               </div>
               <div className="flex justify-between">
-                <span className="text-retro-light">Total buy‑ins</span>
+                <span style={{ color: "#fff" }}>Total buy‑ins</span>
                 <span className="font-pixel">{totalBuyIns}</span>
               </div>
-              <div className="border-retro-gray flex justify-between border-t pt-3">
-                <span className="text-retro-light">Total pot</span>
+              <div
+                className="flex justify-between pt-3"
+                style={{ borderTop: "4px solid #ccc" }}
+              >
+                <span style={{ color: "#fff" }}>Total pot</span>
                 <MoneyDisplay
                   cents={totalPot}
-                  className="font-pixel text-retro-green"
+                  className="font-pixel"
+                  style={{ color: "#48c774" }}
                 />
               </div>
             </div>
           </div>
 
-          <div className="border-retro-gray border-t pt-6">
+          <div className="pt-6" style={{ borderTop: "4px solid #ccc" }}>
             <div className="space-y-4">
               <button
                 onClick={handleProceedToCashout}
-                className="rounded-retro font-pixel hover:shadow-retro-outset w-full bg-white px-6 py-4 text-black transition-all hover:bg-gray-200"
+                className="nes-btn is-primary w-full"
+                style={{ padding: "16px 24px" }}
               >
                 PROCEED TO CASHOUT
               </button>
@@ -225,7 +259,7 @@ export default function LiveMatchPage() {
     <Suspense
       fallback={
         <div className="flex h-64 items-center justify-center">
-          <div className="font-pixel text-retro-green">Loading...</div>
+          <div className="font-pixel">Loading...</div>
         </div>
       }
     >

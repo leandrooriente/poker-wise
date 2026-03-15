@@ -45,12 +45,12 @@ export default function RootLayout({
           content="black-translucent"
         />
       </head>
-      <body className="min-h-screen bg-retro-dark font-retro-sans text-retro-light">
+      <body className="font-retro-sans min-h-screen bg-[#212529] text-[#fff]">
         <Providers>
           <div className="relative mx-auto max-w-4xl p-4">
             <Header />
-            <main className="mt-6">{children}</main>
-            <footer className="mt-12 border-t border-retro-gray pt-4 text-center text-sm text-retro-gray">
+            <main className="nes-container is-dark mt-6">{children}</main>
+            <footer className="mt-12 border-t pt-4 text-center text-sm">
               <p>Poker Wise © 2026 — Poker match settlement</p>
             </footer>
           </div>

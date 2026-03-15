@@ -32,14 +32,17 @@
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@types/uuid": "^10.0.0",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
     "iron-session": "^8.0.4",
+    "nes.css": "^2.2.1",
     "next": "^16.1.6",
     "pg": "^8.13.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "uuid": "^13.0.0",
-    "bcryptjs": "^3.0.3"
+    "tailwind-merge": "^3.5.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

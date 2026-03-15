@@ -5,7 +5,10 @@ import { useState, useEffect, Suspense } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
 import { getMatchWithUsers } from "@/db/matches";
-import { calculateSettlement, formatSettlementShareText } from "@/lib/settlement";
+import {
+  calculateSettlement,
+  formatSettlementShareText,
+} from "@/lib/settlement";
 
 function ResultsContent() {
   const router = useRouter();
@@ -67,19 +70,21 @@ function ResultsContent() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="font-pixel text-retro-green">Loading results...</div>
+        <div className="font-pixel">Loading results...</div>
       </div>
     );
   }
 
   if (error || !match || !settlement) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-4 font-pixel text-2xl text-retro-red">ERROR</h2>
-        <p className="text-retro-light">{error || "Results unavailable"}</p>
+      <div className="nes-container is-bordered p-6">
+        <h2 className="font-pixel mb-4 text-2xl" style={{ color: "#e74c3c" }}>
+          ERROR
+        </h2>
+        <p style={{ color: "#fff" }}>{error || "Results unavailable"}</p>
         <button
           onClick={() => router.push("/new-match")}
-          className="mt-4 rounded-retro bg-white px-4 py-2 font-pixel text-black"
+          className="nes-btn mt-4"
         >
           Start New Match
         </button>
@@ -88,18 +93,17 @@ function ResultsContent() {
   }
 
   return (
-    <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-      <h2 className="mb-4 font-pixel text-2xl text-retro-green">
-        SETTLEMENT RESULTS
-      </h2>
-      <p className="mb-6 text-retro-light">
-        View net results and exact “who pays whom” transfers after cashout.
+    <div className="nes-container with-title is-dark">
+      <p className="title">SETTLEMENT RESULTS</p>
+      <p className="mb-6" style={{ color: "#fff" }}>
+        View net results and exact &quot;who pays whom&quot; transfers after
+        cashout.
       </p>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Player balances */}
         <div className="lg:col-span-2">
-          <h3 className="mb-4 font-pixel text-xl text-retro-yellow">
+          <h3 className="font-pixel mb-4 text-xl" style={{ color: "#ffdd57" }}>
             PLAYER BALANCES
           </h3>
           <div className="space-y-4">
@@ -114,32 +118,44 @@ function ResultsContent() {
                   net > 0 ? "TO RECEIVE" : net < 0 ? "TO PAY" : "BREAK EVEN";
                 const statusColor =
                   net > 0
-                    ? "text-retro-green"
+                    ? { color: "#48c774" }
                     : net < 0
-                      ? "text-retro-red"
-                      : "text-retro-gray";
+                      ? { color: "#e74c3c" }
+                      : { color: "#999" };
                 return (
                   <div
                     key={balance.userId}
-                    className="rounded-retro border border-retro-gray bg-retro-dark p-6 transition-colors hover:border-retro-green"
+                    className="nes-container is-bordered p-6"
+                    style={{ background: "#212529" }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.borderColor = "#48c774")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.borderColor = "#ccc")
+                    }
                   >
                     <div className="flex flex-col">
-                      <h4 className="font-pixel text-2xl text-retro-green">
+                      <h4
+                        className="font-pixel text-2xl"
+                        style={{ color: "#48c774" }}
+                      >
                         {player?.name || "Unknown"}
                       </h4>
                       <div className="mt-2 space-y-1">
-                        <p className="text-retro-light">
+                        <p style={{ color: "#fff" }}>
                           Paid in: <MoneyDisplay cents={balance.paidIn} />
                         </p>
-                        <p className="text-retro-light">
-                          Final value: <MoneyDisplay cents={balance.finalValue} />
+                        <p style={{ color: "#fff" }}>
+                          Final value:{" "}
+                          <MoneyDisplay cents={balance.finalValue} />
                         </p>
                       </div>
-                      <div className={`mt-4 ${statusColor}`}>
-                        <div className="font-pixel text-2xl">
-                          {statusLabel}
-                        </div>
-                        <div className="font-pixel text-2xl" data-testid="net-amount">
+                      <div className="mt-4" style={statusColor}>
+                        <div className="font-pixel text-2xl">{statusLabel}</div>
+                        <div
+                          className="font-pixel text-2xl"
+                          data-testid="net-amount"
+                        >
                           <MoneyDisplay cents={Math.abs(net)} />
                         </div>
                       </div>
@@ -153,12 +169,15 @@ function ResultsContent() {
         {/* Transfers & summary */}
         <div className="space-y-6">
           <div>
-            <h3 className="mb-4 font-pixel text-xl text-retro-blue">
+            <h3
+              className="font-pixel mb-4 text-xl"
+              style={{ color: "#3273dc" }}
+            >
               TRANSFERS
             </h3>
             {settlement.transfers.length === 0 ? (
-              <div className="rounded-retro border border-retro-gray p-6 text-center">
-                <p className="text-retro-gray">
+              <div className="nes-container is-bordered p-6 text-center">
+                <p style={{ color: "#999" }}>
                   No transfers needed — all players break even.
                 </p>
               </div>
@@ -174,20 +193,30 @@ function ResultsContent() {
                   return (
                     <div
                       key={idx}
-                      className="rounded-retro border border-retro-gray bg-retro-dark p-4"
+                      className="nes-container is-bordered p-4"
+                      style={{ background: "#212529" }}
                       data-testid="transfer-item"
                     >
                       <div className="flex items-center justify-center gap-3">
-                        <div className="font-pixel text-retro-red">
+                        <div
+                          className="font-pixel"
+                          style={{ color: "#e74c3c" }}
+                        >
                           {from?.name}
                         </div>
-                        <div className="text-retro-gray">→</div>
-                        <div className="font-pixel text-retro-green">
+                        <div style={{ color: "#999" }}>→</div>
+                        <div
+                          className="font-pixel"
+                          style={{ color: "#48c774" }}
+                        >
                           {to?.name}
                         </div>
                       </div>
                       <div className="mt-4 text-center">
-                        <div className="font-pixel text-3xl text-retro-yellow">
+                        <div
+                          className="font-pixel text-3xl"
+                          style={{ color: "#ffdd57" }}
+                        >
                           <MoneyDisplay cents={transfer.amount} />
                         </div>
                       </div>
@@ -198,17 +227,20 @@ function ResultsContent() {
             )}
           </div>
 
-          <div className="border-t border-retro-gray pt-6">
-            <h3 className="mb-4 font-pixel text-xl text-retro-purple">
+          <div className="pt-6" style={{ borderTop: "4px solid #ccc" }}>
+            <h3
+              className="font-pixel mb-4 text-xl"
+              style={{ color: "#b86e28" }}
+            >
               SUMMARY
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-retro-light">Total pot</span>
+                <span style={{ color: "#fff" }}>Total pot</span>
                 <MoneyDisplay cents={settlement.totalPot} />
               </div>
               <div className="flex justify-between">
-                <span className="text-retro-light">Total buy‑ins</span>
+                <span style={{ color: "#fff" }}>Total buy‑ins</span>
                 <span className="font-pixel">
                   {match.players.reduce(
                     (sum: number, mp: any) => sum + mp.buyIns,
@@ -219,24 +251,19 @@ function ResultsContent() {
             </div>
           </div>
 
-          <div className="border-t border-retro-gray pt-6">
+          <div className="pt-6" style={{ borderTop: "4px solid #ccc" }}>
             <div className="space-y-4">
-              <button
-                onClick={handleShare}
-                className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
-              >
+              <button onClick={handleShare} className="nes-btn w-full">
                 SHARE
               </button>
               <button
                 onClick={handleNewMatch}
-                className="w-full rounded-retro bg-white px-6 py-4 font-pixel text-black transition-all hover:bg-gray-200 hover:shadow-retro-outset"
+                className="nes-btn is-primary w-full"
+                style={{ padding: "16px 24px" }}
               >
                 START NEW MATCH
               </button>
-              <button
-                onClick={handleViewHistory}
-                className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
-              >
+              <button onClick={handleViewHistory} className="nes-btn w-full">
                 VIEW HISTORY
               </button>
             </div>
@@ -252,7 +279,7 @@ export default function ResultsPage() {
     <Suspense
       fallback={
         <div className="flex h-64 items-center justify-center">
-          <div className="font-pixel text-retro-green">Loading results...</div>
+          <div className="font-pixel">Loading results...</div>
         </div>
       }
     >

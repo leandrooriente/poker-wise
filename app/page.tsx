@@ -15,7 +15,13 @@ import { Group } from "@/types/group";
 import { Player } from "@/types/player";
 
 export default function GroupsPage() {
-  const { activeGroupId, setActiveGroupId, isLoading: activeGroupLoading, error, clearError } = useActiveGroup();
+  const {
+    activeGroupId,
+    setActiveGroupId,
+    isLoading: activeGroupLoading,
+    error,
+    clearError,
+  } = useActiveGroup();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [newGroupId, setNewGroupId] = useState("");
@@ -144,37 +150,43 @@ export default function GroupsPage() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="font-pixel text-retro-green">Loading groups...</div>
+        <div className="font-pixel">Loading groups...</div>
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      {error && (
-        <div className="rounded-retro border-retro-red bg-retro-red/10 border p-4">
-          <div className="flex items-center justify-between">
-            <span className="font-pixel text-retro-red text-sm">{error}</span>
-            <button
-              onClick={clearError}
-              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
-            >
-              DISMISS
-            </button>
+      <div className="nes-container with-title is-dark">
+        <p className="title">GROUP MANAGEMENT</p>
+
+        {error && (
+          <div
+            className="nes-container is-bordered mb-4"
+            style={{ background: "#fee", border: "4px solid #e74c3c" }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
+                {error}
+              </span>
+              <button
+                onClick={clearError}
+                className="nes-btn is-error"
+                style={{ padding: "4px 8px", fontSize: "10px" }}
+              >
+                DISMISS
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
-        <h2 className="font-pixel text-retro-green mb-4 text-2xl">
-          GROUP MANAGEMENT
-        </h2>
+        )}
 
         {/* Create group form */}
         <form onSubmit={handleCreateGroup} className="mb-8 space-y-4">
           <div>
             <label
               htmlFor="group-id"
-              className="font-pixel text-retro-yellow mb-2 block text-sm"
+              className="font-pixel mb-2 block text-sm"
+              style={{ color: "#ffdd57" }}
             >
               Group *
             </label>
@@ -183,18 +195,15 @@ export default function GroupsPage() {
               type="text"
               value={newGroupId}
               onChange={(e) => setNewGroupId(e.target.value)}
-              className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light w-full border px-3 py-2"
+              className="nes-input"
               placeholder="friday-night-poker"
               required
             />
-            <p className="text-retro-gray mt-1 text-xs">
+            <p className="mt-1 text-sm" style={{ color: "#999" }}>
               Unique identifier (slug). Only letters and dashes allowed.
             </p>
           </div>
-          <button
-            type="submit"
-            className="rounded-retro border-retro-green bg-retro-green font-pixel text-retro-dark hover:bg-retro-dark hover:text-retro-green border px-4 py-2 transition-colors"
-          >
+          <button type="submit" className="nes-btn is-primary">
             CREATE GROUP
           </button>
         </form>
@@ -203,12 +212,15 @@ export default function GroupsPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Left column: group list */}
           <div className="lg:col-span-2">
-            <h3 className="font-pixel text-retro-yellow mb-4 text-xl">
+            <h3
+              className="font-pixel mb-4 text-xl"
+              style={{ color: "#ffdd57" }}
+            >
               YOUR GROUPS ({groups.length})
             </h3>
             {groups.length === 0 ? (
-              <div className="rounded-retro border-retro-gray border py-8 text-center">
-                <p className="text-retro-gray">
+              <div className="nes-container is-bordered py-8 text-center">
+                <p style={{ color: "#999" }}>
                   No groups yet. Create your first!
                 </p>
               </div>
@@ -219,29 +231,32 @@ export default function GroupsPage() {
                   return (
                     <div
                       key={group.id}
-                      className={`rounded-retro flex h-full flex-col border p-4 ${
-                        isActive
-                          ? "border-retro-green bg-retro-dark"
-                          : "border-retro-gray bg-retro-dark"
-                      }`}
+                      className="nes-container is-bordered"
+                      style={{
+                        borderColor: isActive ? "#48c774" : "#ccc",
+                        background: "#212529",
+                      }}
                     >
-                      <h4 className="font-pixel text-retro-green text-lg">
+                      <h4
+                        className="font-pixel text-lg"
+                        style={{ color: "#48c774" }}
+                      >
                         {group.id}
                       </h4>
-                      <div className="mt-auto flex gap-2 pt-4">
+                      <div className="mt-4 flex gap-2">
                         <button
                           onClick={() => handleSelectGroup(group.id)}
-                          className={`rounded-retro font-pixel border px-3 py-1 text-sm ${
-                            isActive
-                              ? "border-retro-yellow text-retro-yellow"
-                              : "border-retro-gray text-retro-light hover:border-retro-green"
-                          }`}
+                          className="nes-btn"
+                          style={{
+                            borderColor: isActive ? "#ffdd57" : "#ccc",
+                            color: isActive ? "#ffdd57" : "#fff",
+                          }}
                         >
                           {isActive ? "ACTIVE" : "SELECT"}
                         </button>
                         <button
                           onClick={() => handleDeleteGroup(group.id)}
-                          className="rounded-retro border-retro-red font-pixel text-retro-red hover:bg-retro-red hover:text-retro-dark border px-3 py-1 text-sm"
+                          className="nes-btn is-error"
                         >
                           DELETE
                         </button>
@@ -255,35 +270,41 @@ export default function GroupsPage() {
 
           {/* Right column: active group details */}
           <div className="lg:col-span-1">
-            <h3 className="font-pixel text-retro-yellow mb-4 text-xl">
+            <h3
+              className="font-pixel mb-4 text-xl"
+              style={{ color: "#ffdd57" }}
+            >
               ACTIVE GROUP DETAILS
             </h3>
             {!activeGroupId ? (
-              <div className="rounded-retro border-retro-gray border py-8 text-center">
-                <p className="text-retro-gray">No group selected.</p>
-                <p className="text-retro-gray mt-2 text-sm">
+              <div className="nes-container is-bordered py-8 text-center">
+                <p style={{ color: "#999" }}>No group selected.</p>
+                <p className="mt-2 text-sm" style={{ color: "#999" }}>
                   Select a group from the list or header dropdown.
                 </p>
               </div>
             ) : detailsLoading ? (
               <div className="py-8 text-center">
-                <p className="font-pixel text-retro-green">
-                  Loading details...
-                </p>
+                <p className="font-pixel">Loading details...</p>
               </div>
             ) : selectedGroupDetails ? (
-              <div className="rounded-retro border-retro-gray bg-retro-dark border p-4">
-                <h4 className="font-pixel text-retro-green mb-2 text-lg">
+              <div className="nes-container is-bordered">
+                <h4
+                  className="font-pixel mb-2 text-lg"
+                  style={{ color: "#48c774" }}
+                >
                   {groups.find((g) => g.id === activeGroupId)?.name}
                 </h4>
-                <p className="text-retro-gray text-sm">ID: {activeGroupId}</p>
+                <p className="text-sm" style={{ color: "#999" }}>
+                  ID: {activeGroupId}
+                </p>
                 <div className="mt-4">
-                  <p className="font-pixel text-retro-yellow">
+                  <p className="font-pixel" style={{ color: "#ffdd57" }}>
                     Matches: {selectedGroupDetails.matchCount}
                   </p>
                 </div>
                 <div className="mt-6">
-                  <h5 className="font-pixel text-retro-yellow mb-2">
+                  <h5 className="font-pixel mb-2" style={{ color: "#ffdd57" }}>
                     Players in this group
                   </h5>
                   <form
@@ -294,19 +315,18 @@ export default function GroupsPage() {
                       type="text"
                       value={newPlayerName}
                       onChange={(e) => setNewPlayerName(e.target.value)}
-                      className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light w-full border px-3 py-2 sm:flex-1"
+                      className="nes-input flex-1"
                       placeholder="Player name"
                       required
                     />
-                    <button
-                      type="submit"
-                      className="rounded-retro border-retro-green bg-retro-green font-pixel text-retro-dark hover:bg-retro-dark hover:text-retro-green w-full border px-3 py-2 transition-colors sm:w-auto"
-                    >
+                    <button type="submit" className="nes-btn is-success">
                       ADD
                     </button>
                   </form>
                   {selectedGroupDetails.players.length === 0 ? (
-                    <p className="text-retro-gray text-sm">No players yet.</p>
+                    <p className="text-sm" style={{ color: "#999" }}>
+                      No players yet.
+                    </p>
                   ) : (
                     <ul className="space-y-2">
                       {selectedGroupDetails.players.map((player) => (
@@ -315,14 +335,13 @@ export default function GroupsPage() {
                           className="flex items-center justify-between"
                           data-testid="player-item"
                         >
-                          <span className="text-retro-light">
-                            {player.name}
-                          </span>
+                          <span style={{ color: "#fff" }}>{player.name}</span>
                           <button
                             onClick={() =>
                               handleRemovePlayerFromGroup(player.id)
                             }
-                            className="rounded-retro border-retro-red font-pixel text-retro-red hover:bg-retro-red hover:text-retro-dark border px-2 py-1 text-xs"
+                            className="nes-btn is-error"
+                            style={{ padding: "4px 8px", fontSize: "10px" }}
                           >
                             REMOVE
                           </button>

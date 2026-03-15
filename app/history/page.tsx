@@ -3,12 +3,16 @@
 import { useState, useEffect } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
-import { getMatchesByGroup } from "@/db/matches";
+import { getMatchesByGroup, deleteMatch } from "@/db/matches";
 import { getPlayersForGroup } from "@/db/players";
 import { useActiveGroup } from "@/lib/active-group";
-import { calculateSettlement, formatSettlementShareText } from "@/lib/settlement";
+import {
+  calculateSettlement,
+  formatSettlementShareText,
+} from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
+import { Heading } from "@/components/ui/Typography";
 
 interface MatchWithDetails extends Match {
   playerDetails: Array<{
@@ -98,7 +102,7 @@ export default function HistoryPage() {
 
   const handleShare = (match: MatchWithDetails, e: React.MouseEvent) => {
     e.stopPropagation(); // prevent toggling expansion
-    const players = match.playerDetails.map(pd => ({
+    const players = match.playerDetails.map((pd) => ({
       id: pd.player.id,
       name: pd.player.name,
     }));
@@ -113,6 +117,21 @@ export default function HistoryPage() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const handleDelete = async (matchId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Delete this match?")) {
+      return;
+    }
+
+    try {
+      await deleteMatch(matchId);
+      setMatches(matches.filter((m) => m.id !== matchId));
+    } catch (err) {
+      console.error("Failed to delete match:", err);
+      // Could add error state display here if needed
+    }
+  };
+
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB", {
@@ -124,12 +143,10 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-6 font-pixel text-2xl text-retro-green">
-          MATCH HISTORY
-        </h2>
+      <div className="nes-container with-title is-dark">
+        <p className="title">MATCH HISTORY</p>
         <div className="flex h-64 items-center justify-center">
-          <div className="font-pixel text-retro-green">Loading matches...</div>
+          <div className="font-pixel">Loading matches...</div>
         </div>
       </div>
     );
@@ -137,13 +154,11 @@ export default function HistoryPage() {
 
   if (!activeGroupId) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-6 font-pixel text-2xl text-retro-green">
-          MATCH HISTORY
-        </h2>
-        <div className="rounded-retro border border-retro-gray p-8 text-center">
-          <p className="text-retro-gray">No group selected.</p>
-          <p className="mt-2 text-sm">
+      <div className="nes-container with-title is-dark">
+        <p className="title">MATCH HISTORY</p>
+        <div className="nes-container is-bordered py-8 text-center">
+          <p style={{ color: "#999" }}>No group selected.</p>
+          <p className="mt-2 text-sm" style={{ color: "#999" }}>
             Please select a group from the header dropdown or create one on the
             Groups page.
           </p>
@@ -154,13 +169,11 @@ export default function HistoryPage() {
 
   if (matches.length === 0) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-6 font-pixel text-2xl text-retro-green">
-          MATCH HISTORY
-        </h2>
+      <div className="nes-container with-title is-dark">
+        <p className="title">MATCH HISTORY</p>
 
-        <div className="rounded-retro border border-retro-gray p-8 text-center">
-          <p className="text-retro-gray">No matches yet.</p>
+        <div className="nes-container is-bordered py-8 text-center">
+          <p style={{ color: "#999" }}>No matches yet.</p>
           <p className="mt-2 text-sm">
             Start a new match from the &quot;New Match&quot; tab to see history
             here.
@@ -171,23 +184,27 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
+    <div className="nes-container is-dark">
       {error && (
-        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-4">
+        <div
+          className="nes-container is-bordered mb-4"
+          style={{ background: "#fee", border: "4px solid #e74c3c" }}
+        >
           <div className="flex items-center justify-between">
-            <span className="font-pixel text-retro-red text-sm">{error}</span>
+            <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
+              {error}
+            </span>
             <button
               onClick={clearError}
-              className="text-retro-red hover:text-retro-red/80 font-pixel text-xs"
+              className="nes-btn is-error"
+              style={{ padding: "4px 8px", fontSize: "10px" }}
             >
               DISMISS
             </button>
           </div>
         </div>
       )}
-      <h2 className="mb-6 font-pixel text-2xl text-retro-green">
-        MATCH HISTORY
-      </h2>
+      <Heading>MATCH HISTORY</Heading>
 
       <div className="space-y-6">
         {matches.map((match) => {
@@ -199,46 +216,66 @@ export default function HistoryPage() {
           return (
             <div
               key={match.id}
-              className="bg-retro-darker cursor-pointer rounded-retro border border-retro-gray p-4 transition-colors hover:border-retro-green"
+              className="nes-container is-bordered cursor-pointer"
+              style={{
+                background: "#212529",
+                borderColor: "#ccc",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.borderColor = "#48c774")
+              }
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#ccc")}
               data-testid="match-entry"
               onClick={() => toggleExpand(match.id)}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-pixel text-xl text-retro-yellow">
+                  <h3
+                    className="font-pixel text-xl"
+                    style={{ color: "#ffdd57" }}
+                  >
                     Match on {dateStr}
                     {match.title && `: ${match.title}`}
                   </h3>
-                  <div className="mt-1 text-retro-light">
+                  <div className="mt-1" style={{ color: "#fff" }}>
                     <span className="mr-4 inline-block">
-                      <span className="text-retro-blue">Buy‑in:</span>{" "}
+                      <span style={{ color: "#3273dc" }}>Buy‑in:</span>{" "}
                       <MoneyDisplay cents={match.buyInAmount} />
                     </span>
                     <span className="mr-4 inline-block">
-                      <span className="text-retro-blue">Players:</span>{" "}
+                      <span style={{ color: "#3273dc" }}>Players:</span>{" "}
                       {playerCount}
                     </span>
                     <span className="inline-block">
-                      <span className="text-retro-blue">Pot:</span>{" "}
+                      <span style={{ color: "#3273dc" }}>Pot:</span>{" "}
                       <MoneyDisplay cents={match.settlement.totalPot} />
                     </span>
                   </div>
                 </div>
-                <div className="font-pixel text-retro-green">
+                <div className="font-pixel" style={{ color: "#48c774" }}>
                   {isExpanded ? "▲" : "▼"}
                 </div>
               </div>
 
               {isExpanded && (
-                <div className="mt-6 border-t border-retro-gray pt-6">
+                <div
+                  className="mt-6 pt-6"
+                  style={{ borderTop: "4px solid #ccc" }}
+                >
                   {/* Settlement summary */}
                   <div className="mb-6">
-                    <h4 className="mb-3 font-pixel text-lg text-retro-green">
+                    <h4
+                      className="font-pixel mb-3 text-lg"
+                      style={{ color: "#48c774" }}
+                    >
                       SETTLEMENT
                     </h4>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div className="rounded-retro border border-retro-gray p-4">
-                        <h5 className="mb-2 font-pixel text-retro-yellow">
+                      <div className="nes-container is-bordered p-4">
+                        <h5
+                          className="font-pixel mb-2"
+                          style={{ color: "#ffdd57" }}
+                        >
                           Balances
                         </h5>
                         <ul className="space-y-1">
@@ -248,17 +285,23 @@ export default function HistoryPage() {
                             );
                             const netColor =
                               balance.net >= 0
-                                ? "text-retro-green"
-                                : "text-retro-red";
+                                ? "color: #48c774"
+                                : "color: #e74c3c";
                             return (
                               <li
                                 key={balance.userId}
                                 className="flex justify-between"
                               >
-                                <span className="text-retro-light">
+                                <span style={{ color: "#fff" }}>
                                   {player?.player.name || "Unknown"}
                                 </span>
-                                <span className={`font-pixel ${netColor}`}>
+                                <span
+                                  className={`font-pixel`}
+                                  style={{
+                                    color:
+                                      balance.net >= 0 ? "#48c774" : "#e74c3c",
+                                  }}
+                                >
                                   <MoneyDisplay cents={balance.net} />
                                 </span>
                               </li>
@@ -266,12 +309,15 @@ export default function HistoryPage() {
                           })}
                         </ul>
                       </div>
-                      <div className="rounded-retro border border-retro-gray p-4">
-                        <h5 className="mb-2 font-pixel text-retro-yellow">
+                      <div className="nes-container is-bordered p-4">
+                        <h5
+                          className="font-pixel mb-2"
+                          style={{ color: "#ffdd57" }}
+                        >
                           Transfers
                         </h5>
                         {match.settlement.transfers.length === 0 ? (
-                          <p className="text-sm text-retro-gray">
+                          <p className="text-sm" style={{ color: "#999" }}>
                             No transfers needed.
                           </p>
                         ) : (
@@ -288,11 +334,14 @@ export default function HistoryPage() {
                                   key={idx}
                                   className="flex items-center justify-between"
                                 >
-                                  <span className="text-retro-light">
+                                  <span style={{ color: "#fff" }}>
                                     {fromPlayer?.player.name || "Unknown"} →{" "}
                                     {toPlayer?.player.name || "Unknown"}
                                   </span>
-                                  <span className="font-pixel text-retro-yellow">
+                                  <span
+                                    className="font-pixel"
+                                    style={{ color: "#ffdd57" }}
+                                  >
                                     <MoneyDisplay cents={t.amount} />
                                   </span>
                                 </li>
@@ -306,7 +355,10 @@ export default function HistoryPage() {
 
                   {/* Player details */}
                   <div>
-                    <h4 className="mb-3 font-pixel text-lg text-retro-green">
+                    <h4
+                      className="font-pixel mb-3 text-lg"
+                      style={{ color: "#48c774" }}
+                    >
                       PLAYER DETAILS
                     </h4>
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -317,38 +369,46 @@ export default function HistoryPage() {
                         return (
                           <div
                             key={pd.player.id}
-                            className="rounded-retro border border-retro-gray bg-retro-dark p-4"
+                            className="nes-container is-bordered p-4"
+                            style={{ background: "#212529" }}
                           >
-                            <h5 className="mb-2 font-pixel text-retro-yellow">
+                            <h5
+                              className="font-pixel mb-2"
+                              style={{ color: "#ffdd57" }}
+                            >
                               {pd.player.name}
                             </h5>
                             <div className="space-y-1 text-sm">
                               <div className="flex justify-between">
-                                <span className="text-retro-light">
-                                  Buy‑ins:
-                                </span>
+                                <span style={{ color: "#fff" }}>Buy‑ins:</span>
                                 <span className="font-pixel">{pd.buyIns}</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-retro-light">
+                                <span style={{ color: "#fff" }}>
                                   Final value:
                                 </span>
                                 <MoneyDisplay cents={pd.finalValue} />
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-retro-light">
-                                  Paid in:
-                                </span>
+                                <span style={{ color: "#fff" }}>Paid in:</span>
                                 <MoneyDisplay
                                   cents={pd.buyIns * match.buyInAmount}
                                 />
                               </div>
-                              <div className="mt-1 flex justify-between border-t border-retro-gray pt-1">
-                                <span className="text-retro-light">
+                              <div
+                                className="mt-1 flex justify-between pt-1"
+                                style={{ borderTop: "4px solid #ccc" }}
+                              >
+                                <span style={{ color: "#fff" }}>
                                   Net result:
                                 </span>
                                 <span
-                                  className={`font-pixel ${balance?.net && balance.net >= 0 ? "text-retro-green" : "text-retro-red"}`}
+                                  className="font-pixel"
+                                  style={
+                                    balance?.net && balance.net >= 0
+                                      ? { color: "#48c774" }
+                                      : { color: "#e74c3c" }
+                                  }
                                 >
                                   {balance ? (
                                     <MoneyDisplay cents={balance.net} />
@@ -364,12 +424,23 @@ export default function HistoryPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 border-t border-retro-gray pt-6">
+                  <div
+                    className="mt-6 pt-6"
+                    style={{ borderTop: "4px solid #ccc" }}
+                  >
                     <button
                       onClick={(e) => handleShare(match, e)}
-                      className="w-full rounded-retro border border-retro-gray px-6 py-4 font-pixel text-retro-light transition-all hover:border-retro-green hover:text-retro-green"
+                      className="nes-btn w-full"
+                      style={{ marginBottom: "16px" }}
                     >
                       SHARE
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(match.id, e)}
+                      className="nes-btn is-error w-full"
+                      data-testid="delete-button"
+                    >
+                      DELETE
                     </button>
                   </div>
                 </div>

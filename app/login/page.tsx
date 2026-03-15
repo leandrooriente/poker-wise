@@ -38,19 +38,18 @@ export default function LoginPage() {
 
   return (
     <div className="py-4">
-      <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset mx-auto w-full max-w-md border p-8">
-        <h1 className="font-pixel text-retro-green mb-2 text-center text-3xl">
-          ADMIN LOGIN
-        </h1>
-        <p className="text-retro-gray mb-6 text-center">
-          Enter your credentials to access the admin panel.
+      <div className="nes-container with-title is-dark mx-auto w-full max-w-md">
+        <p className="title">ADMIN LOGIN</p>
+        <p className="mb-6 text-center" style={{ color: "#999" }}>
+          Enter your credentials to access admin panel.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
               htmlFor="email"
-              className="font-pixel text-retro-yellow mb-2 block text-sm"
+              className="font-pixel mb-2 block text-sm"
+              style={{ color: "#ffdd57" }}
             >
               EMAIL
             </label>
@@ -59,7 +58,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light w-full border px-3 py-2"
+              className="nes-input w-full"
               placeholder="admin@example.com"
               required
               autoComplete="email"
@@ -69,7 +68,8 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="font-pixel text-retro-yellow mb-2 block text-sm"
+              className="font-pixel mb-2 block text-sm"
+              style={{ color: "#ffdd57" }}
             >
               PASSWORD
             </label>
@@ -78,15 +78,22 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light w-full border px-3 py-2"
-              placeholder="••••••••"
+              className="nes-input w-full"
+              placeholder="•••••••••"
               required
               autoComplete="current-password"
             />
           </div>
 
           {error && (
-            <div className="rounded-retro border-retro-red bg-retro-dark text-retro-red border px-3 py-2 text-sm">
+            <div
+              className="nes-container is-bordered px-3 py-2 text-sm"
+              style={{
+                background: "#fee",
+                borderColor: "#e74c3c",
+                color: "#e74c3c",
+              }}
+            >
               ⚠️ {error}
             </div>
           )}
@@ -94,16 +101,15 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-retro border-retro-green bg-retro-green font-pixel text-retro-dark hover:bg-retro-dark hover:text-retro-green w-full border px-4 py-3 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            className="nes-btn is-primary w-full"
+            style={{ padding: "12px 24px" }}
           >
             {loading ? "LOGGING IN..." : "LOGIN"}
           </button>
         </form>
 
-        <div className="text-retro-gray mt-8 text-center text-sm">
-          <p>
-            Use the seeded admin credentials from your environment variables.
-          </p>
+        <div className="mt-8 text-center text-sm" style={{ color: "#999" }}>
+          <p>Use seeded admin credentials from your environment variables.</p>
         </div>
       </div>
     </div>

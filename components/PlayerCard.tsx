@@ -4,14 +4,17 @@ import { useState } from "react";
 
 import { Player } from "@/types/player";
 
-
 interface PlayerCardProps {
   player: Player;
-  onUpdate: (_player: Player) => void;  
-  onDelete: (_id: string) => void;  
+  onUpdate: (_player: Player) => void;
+  onDelete: (_id: string) => void;
 }
 
-export default function PlayerCard({ player, onUpdate, onDelete }: PlayerCardProps) {
+export default function PlayerCard({
+  player,
+  onUpdate,
+  onDelete,
+}: PlayerCardProps) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(player.name);
 
@@ -30,56 +33,58 @@ export default function PlayerCard({ player, onUpdate, onDelete }: PlayerCardPro
   };
 
   return (
-    <div className="border border-retro-gray rounded-retro p-4 bg-retro-dark hover:border-retro-green transition-colors" data-testid="player-card">
+    <div
+      className="nes-container is-bordered p-4"
+      data-testid="player-card"
+      style={{ background: "#212529" }}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#48c774")}
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#ccc")}
+    >
       {editing ? (
         <div className="space-y-3">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 border border-retro-gray bg-retro-dark text-retro-light rounded-retro font-retro-sans"
+            className="nes-input w-full"
             placeholder="Player name"
             autoFocus
           />
 
           <div className="flex gap-2">
-            <button
-              onClick={handleSave}
-              className="flex-1 px-3 py-2 bg-white text-black font-pixel rounded-retro hover:bg-gray-200 transition-colors"
-            >
+            <button onClick={handleSave} className="nes-btn is-success flex-1">
               Save
             </button>
-            <button
-              onClick={handleCancel}
-              className="flex-1 px-3 py-2 bg-white text-black font-pixel rounded-retro hover:bg-retro-red transition-colors"
-            >
+            <button onClick={handleCancel} className="nes-btn is-error flex-1">
               Cancel
             </button>
           </div>
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-start">
+          <div className="flex items-start justify-between">
             <div>
-              <h4 className="text-xl font-pixel text-retro-green">{player.name}</h4>
-
+              <h4 className="font-pixel text-xl" style={{ color: "#48c774" }}>
+                {player.name}
+              </h4>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setEditing(true)}
-                 className="px-3 py-1 bg-white text-black border border-retro-gray rounded-retro hover:border-retro-yellow transition-colors text-sm"
+                className="nes-btn"
+                style={{ fontSize: "12px", padding: "4px 8px" }}
               >
                 Edit
               </button>
               <button
                 onClick={() => onDelete(player.id)}
-                 className="px-3 py-1 bg-white text-black border border-retro-gray rounded-retro hover:border-retro-red transition-colors text-sm"
+                className="nes-btn is-error"
+                style={{ fontSize: "12px", padding: "4px 8px" }}
               >
                 Delete
               </button>
             </div>
           </div>
-
         </>
       )}
     </div>

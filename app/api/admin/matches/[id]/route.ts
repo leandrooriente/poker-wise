@@ -122,3 +122,38 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await requireAdmin();
+    const { id } = await params;
+
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: "Match not found" }, { status: 404 });
+    }
+
+    const deleted = await matchesQueries.deleteMatchForAdmin(
+      id,
+      session.adminId
+    );
+
+    if (!deleted) {
+      return NextResponse.json(
+        { error: "Match not found or you do not have permission" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/admin/matches/[id] error:", error);
+    if (error instanceof Response) throw error;
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

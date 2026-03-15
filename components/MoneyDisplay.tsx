@@ -9,6 +9,8 @@ interface MoneyDisplayProps {
   className?: string;
   /** Optional data-testid for testing */
   "data-testid"?: string;
+  /** Optional style prop */
+  style?: React.CSSProperties;
 }
 
 /**
@@ -20,10 +22,11 @@ export default function MoneyDisplay({
   options,
   className,
   "data-testid": testId,
+  style,
 }: MoneyDisplayProps) {
   const formatted = formatMoney(cents, options);
   return (
-    <span className={className} data-testid={testId}>
+    <span className={className} data-testid={testId} style={style}>
       {formatted}
     </span>
   );

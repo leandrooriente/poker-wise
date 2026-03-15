@@ -47,22 +47,13 @@ export default function ScorePage() {
     [rows, scoreMode]
   );
 
-  const toggleButtonClass = (mode: ScoreMode) =>
-    `rounded-retro border px-4 py-4 text-center font-pixel text-sm transition-all ${
-      scoreMode === mode
-        ? "border-white bg-white text-black"
-        : "border-white bg-retro-dark text-white hover:bg-white/10"
-    }`;
-
   if (loading) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-2 font-pixel text-2xl text-retro-green">SCOREBOARD</h2>
-        <p className="mb-6 text-sm text-retro-light">
-          Rankings based on settled matches only.
-        </p>
+      <div className="nes-container with-title is-dark">
+        <p className="title">SCOREBOARD</p>
+        <p className="mb-6 text-sm">Rankings based on settled matches only.</p>
         <div className="flex h-64 items-center justify-center">
-          <div className="font-pixel text-retro-green">Loading scores...</div>
+          <div className="font-pixel">Loading scores...</div>
         </div>
       </div>
     );
@@ -70,13 +61,11 @@ export default function ScorePage() {
 
   if (!activeGroupId) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-2 font-pixel text-2xl text-retro-green">SCOREBOARD</h2>
-        <p className="mb-6 text-sm text-retro-light">
-          Rankings based on settled matches only.
-        </p>
-        <div className="rounded-retro border border-retro-gray p-8 text-center">
-          <p className="text-retro-gray">No group selected.</p>
+      <div className="nes-container with-title is-dark">
+        <p className="title">SCOREBOARD</p>
+        <p className="mb-6 text-sm">Rankings based on settled matches only.</p>
+        <div className="nes-container is-bordered py-8 text-center">
+          <p style={{ color: "#999" }}>No group selected.</p>
           <p className="mt-2 text-sm">
             Please select a group from the header dropdown or create one on the
             Groups page.
@@ -88,22 +77,28 @@ export default function ScorePage() {
 
   if (pageError) {
     return (
-      <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
-        <h2 className="mb-4 font-pixel text-2xl text-retro-red">ERROR</h2>
-        <p className="text-retro-light">{pageError}</p>
+      <div className="nes-container with-title is-dark">
+        <p className="title">ERROR</p>
+        <p style={{ color: "#fff" }}>{pageError}</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-retro border border-retro-gray bg-retro-dark p-6 shadow-retro-outset">
+    <div className="nes-container is-dark">
       {error && (
-        <div className="mb-4 rounded-retro border-retro-red border bg-retro-red/10 p-4">
+        <div
+          className="nes-container is-bordered mb-4"
+          style={{ background: "#fee", border: "4px solid #e74c3c" }}
+        >
           <div className="flex items-center justify-between">
-            <span className="font-pixel text-sm text-retro-red">{error}</span>
+            <span className="font-pixel text-sm" style={{ color: "#e74c3c" }}>
+              {error}
+            </span>
             <button
               onClick={clearError}
-              className="font-pixel text-xs text-retro-red hover:text-retro-red/80"
+              className="nes-btn is-error"
+              style={{ padding: "4px 8px", fontSize: "10px" }}
             >
               DISMISS
             </button>
@@ -111,34 +106,40 @@ export default function ScorePage() {
         </div>
       )}
 
-      <h2 className="mb-2 font-pixel text-2xl text-retro-green">SCOREBOARD</h2>
-      <p className="mb-6 text-sm text-retro-light">
-        Rankings based on settled matches only.
-      </p>
+      <h2 className="font-pixel mb-2 text-2xl" style={{ color: "#48c774" }}>
+        SCOREBOARD
+      </h2>
+      <p className="mb-6 text-sm">Rankings based on settled matches only.</p>
 
       <div className="mb-6 grid grid-cols-2 gap-3">
         <button
           type="button"
           onClick={() => setScoreMode("total")}
-          className={toggleButtonClass("total")}
+          className="nes-btn"
+          style={{
+            background: scoreMode === "total" ? "#fff" : "transparent",
+            color: scoreMode === "total" ? "#000" : "#fff",
+          }}
         >
           TOTAL
         </button>
         <button
           type="button"
           onClick={() => setScoreMode("average")}
-          className={toggleButtonClass("average")}
+          className="nes-btn"
+          style={{
+            background: scoreMode === "average" ? "#fff" : "transparent",
+            color: scoreMode === "average" ? "#000" : "#fff",
+          }}
         >
           AVERAGE
         </button>
       </div>
 
       {rankedRows.length === 0 ? (
-        <div className="rounded-retro border border-retro-gray p-8 text-center">
-          <p className="text-retro-gray">No settled matches yet.</p>
-          <p className="mt-2 text-sm">
-            Settle a match to see player rankings.
-          </p>
+        <div className="nes-container is-bordered py-8 text-center">
+          <p style={{ color: "#999" }}>No settled matches yet.</p>
+          <p className="mt-2 text-sm">Settle a match to see player rankings.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -146,32 +147,47 @@ export default function ScorePage() {
             const value = scoreMode === "total" ? row.totalNet : row.averageNet;
             const valueColor =
               value > 0
-                ? "text-retro-green"
+                ? { color: "#48c774" }
                 : value < 0
-                  ? "text-retro-red"
-                  : "text-retro-light";
+                  ? { color: "#e74c3c" }
+                  : { color: "#fff" };
 
             return (
               <div
                 key={row.id}
                 data-testid="score-row"
-                className="rounded-retro border border-retro-gray bg-retro-darker p-5"
+                className="nes-container is-bordered p-5"
+                style={{ background: "#1a1a1a" }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderColor = "#48c774")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderColor = "#ccc")
+                }
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="mb-1 font-pixel text-sm text-retro-blue">
+                    <p
+                      className="font-pixel mb-1 text-sm"
+                      style={{ color: "#3273dc" }}
+                    >
                       #{index + 1}
                     </p>
-                    <h3 className="font-pixel text-xl text-retro-yellow">
+                    <h3
+                      className="font-pixel text-xl"
+                      style={{ color: "#ffdd57" }}
+                    >
                       {row.name}
                     </h3>
-                    <p className="mt-2 text-sm text-retro-light">
-                      {row.matchCount} {row.matchCount === 1 ? "match" : "matches"}
+                    <p className="mt-2 text-sm" style={{ color: "#fff" }}>
+                      {row.matchCount}{" "}
+                      {row.matchCount === 1 ? "match" : "matches"}
                     </p>
                   </div>
                   <MoneyDisplay
                     cents={value}
-                    className={`font-pixel text-2xl ${valueColor}`}
+                    className="font-pixel text-2xl"
+                    style={valueColor}
                   />
                 </div>
               </div>
