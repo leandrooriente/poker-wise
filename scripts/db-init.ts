@@ -3,7 +3,7 @@
 import { bootstrapAdmin } from "./lib/bootstrap";
 
 import { db } from "@/server/db";
-import { isEnvValid } from "@/server/env";
+import { isDatabaseEnvValid } from "@/server/env";
 
 /**
  * Idempotent database initialization.
@@ -11,9 +11,9 @@ import { isEnvValid } from "@/server/env";
  * Safe to run multiple times.
  */
 export async function initDatabase() {
-  if (!isEnvValid()) {
+  if (!isDatabaseEnvValid()) {
     console.log(
-      "Skipping database initialization because environment variables are invalid or missing."
+      "Skipping database initialization because database environment variables are invalid or missing."
     );
     return;
   }
