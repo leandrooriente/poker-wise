@@ -79,6 +79,7 @@ jobs:
     if: github.event_name == 'pull_request'
     outputs:
       preview_url: ${{ steps.await-preview.outputs.preview_url }}
+      project_id: ${{ steps.await-preview.outputs.project_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -123,6 +124,8 @@ jobs:
           echo "Searching for deployment with SHA $TARGET_SHA..."
           DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
             '.[] | select(.meta.githubCommitSha == $sha) | .url' | head -n1)
+          PROJECT_ID=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
+            '.[] | select(.meta.githubCommitSha == $sha) | .projectId' | head -n1)
 
           if [ -z "$DEPLOYMENT_URL" ]; then
             echo "❌ No Vercel preview deployment found for SHA $TARGET_SHA"
@@ -158,6 +161,12 @@ jobs:
 
           echo "✅ Deployment is ready: $DEPLOYMENT_URL"
           echo "preview_url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          if [ -z "$PROJECT_ID" ]; then
+            PROJECT_ID=$(jq -r .projectId .vercel/project.json 2>/dev/null || echo "")
+          fi
+          if [ -n "$PROJECT_ID" ]; then
+            echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+          fi
 
   e2e-preview:
     name: E2E Tests (Preview)
@@ -168,6 +177,7 @@ jobs:
     env:
       BASE_URL: ${{ needs.await-vercel-preview.outputs.preview_url }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      PROJECT_ID: ${{ needs.await-vercel-preview.outputs.project_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -188,7 +198,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull preview environment variables
-        run: vercel env pull .env.preview --environment=preview --token=$VERCEL_TOKEN
+        run: vercel env pull .env.preview --environment=preview --token=$VERCEL_TOKEN --project=$PROJECT_ID
 
       - name: Seed preview database
         run: |
