@@ -231,6 +231,24 @@ jobs:
       - name: Run E2E tests against preview
         run: npm run e2e -- --project=chromium --workers=1 --max-failures=1
 
+      - name: Capture Vercel logs on failure
+        if: failure()
+        run: |
+          echo "Capturing Vercel logs for deployment: $BASE_URL"
+          # Extract domain from BASE_URL (remove https://)
+          DOMAIN="${BASE_URL#https://}"
+          vercel logs "$DOMAIN" --since 5m --token=$VERCEL_TOKEN > vercel.logs 2>&1 || echo "Failed to fetch logs"
+          cat vercel.logs
+          echo "=== End of logs ==="
+
+      - name: Upload Vercel logs artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vercel-logs-preview
+          path: vercel.logs
+          retention-days: 7
+
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
