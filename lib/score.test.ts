@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { Match } from "../types/match";
 import { Player } from "../types/player";
+
 import { buildScoreRows } from "./score";
 
 const players: Player[] = [

@@ -1,8 +1,9 @@
 import { HTMLAttributes, useState } from "react";
 
+import Button from "./Button";
+
 import { cn } from "@/lib/utils";
 
-import Button from "./Button";
 
 export interface AlertProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "error" | "success" | "warning" | "info";

@@ -28,6 +28,7 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
       return data.activeGroupSlug ?? null;
     } catch (err) {
+  // eslint-disable-next-line no-console
       console.error("Failed to fetch active group:", err);
       setError(err instanceof Error ? err.message : "Unknown error");
       return null;
@@ -47,6 +48,7 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
       return data.activeGroupSlug ?? null;
     } catch (err) {
+  // eslint-disable-next-line no-console
       console.error("Failed to update active group:", err);
       throw err;
     }

@@ -1,4 +1,4 @@
-import { seedScenario, type ScenarioName } from "./lib/scenarios";
+/* eslint-disable no-console */import { seedScenario, type ScenarioName } from "./lib/scenarios";
 
 async function main() {
   const scenario = process.argv[2] as ScenarioName;

@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { generateId } from "@/lib/uuid";
 
+import { calculateSettlement, SettlementResult } from "@/lib/settlement";
+import { generateId } from "@/lib/uuid";
 import { db } from "@/server/db";
 import {
   groupAdmins,
@@ -8,7 +9,6 @@ import {
   matches,
   players,
 } from "@/server/db/schema";
-import { calculateSettlement, SettlementResult } from "@/lib/settlement";
 
 export interface MatchEntryInput {
   userId: string;

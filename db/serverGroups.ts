@@ -14,6 +14,7 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const errorText = await response.text();
+  // eslint-disable-next-line no-console
     console.error(`API error ${response.status}: ${errorText}`);
     throw new Error(`API error ${response.status}: ${errorText}`);
   }

@@ -1,6 +1,7 @@
-import { sql } from "drizzle-orm";
-import { db } from "./lib/db";
+/* eslint-disable no-console */import { sql } from "drizzle-orm";
+
 import { bootstrapAdmin } from "./lib/bootstrap";
+import { db } from "./lib/db";
 
 export async function resetDatabase() {
   console.log("Resetting database...");

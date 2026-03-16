@@ -1,7 +1,9 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { getEnv } from "@/server/env";
+
 import * as schema from "./schema";
+
+import { getEnv } from "@/server/env";
 
 const env = getEnv();
 

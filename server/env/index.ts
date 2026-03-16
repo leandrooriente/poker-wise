@@ -1,5 +1,5 @@
-import { z } from "zod";
 import dotenv from "dotenv";
+import { z } from "zod";
 
 // dotenv is not needed in Edge Runtime (environment variables are already loaded)
 if ((globalThis as any).EdgeRuntime === undefined) {

@@ -1,10 +1,10 @@
 import { hash } from "bcryptjs";
-
 import { eq, inArray } from "drizzle-orm";
+
+import { createAdminDb } from "./admin-create-db";
 
 import { admins, groupAdmins, groups } from "@/server/db/schema";
 
-import { createAdminDb } from "./admin-create-db";
 
 export interface CreateAdminOptions {
   email: string;

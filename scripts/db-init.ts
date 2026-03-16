@@ -1,6 +1,8 @@
-import { sql } from "drizzle-orm";
-import { db } from "@/server/db";
+/* eslint-disable no-console */import { sql } from "drizzle-orm";
+
 import { bootstrapAdmin } from "./lib/bootstrap";
+
+import { db } from "@/server/db";
 
 /**
  * Idempotent database initialization.

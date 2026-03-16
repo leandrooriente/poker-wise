@@ -8,6 +8,7 @@ export async function GET() {
     const session = await requireAdmin();
     return NextResponse.json({ activeGroupSlug: session.activeGroupSlug ?? null });
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("GET /api/admin/active-group error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -40,6 +41,7 @@ export async function PUT(request: NextRequest) {
     await session.save();
     return NextResponse.json({ activeGroupSlug: slug });
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("PUT /api/admin/active-group error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
