@@ -1,15 +1,32 @@
-import { compare } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { SessionData, sessionOptions } from "./session-options";
+import { getEnv } from "@/server/env";
 
 import { db } from "@/server/db";
 import { admins } from "@/server/db/schema";
 
-
+async function ensureAdminExists() {
+  const existingAdmin = await db.query.admins.findFirst();
+  if (existingAdmin) {
+    return existingAdmin;
+  }
+  const env = getEnv();
+  const passwordHash = await hash(env.ADMIN_PASSWORD, 10);
+  const [admin] = await db
+    .insert(admins)
+    .values({
+      email: env.ADMIN_EMAIL,
+      passwordHash,
+    })
+    .returning();
+  console.log("[ensureAdminExists] admin created:", admin.email);
+  return admin;
+}
 
 export async function getSession() {
   const cookieStore = await cookies();
@@ -20,6 +37,7 @@ export async function login(
   email: string,
   password: string
 ): Promise<SessionData | null> {
+  await ensureAdminExists();
   const admin = await db.query.admins.findFirst({
     where: eq(admins.email, email),
   });

@@ -1,8 +1,9 @@
-/* eslint-disable no-console */import { sql } from "drizzle-orm";
+/* eslint-disable no-console */ import { sql } from "drizzle-orm";
 
 import { bootstrapAdmin } from "./lib/bootstrap";
 
 import { db } from "@/server/db";
+import { isEnvValid } from "@/server/env";
 
 /**
  * Idempotent database initialization.
@@ -10,6 +11,12 @@ import { db } from "@/server/db";
  * Safe to run multiple times.
  */
 export async function initDatabase() {
+  if (!isEnvValid()) {
+    console.log(
+      "Skipping database initialization because environment variables are invalid or missing."
+    );
+    return;
+  }
   console.log("Initializing database (idempotent)...");
 
   // Enable UUID extension (atomic, handles concurrent attempts)

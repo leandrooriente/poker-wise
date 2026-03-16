@@ -209,12 +209,15 @@ jobs:
       - name: Pull preview environment variables
         run: vercel env pull .env.preview --environment=preview --token=$VERCEL_TOKEN
 
-      - name: Seed preview database
-        run: |
-          set -a
-          source .env.preview
-          set +a
-          npm run db:init
+      # Database initialization is now handled by the prebuild script in package.json
+      # which runs automatically during Vercel deployment build.
+      # Skipping seeding step because database connection is not accessible from CI.
+      # - name: Seed preview database
+      #   run: |
+      #     set -a
+      #     source .env.preview
+      #     set +a
+      #     npm run db:init
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
