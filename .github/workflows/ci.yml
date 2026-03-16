@@ -209,6 +209,9 @@ jobs:
       - name: Pull preview environment variables
         run: vercel env pull .env.preview --environment=preview --token=$VERCEL_TOKEN
 
+      - name: List preview environment variables
+        run: vercel env ls --environment=preview --token=$VERCEL_TOKEN 2>&1 | grep -E "(ADMIN|AUTH|POSTGRES)" || true
+
       # Database initialization is now handled by the prebuild script in package.json
       # which runs automatically during Vercel deployment build.
       # Skipping seeding step because database connection is not accessible from CI.
@@ -237,8 +240,12 @@ jobs:
           echo "Capturing Vercel logs for deployment: $BASE_URL"
           # Extract domain from BASE_URL (remove https://)
           DOMAIN="${BASE_URL#https://}"
-          vercel logs "$DOMAIN" --since 5m --no-follow --token=$VERCEL_TOKEN > vercel.logs 2>&1 || echo "Failed to fetch logs"
-          cat vercel.logs
+          echo "=== Error logs ==="
+          vercel logs "$DOMAIN" --since 5m --no-follow --level error --token=$VERCEL_TOKEN > vercel-error.logs 2>&1 || echo "Failed to fetch error logs"
+          cat vercel-error.logs
+          echo "=== Info logs (last 20) ==="
+          vercel logs "$DOMAIN" --since 5m --no-follow --level info --token=$VERCEL_TOKEN 2>&1 | tail -20 > vercel-info.logs || echo "Failed to fetch info logs"
+          cat vercel-info.logs
           echo "=== End of logs ==="
 
       - name: Upload Vercel logs artifact
@@ -246,7 +253,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vercel-logs-preview
-          path: vercel.logs
+          path: vercel-*.logs
           retention-days: 7
 
       - name: Upload Playwright HTML report
