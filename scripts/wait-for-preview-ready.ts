@@ -1,4 +1,4 @@
-import { getPreviewReadinessIssue } from "./lib/vercel-preview-ready";
+/* eslint-disable no-console */import { getPreviewReadinessIssue } from "./lib/vercel-preview-ready";
 
 const baseUrl = process.env.BASE_URL;
 const readyPath = process.env.PREVIEW_READY_PATH || "/login";

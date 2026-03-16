@@ -79,6 +79,7 @@ jobs:
     if: github.event_name == 'pull_request'
     outputs:
       preview_url: ${{ steps.await-preview.outputs.preview_url }}
+      project_id: ${{ steps.await-preview.outputs.project_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -118,11 +119,19 @@ jobs:
           DEPLOYMENTS=$(echo "$RESPONSE" | jq '.deployments // []')
           DEPLOYMENT_COUNT=$(echo "$DEPLOYMENTS" | jq '. | length')
           echo "Found $DEPLOYMENT_COUNT preview deployment(s) matching SHA $TARGET_SHA"
+          if [ "$DEPLOYMENT_COUNT" -gt 0 ]; then
+            echo "Debug first deployment keys:"
+            echo "$DEPLOYMENTS" | jq '.[0] | keys' || true
+            echo "Debug first deployment projectId:"
+            echo "$DEPLOYMENTS" | jq '.[0].projectId' || true
+          fi
 
           # Find deployment with matching SHA
           echo "Searching for deployment with SHA $TARGET_SHA..."
           DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
             '.[] | select(.meta.githubCommitSha == $sha) | .url' | head -n1)
+          PROJECT_ID=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
+            '.[] | select(.meta.githubCommitSha == $sha) | .projectId' | head -n1)
 
           if [ -z "$DEPLOYMENT_URL" ]; then
             echo "❌ No Vercel preview deployment found for SHA $TARGET_SHA"
@@ -158,6 +167,12 @@ jobs:
 
           echo "✅ Deployment is ready: $DEPLOYMENT_URL"
           echo "preview_url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          if [ -z "$PROJECT_ID" ]; then
+            PROJECT_ID=$(jq -r .projectId .vercel/project.json 2>/dev/null || echo "")
+          fi
+          if [ -n "$PROJECT_ID" ]; then
+            echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+          fi
 
   e2e-preview:
     name: E2E Tests (Preview)
@@ -167,6 +182,8 @@ jobs:
     timeout-minutes: 15
     env:
       BASE_URL: ${{ needs.await-vercel-preview.outputs.preview_url }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      PROJECT_ID: ${{ needs.await-vercel-preview.outputs.project_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -183,6 +200,28 @@ jobs:
       - name: Wait for preview app content
         run: npm run preview:wait
 
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Link Vercel project
+        run: vercel link --yes --token=$VERCEL_TOKEN
+
+      - name: Pull preview environment variables
+        run: vercel env pull .env.preview --environment=preview --token=$VERCEL_TOKEN
+
+      - name: List preview environment variables
+        run: vercel env ls --environment=preview --token=$VERCEL_TOKEN 2>&1 | grep -E "(ADMIN|AUTH|POSTGRES)" || true
+
+      # Database initialization is now handled by the prebuild script in package.json
+      # which runs automatically during Vercel deployment build.
+      # Skipping seeding step because database connection is not accessible from CI.
+      # - name: Seed preview database
+      #   run: |
+      #     set -a
+      #     source .env.preview
+      #     set +a
+      #     npm run db:init
+
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -194,6 +233,28 @@ jobs:
 
       - name: Run E2E tests against preview
         run: npm run e2e -- --project=chromium --workers=1 --max-failures=1
+
+      - name: Capture Vercel logs on failure
+        if: failure()
+        run: |
+          echo "Capturing Vercel logs for deployment: $BASE_URL"
+          # Extract domain from BASE_URL (remove https://)
+          DOMAIN="${BASE_URL#https://}"
+          echo "=== Error logs ==="
+          vercel logs "$DOMAIN" --since 5m --no-follow --level error --token=$VERCEL_TOKEN > vercel-error.logs 2>&1 || echo "Failed to fetch error logs"
+          cat vercel-error.logs
+          echo "=== Info logs (last 20) ==="
+          vercel logs "$DOMAIN" --since 5m --no-follow --level info --token=$VERCEL_TOKEN 2>&1 | tail -20 > vercel-info.logs || echo "Failed to fetch info logs"
+          cat vercel-info.logs
+          echo "=== End of logs ==="
+
+      - name: Upload Vercel logs artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vercel-logs-preview
+          path: vercel-*.logs
+          retention-days: 7
 
       - name: Upload Playwright HTML report
         if: always()

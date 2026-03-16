@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
-import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
+import Button from "@/components/ui/Button";
+import { Heading } from "@/components/ui/Typography";
 import { getMatchesByGroup, deleteMatch } from "@/db/matches";
 import { getPlayersForGroup } from "@/db/players";
 import { useActiveGroup } from "@/lib/active-group";
@@ -14,7 +15,6 @@ import {
 } from "@/lib/settlement";
 import { Match } from "@/types/match";
 import { Player } from "@/types/player";
-import { Heading } from "@/components/ui/Typography";
 
 interface MatchWithDetails extends Match {
   playerDetails: Array<{

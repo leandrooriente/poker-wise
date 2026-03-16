@@ -59,6 +59,7 @@ export default function Header() {
   const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setActiveGroupId(value || null).catch((err) => {
+  // eslint-disable-next-line no-console
       console.error("Failed to update active group:", err);
       // TODO: show error to user
     });

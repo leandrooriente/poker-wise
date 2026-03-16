@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+/* eslint-disable no-console */import dotenv from "dotenv";
 
 import {
   getCreateAdminHelpText,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { requireAdmin } from "@/server/auth/session";
 import * as groupsQueries from "@/server/db/queries/groups";
 import * as playersQueries from "@/server/db/queries/players";
@@ -37,6 +38,7 @@ export async function GET(
 
     return NextResponse.json(playersForClient, { status: 200 });
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("GET /api/admin/groups/[slug]/players error:", error);
     // If requireAdmin redirects, it will throw a redirect error; we should let it propagate
     if (error instanceof Response) throw error;
@@ -105,6 +107,7 @@ export async function POST(
       { status: 201 }
     );
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("POST /api/admin/groups/[slug]/players error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(
@@ -182,6 +185,7 @@ export async function PUT(
       createdAt: updated.createdAt.toISOString(),
     });
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("PUT /api/admin/groups/[slug]/players error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(
@@ -233,6 +237,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("DELETE /api/admin/groups/[slug]/players error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(

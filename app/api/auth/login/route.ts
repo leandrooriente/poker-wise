@@ -27,7 +27,11 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Login error:", error);
+    if (error instanceof Error) {
+      console.error("Login error stack:", error.stack);
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

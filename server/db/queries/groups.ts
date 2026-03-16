@@ -1,7 +1,8 @@
+import { eq, and, desc, sql } from "drizzle-orm";
+
 import { generateId } from "@/lib/uuid";
 import { db } from "@/server/db";
 import { groups, groupAdmins } from "@/server/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
 
 export interface CreateGroupInput {
   id: string; // slug

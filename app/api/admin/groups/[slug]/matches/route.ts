@@ -41,6 +41,7 @@ export async function GET(
 
     return NextResponse.json(matches.map(serializeMatch));
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("GET /api/admin/groups/[slug]/matches error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(
@@ -118,6 +119,7 @@ export async function POST(
 
     return NextResponse.json(serializeMatch(created), { status: 201 });
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("POST /api/admin/groups/[slug]/matches error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(

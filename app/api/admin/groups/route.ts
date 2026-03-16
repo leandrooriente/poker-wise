@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { requireAdmin } from "@/server/auth/session";
 import * as groupsQueries from "@/server/db/queries/groups";
 
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(groupsForClient, { status: 200 });
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("GET /api/admin/groups error:", error);
     // If requireAdmin redirects, it will throw a redirect error; we should let it propagate
     if (error instanceof Response) throw error;
@@ -75,6 +77,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("POST /api/admin/groups error:", error);
     if (error instanceof Response) throw error;
     // Handle duplicate slug (unique constraint)
@@ -133,6 +136,7 @@ export async function PUT(request: NextRequest) {
       createdAt: updated.createdAt.toISOString(),
     });
   } catch (error) {
+  // eslint-disable-next-line no-console
     console.error("PUT /api/admin/groups error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(
@@ -185,6 +189,7 @@ export async function PUT(request: NextRequest) {
 
       return NextResponse.json({ success: true }, { status: 200 });
     } catch (error) {
+  // eslint-disable-next-line no-console
       console.error("DELETE /api/admin/groups error:", error);
       if (error instanceof Response) throw error;
       return NextResponse.json(

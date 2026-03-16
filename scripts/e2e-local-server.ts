@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+/* eslint-disable no-console */import { spawn } from "node:child_process";
 
 import { Client } from "pg";
 

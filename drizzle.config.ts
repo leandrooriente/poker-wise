@@ -1,5 +1,5 @@
-import { defineConfig } from "drizzle-kit";
 import dotenv from "dotenv";
+import { defineConfig } from "drizzle-kit";
 
 // Load environment variables for migration generation
 dotenv.config({ path: ".env.local" });

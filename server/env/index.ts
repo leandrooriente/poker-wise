@@ -1,5 +1,5 @@
-import { z } from "zod";
 import dotenv from "dotenv";
+import { z } from "zod";
 
 // dotenv is not needed in Edge Runtime (environment variables are already loaded)
 if ((globalThis as any).EdgeRuntime === undefined) {
@@ -9,8 +9,14 @@ if ((globalThis as any).EdgeRuntime === undefined) {
 const envSchema = z.object({
   POSTGRES_URL: z.string().url(),
   ADMIN_EMAIL: z.string().email(),
-  ADMIN_PASSWORD: z.string().min(1),
-  AUTH_SECRET: z.string().min(1),
+  ADMIN_PASSWORD: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().min(1)
+  ),
+  AUTH_SECRET: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().min(1)
+  ),
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
@@ -59,6 +65,10 @@ export function getEnv() {
 
 export { envSchema };
 export const isEnvValid = () => !usingFallback;
+export const isDatabaseEnvValid = () => {
+  const env = getEnv();
+  return env.POSTGRES_URL !== "postgresql://user:pass@localhost:5432/db";
+};
 
 export function resetEnvCacheForTests() {
   cachedEnv = null;

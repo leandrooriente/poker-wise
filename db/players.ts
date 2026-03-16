@@ -27,6 +27,7 @@ export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
       // This allows non‑admin pages (e.g., public share) to still load players
       // once we have read-only endpoints (PR 8).
       if (res.status === 401 || res.status === 403) {
+  // eslint-disable-next-line no-console
         console.warn(
           `No admin permission to fetch players for group ${groupId}; returning empty list.`
         );
@@ -44,6 +45,7 @@ export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
       createdAt: p.createdAt,
     }));
   } catch (err) {
+  // eslint-disable-next-line no-console
     console.error("getPlayersForGroup failed:", err);
     // No longer falling back to localStorage; re-throw the error
     throw err;
@@ -55,6 +57,7 @@ export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
  * @deprecated Not supported in server‑backed model.
  */
 export async function savePlayers(_players: Player[]): Promise<void> {
+  // eslint-disable-next-line no-console
   console.warn(
     "savePlayers is deprecated; use individual player CRUD endpoints instead"
   );
@@ -96,6 +99,7 @@ export async function addPlayer(
       createdAt: data.createdAt,
     };
   } catch (err) {
+  // eslint-disable-next-line no-console
     console.error("addPlayer failed:", err);
     // Re‑throw to let UI handle the error.
     throw err;
@@ -128,6 +132,7 @@ export async function updatePlayer(updatedPlayer: Player): Promise<void> {
       throw new Error(`Failed to update player: ${res.status}`);
     }
   } catch (err) {
+  // eslint-disable-next-line no-console
     console.error("updatePlayer failed:", err);
     throw err;
   }
@@ -153,6 +158,7 @@ export async function deletePlayer(id: string): Promise<void> {
       throw new Error(`Failed to delete player: ${res.status}`);
     }
   } catch (err) {
+  // eslint-disable-next-line no-console
     console.error("deletePlayer failed:", err);
     throw err;
   }

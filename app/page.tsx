@@ -2,20 +2,19 @@
 
 import { useState, useEffect } from "react";
 
-import { getGroups, addGroup, deleteGroup } from "@/db/serverGroups";
 import { getMatchesByGroup } from "@/db/matches";
+import { getGroups, addGroup, deleteGroup } from "@/db/serverGroups";
 import {
   getPlayersForGroup,
   addPlayerToGroup,
   deletePlayerFromGroup,
 } from "@/db/serverPlayers";
 import { useActiveGroup } from "@/lib/active-group";
-import { generateId } from "@/lib/uuid";
 import { Group } from "@/types/group";
 import { Player } from "@/types/player";
 
 export default function GroupsPage() {
-  const { activeGroupId, setActiveGroupId, isLoading: activeGroupLoading, error, clearError } = useActiveGroup();
+  const { activeGroupId, setActiveGroupId, isLoading: _activeGroupLoading, error, clearError } = useActiveGroup();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [newGroupId, setNewGroupId] = useState("");
@@ -30,6 +29,7 @@ export default function GroupsPage() {
     loadGroups();
   }, []);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (activeGroupId) {
       loadGroupDetails(activeGroupId);

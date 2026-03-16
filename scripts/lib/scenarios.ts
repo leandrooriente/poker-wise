@@ -1,6 +1,7 @@
-import { db } from "@/server/db";
-import { admins } from "@/server/db/schema";
 import * as f from "./seed-factories";
+
+/* eslint-disable no-console */import { db } from "@/server/db";
+import { admins } from "@/server/db/schema";
 
 export async function seedEmpty() {
   console.log("Seeding empty scenario (admin only)...");

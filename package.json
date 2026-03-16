@@ -27,7 +27,8 @@
     "db:seed": "tsx scripts/db-seed.ts",
     "admin:create": "tsx scripts/create-admin.ts",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "prebuild": "npm run db:init"
   },
   "dependencies": {
     "@testing-library/dom": "^10.4.1",

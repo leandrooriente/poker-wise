@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+/* eslint-disable no-console */import dotenv from "dotenv";
 dotenv.config();
 
 const BASE_URL = "http://localhost:3005";

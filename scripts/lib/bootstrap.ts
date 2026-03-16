@@ -1,7 +1,8 @@
-import { hash } from "bcryptjs";
-import { getEnv } from "@/server/env";
+/* eslint-disable no-console */import { hash } from "bcryptjs";
+
 import { db } from "@/server/db";
 import { admins } from "@/server/db/schema";
+import { getEnv } from "@/server/env";
 
 export async function bootstrapAdmin() {
   const existingAdmin = await db.query.admins.findFirst();
