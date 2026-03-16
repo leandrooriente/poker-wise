@@ -119,6 +119,12 @@ jobs:
           DEPLOYMENTS=$(echo "$RESPONSE" | jq '.deployments // []')
           DEPLOYMENT_COUNT=$(echo "$DEPLOYMENTS" | jq '. | length')
           echo "Found $DEPLOYMENT_COUNT preview deployment(s) matching SHA $TARGET_SHA"
+          if [ "$DEPLOYMENT_COUNT" -gt 0 ]; then
+            echo "Debug first deployment keys:"
+            echo "$DEPLOYMENTS" | jq '.[0] | keys' || true
+            echo "Debug first deployment projectId:"
+            echo "$DEPLOYMENTS" | jq '.[0].projectId' || true
+          fi
 
           # Find deployment with matching SHA
           echo "Searching for deployment with SHA $TARGET_SHA..."
