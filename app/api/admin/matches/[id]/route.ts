@@ -64,7 +64,7 @@ export async function GET(
 
     return NextResponse.json(serializeMatchWithPlayers(match));
   } catch (error) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("GET /api/admin/matches/[id] error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(
@@ -87,6 +87,17 @@ export async function PUT(
     }
 
     const body = await request.json();
+
+    if (
+      body.status !== undefined &&
+      body.status !== "live" &&
+      body.status !== "settled"
+    ) {
+      return NextResponse.json(
+        { error: "status must be live or settled" },
+        { status: 400 }
+      );
+    }
 
     const updated = await matchesQueries.updateMatchForAdmin(
       id,
@@ -115,7 +126,7 @@ export async function PUT(
 
     return NextResponse.json(serializeMatch(updated));
   } catch (error) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("PUT /api/admin/matches/[id] error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(
@@ -151,7 +162,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("DELETE /api/admin/matches/[id] error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(

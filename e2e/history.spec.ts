@@ -42,6 +42,7 @@ test.describe("History Page", () => {
           id: "match-old",
           title: "Old Match",
           buyInAmount: 1000,
+          status: "settled",
           players: [
             { userId: "p1", buyIns: 1, finalValue: 1000 },
             { userId: "p2", buyIns: 1, finalValue: 1000 },
@@ -53,6 +54,7 @@ test.describe("History Page", () => {
           id: "match-middle",
           title: "Middle Match",
           buyInAmount: 1500,
+          status: "settled",
           players: [{ userId: "p1", buyIns: 2, finalValue: 3000 }],
           startedAt: middleMatch,
           createdAt: middleMatch,
@@ -61,6 +63,7 @@ test.describe("History Page", () => {
           id: "match-newest",
           title: "Newest Match",
           buyInAmount: 1000,
+          status: "settled",
           players: [
             { userId: "p1", buyIns: 1, finalValue: 2000 },
             { userId: "p2", buyIns: 1, finalValue: 0 },
@@ -103,6 +106,7 @@ test.describe("History Page", () => {
         {
           id: "test-match",
           buyInAmount: 1000,
+          status: "settled",
           players: [
             { userId: "p1", buyIns: 1, finalValue: 1500 },
             { userId: "p2", buyIns: 1, finalValue: 500 },
@@ -148,6 +152,7 @@ test.describe("History Page", () => {
         {
           id: "test-match",
           buyInAmount: 1000,
+          status: "settled",
           players: [
             { userId: "p1", buyIns: 1, finalValue: 1500 },
             { userId: "p2", buyIns: 1, finalValue: 500 },
@@ -209,6 +214,7 @@ test.describe("History Page", () => {
         {
           id: "persisted-match",
           buyInAmount: 1000,
+          status: "settled",
           players: [
             { userId: "p1", buyIns: 1, finalValue: 1250 },
             { userId: "p2", buyIns: 1, finalValue: 750 },
@@ -256,6 +262,7 @@ test.describe("History Page", () => {
           id: "old",
           title: "Old Match",
           buyInAmount: 1000,
+          status: "settled",
           players: [
             { userId: "p1", buyIns: 1, finalValue: 1000 },
             { userId: "p2", buyIns: 1, finalValue: 1000 },
@@ -267,6 +274,7 @@ test.describe("History Page", () => {
           id: "new",
           title: "Newest Match",
           buyInAmount: 1500,
+          status: "settled",
           players: [{ userId: "p1", buyIns: 2, finalValue: 3000 }],
           startedAt: newMatch,
           createdAt: newMatch,
@@ -298,6 +306,7 @@ test.describe("History Page", () => {
           id: "match-to-delete",
           title: "Match to Delete",
           buyInAmount: 1000,
+          status: "settled",
           players: [
             { userId: "p1", buyIns: 1, finalValue: 1500 },
             { userId: "p2", buyIns: 1, finalValue: 500 },
@@ -309,6 +318,7 @@ test.describe("History Page", () => {
           id: "match-keep",
           title: "Match to Keep",
           buyInAmount: 1000,
+          status: "settled",
           players: [
             { userId: "p1", buyIns: 1, finalValue: 1000 },
             { userId: "p2", buyIns: 1, finalValue: 1000 },

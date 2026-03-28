@@ -1,6 +1,10 @@
 import { SettlementResult } from "../lib/settlement";
 import { Match } from "../types/match";
 
+type MatchQueryOptions = {
+  status?: "live" | "settled";
+};
+
 function normalizeMatch(match: any): Match {
   return {
     ...match,
@@ -23,6 +27,7 @@ export async function addMatch(
       players: match.players,
       startedAt: match.startedAt,
       endedAt: match.endedAt,
+      status: match.status ?? "live",
     }),
   });
 
@@ -54,8 +59,19 @@ export async function updateMatch(updatedMatch: Match): Promise<void> {
   }
 }
 
-export async function getMatchesByGroup(groupId: string): Promise<Match[]> {
-  const res = await fetch(`/api/admin/groups/${groupId}/matches`, {
+export async function getMatchesByGroup(
+  groupId: string,
+  options?: MatchQueryOptions
+): Promise<Match[]> {
+  const query = new URLSearchParams();
+  if (options?.status) {
+    query.set("status", options.status);
+  }
+
+  const queryString = query.toString();
+  const suffix = queryString ? `?${queryString}` : "";
+
+  const res = await fetch(`/api/admin/groups/${groupId}/matches${suffix}`, {
     credentials: "include",
   });
 

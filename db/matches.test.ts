@@ -54,6 +54,7 @@ describe("matches API wrapper", () => {
         buyInAmount: 1000,
         players: [{ userId: "p1", buyIns: 1, finalValue: 0 }],
         startedAt: "2026-03-11T00:00:00.000Z",
+        status: "live",
       }),
     });
   });
@@ -119,6 +120,27 @@ describe("matches API wrapper", () => {
     expect(fetch).toHaveBeenCalledWith("/api/admin/groups/test-group/matches", {
       credentials: "include",
     });
+  });
+
+  it("supports filtering matches by status", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      })
+    );
+
+    await expect(
+      getMatchesByGroup("test-group", { status: "settled" })
+    ).resolves.toEqual([]);
+
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/admin/groups/test-group/matches?status=settled",
+      {
+        credentials: "include",
+      }
+    );
   });
 
   it("updates matches through the admin match endpoint", async () => {
