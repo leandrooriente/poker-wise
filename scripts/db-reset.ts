@@ -1,4 +1,4 @@
-/* eslint-disable no-console */import { sql } from "drizzle-orm";
+/* eslint-disable no-console */ import { sql } from "drizzle-orm";
 
 import { bootstrapAdmin } from "./lib/bootstrap";
 import { db } from "./lib/db";
@@ -91,7 +91,8 @@ export async function resetDatabase() {
       match_id UUID NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
       player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
       buy_ins INTEGER NOT NULL DEFAULT 1,
-      final_value INTEGER NOT NULL DEFAULT 0
+      final_value INTEGER NOT NULL DEFAULT 0,
+      cashed_out_at TIMESTAMP
     )
   `);
 

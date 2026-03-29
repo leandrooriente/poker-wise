@@ -60,7 +60,12 @@ export async function createMatchViaApi(
   options: {
     title?: string;
     buyInAmount: number;
-    players: Array<{ userId: string; buyIns: number; finalValue: number }>;
+    players: Array<{
+      userId: string;
+      buyIns: number;
+      finalValue: number;
+      cashedOutAt?: string;
+    }>;
     startedAt?: string;
     createdAt?: string;
     endedAt?: string;
@@ -152,7 +157,12 @@ export async function seedViaApi(
       title?: string;
       buyInAmount: number;
       status?: string;
-      players: Array<{ userId: string; buyIns: number; finalValue: number }>;
+      players: Array<{
+        userId: string;
+        buyIns: number;
+        finalValue: number;
+        cashedOutAt?: string;
+      }>;
       startedAt: string;
       createdAt: string;
     }>;
@@ -183,6 +193,7 @@ export async function seedViaApi(
         userId: playerIdMap[player.userId] || player.userId,
         buyIns: player.buyIns,
         finalValue: player.finalValue,
+        cashedOutAt: player.cashedOutAt,
       }));
       const realMatch = await createMatchViaApi(page, groupSlug, {
         title: seededMatch.title,

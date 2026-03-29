@@ -192,4 +192,94 @@ test.describe("Live Match", () => {
       page.getByRole("heading", { name: "NEW MATCH" })
     ).toBeVisible();
   });
+
+  test("early cash-out carries into cashout and stays editable", async ({
+    page,
+  }) => {
+    const matchId = "test-match-early-cashout";
+    const { matchIdMap } = await seedViaApi(page, groupSlug, {
+      players: [
+        { id: "p1", name: "Alice", createdAt: new Date().toISOString() },
+        { id: "p2", name: "Bob", createdAt: new Date().toISOString() },
+      ],
+      matches: [
+        {
+          id: matchId,
+          title: "Early Cashout Match",
+          buyInAmount: 1000,
+          players: [
+            { userId: "p1", buyIns: 1, finalValue: 0 },
+            { userId: "p2", buyIns: 1, finalValue: 0 },
+          ],
+          startedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    await page.goto(`/live-match?match=${matchIdMap[matchId]}`);
+    const aliceRow = page
+      .getByTestId("player-row")
+      .filter({ hasText: "Alice" });
+
+    await aliceRow.getByRole("button", { name: "CASH OUT" }).click();
+    await aliceRow.getByTestId("cashout-input").fill("23.75");
+    await aliceRow.getByRole("button", { name: "SAVE CASH OUT" }).click();
+
+    await expect(aliceRow.getByText("CASHED OUT EARLY")).toBeVisible();
+    await expect(aliceRow.getByText("23.75 EUR")).toBeVisible();
+    await expect(
+      aliceRow.getByRole("button", { name: "REBUY" })
+    ).toBeDisabled();
+
+    await page.getByRole("button", { name: "PROCEED TO CASHOUT" }).click();
+    await expect(page.getByRole("heading", { name: "CASHOUT" })).toBeVisible();
+
+    const input = page.locator('[data-testid^="final-value-input-"]').first();
+    await expect(input).toHaveValue("23.75");
+
+    await input.fill("22.50");
+    await expect(input).toHaveValue("22.50");
+  });
+
+  test("returned player is re-enabled and early cash-out is cleared", async ({
+    page,
+  }) => {
+    const matchId = "test-match-return-player";
+    const { matchIdMap } = await seedViaApi(page, groupSlug, {
+      players: [
+        { id: "p1", name: "Alice", createdAt: new Date().toISOString() },
+        { id: "p2", name: "Bob", createdAt: new Date().toISOString() },
+      ],
+      matches: [
+        {
+          id: matchId,
+          title: "Return Player Match",
+          buyInAmount: 1000,
+          players: [
+            { userId: "p1", buyIns: 1, finalValue: 0 },
+            { userId: "p2", buyIns: 1, finalValue: 0 },
+          ],
+          startedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    await page.goto(`/live-match?match=${matchIdMap[matchId]}`);
+
+    const aliceRow = page
+      .getByTestId("player-row")
+      .filter({ hasText: "Alice" });
+    await aliceRow.getByRole("button", { name: "CASH OUT" }).click();
+    await aliceRow.getByTestId("cashout-input").fill("23.75");
+    await aliceRow.getByRole("button", { name: "SAVE CASH OUT" }).click();
+
+    await expect(aliceRow.getByText("CASHED OUT EARLY")).toBeVisible();
+    await aliceRow.getByRole("button", { name: "RETURN TO MATCH" }).click();
+
+    await expect(aliceRow.getByText("CASHED OUT EARLY")).toHaveCount(0);
+    await expect(aliceRow.getByRole("button", { name: "REBUY" })).toBeEnabled();
+    await expect(aliceRow.getByText("23.75 EUR")).toHaveCount(0);
+  });
 });

@@ -16,6 +16,13 @@ function serializeMatch(match: matchesQueries.MatchRecord) {
     startedAt: match.startedAt.toISOString(),
     endedAt: match.endedAt?.toISOString() ?? undefined,
     createdAt: match.createdAt.toISOString(),
+    players: match.players.map((player) => ({
+      ...player,
+      cashedOutAt:
+        player.cashedOutAt instanceof Date
+          ? player.cashedOutAt.toISOString()
+          : (player.cashedOutAt ?? undefined),
+    })),
   };
 }
 
@@ -34,6 +41,7 @@ function serializeMatchWithPlayers(result: {
       },
       buyIns: player.buyIns,
       finalValue: player.finalValue,
+      cashedOutAt: player.cashedOutAt?.toISOString() ?? undefined,
     })),
     settlement: result.settlement,
   };

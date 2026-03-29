@@ -89,6 +89,7 @@ export async function getMatchWithUsers(id: string): Promise<{
     user: any;
     buyIns: number;
     finalValue: number;
+    cashedOutAt?: string;
   }>;
   settlement?: SettlementResult;
 } | null> {
@@ -117,7 +118,12 @@ export async function settleMatch(
   finalValues: Record<string, number>
 ): Promise<{
   match: Match;
-  players: Array<{ user: any; buyIns: number; finalValue: number }>;
+  players: Array<{
+    user: any;
+    buyIns: number;
+    finalValue: number;
+    cashedOutAt?: string;
+  }>;
   settlement: SettlementResult;
 }> {
   const res = await fetch(`/api/admin/matches/${id}/settle`, {
