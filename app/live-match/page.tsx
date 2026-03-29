@@ -5,9 +5,12 @@ import { Suspense, useEffect, useState } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
 import MoneyInput from "@/components/MoneyInput";
+import PlayerSelectionGrid from "@/components/PlayerSelectionGrid";
 import { getMatchWithUsers, updateMatch } from "@/db/matches";
+import { getPlayersForGroup } from "@/db/players";
 import { useActiveGroup } from "@/lib/active-group";
 import { Match } from "@/types/match";
+import { Player } from "@/types/player";
 
 type LiveMatchPlayer = {
   user: { id: string; name: string };
@@ -34,6 +37,13 @@ function LiveMatchContent() {
   const [editingCashOutUserId, setEditingCashOutUserId] = useState<
     string | null
   >(null);
+  const [isAddPlayersModalOpen, setIsAddPlayersModalOpen] = useState(false);
+  const [groupPlayers, setGroupPlayers] = useState<Player[]>([]);
+  const [selectedPlayerIdsToAdd, setSelectedPlayerIdsToAdd] = useState<
+    string[]
+  >([]);
+  const [isLoadingGroupPlayers, setIsLoadingGroupPlayers] = useState(false);
+  const [addPlayersError, setAddPlayersError] = useState<string | null>(null);
   const matchId = searchParams.get("match");
 
   useEffect(() => {
@@ -177,6 +187,83 @@ function LiveMatchContent() {
     router.push(`/cashout?match=${matchId}`);
   };
 
+  const togglePlayerToAdd = (userId: string) => {
+    setSelectedPlayerIdsToAdd((prev) =>
+      prev.includes(userId)
+        ? prev.filter((selectedId) => selectedId !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const openAddPlayersModal = async () => {
+    if (!activeGroupId) {
+      setAddPlayersError("Please select a group first.");
+      return;
+    }
+
+    try {
+      setIsLoadingGroupPlayers(true);
+      setAddPlayersError(null);
+      setSelectedPlayerIdsToAdd([]);
+
+      const allGroupPlayers = await getPlayersForGroup(activeGroupId);
+      setGroupPlayers(allGroupPlayers);
+      setIsAddPlayersModalOpen(true);
+    } catch {
+      setAddPlayersError("Failed to load group players.");
+    } finally {
+      setIsLoadingGroupPlayers(false);
+    }
+  };
+
+  const closeAddPlayersModal = () => {
+    setIsAddPlayersModalOpen(false);
+    setSelectedPlayerIdsToAdd([]);
+    setAddPlayersError(null);
+  };
+
+  const handleAddPlayersToMatch = async () => {
+    try {
+      if (!match || selectedPlayerIdsToAdd.length === 0) return;
+
+      const currentData = await getMatchWithUsers(match.id);
+      const baseMatch = currentData?.match ?? match;
+      const existingUserIds = new Set(
+        baseMatch.players.map((player) => player.userId)
+      );
+
+      const playersToAdd = selectedPlayerIdsToAdd
+        .filter((userId) => !existingUserIds.has(userId))
+        .map((userId) => ({
+          userId,
+          buyIns: 1,
+          finalValue: 0,
+        }));
+
+      if (playersToAdd.length === 0) {
+        closeAddPlayersModal();
+        return;
+      }
+
+      await updateMatch({
+        ...baseMatch,
+        players: [...baseMatch.players, ...playersToAdd],
+      });
+
+      const updatedData = await getMatchWithUsers(baseMatch.id);
+      if (updatedData) {
+        setMatch(updatedData.match);
+        setPlayers(updatedData.players as LiveMatchPlayer[]);
+      }
+
+      closeAddPlayersModal();
+    } catch {
+      setAddPlayersError(
+        "Failed to add players to the match. Please try again."
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -217,6 +304,10 @@ function LiveMatchContent() {
     0
   );
   const totalPot = totalBuyIns * match.buyInAmount;
+  const currentMatchUserIds = new Set(players.map((player) => player.user.id));
+  const availablePlayersToAdd = groupPlayers.filter(
+    (groupPlayer) => !currentMatchUserIds.has(groupPlayer.id)
+  );
 
   return (
     <div className="rounded-retro border-retro-gray bg-retro-dark shadow-retro-outset border p-6">
@@ -388,10 +479,72 @@ function LiveMatchContent() {
               >
                 PROCEED TO CASHOUT
               </button>
+              <button
+                onClick={openAddPlayersModal}
+                disabled={isLoadingGroupPlayers}
+                className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green w-full border px-6 py-4 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isLoadingGroupPlayers ? "LOADING PLAYERS..." : "ADD PLAYER"}
+              </button>
+              {addPlayersError && (
+                <p className="font-pixel text-retro-red text-xs">
+                  {addPlayersError}
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {isAddPlayersModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm sm:flex sm:items-center sm:justify-center sm:p-4"
+          data-testid="add-players-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Add players modal"
+        >
+          <div className="bg-retro-dark sm:rounded-retro sm:border-retro-gray sm:shadow-retro-outset relative z-[101] h-full w-full overflow-y-auto p-6 sm:h-auto sm:max-h-[85vh] sm:max-w-3xl sm:border">
+            <h3 className="font-pixel text-retro-yellow mb-2 text-lg sm:text-xl">
+              ADD PLAYERS
+            </h3>
+            <p className="text-retro-light mb-4 text-sm">
+              Select group players not already in this match.
+            </p>
+
+            {availablePlayersToAdd.length === 0 ? (
+              <div className="rounded-retro border-retro-gray border p-6 text-center">
+                <p className="text-retro-gray">
+                  All group players are already in this match.
+                </p>
+              </div>
+            ) : (
+              <PlayerSelectionGrid
+                players={availablePlayersToAdd}
+                selectedPlayerIds={selectedPlayerIdsToAdd}
+                onTogglePlayer={togglePlayerToAdd}
+                idPrefix="live-add-player"
+              />
+            )}
+
+            <div className="border-retro-gray bg-retro-dark sticky bottom-0 mt-6 flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-end">
+              <button
+                onClick={closeAddPlayersModal}
+                className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green w-full border px-4 py-2 sm:w-auto"
+              >
+                CANCEL
+              </button>
+              <button
+                onClick={handleAddPlayersToMatch}
+                disabled={selectedPlayerIdsToAdd.length === 0}
+                className="rounded-retro font-pixel w-full bg-white px-4 py-2 text-black hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              >
+                ADD PLAYERS
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
