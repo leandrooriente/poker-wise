@@ -5,6 +5,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 import Header from "@/components/Header";
+import { getSession } from "@/server/auth/session";
 
 const pixelFont = Press_Start_2P({
   weight: "400",
@@ -29,11 +30,13 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
+
   return (
     <html lang="en" className={`${pixelFont.variable} ${retroFont.variable}`}>
       <head>
@@ -48,7 +51,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-retro-dark font-retro-sans text-retro-light">
         <Providers>
           <div className="relative mx-auto max-w-4xl p-4">
-            <Header />
+            <Header isAuthenticated={session.isLoggedIn === true} />
             <main className="mt-6">{children}</main>
             <footer className="mt-12 border-t border-retro-gray pt-4 text-center text-sm text-retro-gray">
               <p>Poker Wise © 2026 — Poker match settlement</p>
