@@ -46,40 +46,42 @@ export default function HistoryPage() {
           getPlayersForGroup(activeGroupId),
         ]);
 
-        const enriched = matchesData.map((match): MatchWithDetails => {
-          const playerDetails = match.players
-            .map((mp) => {
-              const player = playersData.find((p) => p.id === mp.userId);
-              return {
-                player: player!,
-                buyIns: mp.buyIns,
-                finalValue: mp.finalValue,
-              };
-            })
-            .filter((pd) => pd.player);
+        const enriched = matchesData
+          .filter((match) => match.status === "settled")
+          .map((match): MatchWithDetails => {
+            const playerDetails = match.players
+              .map((mp) => {
+                const player = playersData.find((p) => p.id === mp.userId);
+                return {
+                  player: player!,
+                  buyIns: mp.buyIns,
+                  finalValue: mp.finalValue,
+                };
+              })
+              .filter((pd) => pd.player);
 
-          const totalBuyIns = playerDetails.reduce(
-            (sum, pd) => sum + pd.buyIns,
-            0
-          );
-          const totalValue = playerDetails.reduce(
-            (sum, pd) => sum + pd.finalValue,
-            0
-          );
+            const totalBuyIns = playerDetails.reduce(
+              (sum, pd) => sum + pd.buyIns,
+              0
+            );
+            const totalValue = playerDetails.reduce(
+              (sum, pd) => sum + pd.finalValue,
+              0
+            );
 
-          // Use persisted settlement if available, otherwise compute
-          const settlement =
-            match.settlement ??
-            calculateSettlement(match.players, match.buyInAmount);
+            // Use persisted settlement if available, otherwise compute
+            const settlement =
+              match.settlement ??
+              calculateSettlement(match.players, match.buyInAmount);
 
-          return {
-            ...match,
-            playerDetails,
-            totalBuyIns,
-            totalValue,
-            settlement,
-          };
-        });
+            return {
+              ...match,
+              playerDetails,
+              totalBuyIns,
+              totalValue,
+              settlement,
+            };
+          });
 
         // Sort by date descending (newest first)
         enriched.sort(

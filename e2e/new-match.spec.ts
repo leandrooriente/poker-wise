@@ -174,4 +174,35 @@ test.describe("New Match Setup", () => {
     await expect(page.getByText("Alice", { exact: true })).toBeVisible();
     await expect(page.getByText("Bob", { exact: true })).toBeVisible();
   });
+
+  test("open match banner is hidden on live page and shown on history", async ({
+    page,
+  }) => {
+    await seedNamespacedLocalStorage(page, namespace, {
+      players: [
+        { id: "1", name: "Alice", createdAt: new Date().toISOString() },
+        { id: "2", name: "Bob", createdAt: new Date().toISOString() },
+      ],
+    });
+
+    await page.goto("/new-match");
+    await page.locator("label", { hasText: "Alice" }).click();
+    await page.locator("label", { hasText: "Bob" }).click();
+    await page.getByRole("button", { name: "START MATCH" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "LIVE MATCH" })
+    ).toBeVisible();
+    await expect(page.getByTestId("open-match-banner")).toHaveCount(0);
+
+    await page.goto("/history");
+    const openMatchBanner = page.getByTestId("open-match-banner");
+    await expect(openMatchBanner).toBeVisible();
+    await openMatchBanner.click();
+
+    await expect(page).toHaveURL(/\/live-match\?match=/);
+    await expect(
+      page.getByRole("heading", { name: "LIVE MATCH" })
+    ).toBeVisible();
+  });
 });

@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
+import { getMatchesByGroup } from "@/db/matches";
 import { getGroups } from "@/db/serverGroups";
 import { useActiveGroup } from "@/lib/active-group";
 import { Group } from "@/types/group";
+import type { Match } from "@/types/match";
 
 export default function Header() {
   const {
@@ -17,6 +20,9 @@ export default function Header() {
   } = useActiveGroup();
   const [groups, setGroups] = useState<Group[]>([]);
   const [groupsLoading, setGroupsLoading] = useState(true);
+  const [openMatch, setOpenMatch] = useState<Match | null>(null);
+  const pathname = usePathname();
+  const isLiveMatchPage = pathname?.startsWith("/live-match") ?? false;
 
   useEffect(() => {
     async function loadGroups() {
@@ -48,6 +54,37 @@ export default function Header() {
     setActiveGroupId,
   ]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadOpenMatch() {
+      if (!activeGroupId || isLiveMatchPage) {
+        setOpenMatch(null);
+        return;
+      }
+
+      try {
+        const matches = await getMatchesByGroup(activeGroupId);
+        const latestOpenMatch =
+          matches.find((match) => match.status === "live") ?? null;
+
+        if (!cancelled) {
+          setOpenMatch(latestOpenMatch);
+        }
+      } catch {
+        if (!cancelled) {
+          setOpenMatch(null);
+        }
+      }
+    }
+
+    loadOpenMatch();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeGroupId, isLiveMatchPage]);
+
   const navItems = [
     { label: "Groups", href: "/" },
     { label: "New Match", href: "/new-match" },
@@ -59,7 +96,7 @@ export default function Header() {
   const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setActiveGroupId(value || null).catch((err) => {
-  // eslint-disable-next-line no-console
+      // eslint-disable-next-line no-console
       console.error("Failed to update active group:", err);
       // TODO: show error to user
     });
@@ -68,7 +105,7 @@ export default function Header() {
   return (
     <header className="border-retro-width rounded-retro border-retro bg-retro-dark shadow-retro-outset p-4">
       {error && (
-        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-3">
+        <div className="rounded-retro border-retro-red bg-retro-red/10 mb-4 border p-3">
           <div className="flex items-center justify-between">
             <span className="font-pixel text-retro-red text-sm">{error}</span>
             <button
@@ -125,6 +162,20 @@ export default function Header() {
           ))}
         </nav>
       </div>
+
+      {openMatch && !isLiveMatchPage && (
+        <Link
+          href={`/live-match?match=${openMatch.id}`}
+          data-testid="open-match-banner"
+          className="rounded-retro border-retro-light hover:border-retro-green hover:bg-retro-green mt-4 block border bg-white p-3 text-black transition-all"
+        >
+          <p className="font-pixel text-sm text-black">OPEN MATCH</p>
+          <p className="mt-1 text-sm text-black">
+            Return to your live table
+            {openMatch.title ? `: ${openMatch.title}` : ""}
+          </p>
+        </Link>
+      )}
     </header>
   );
 }

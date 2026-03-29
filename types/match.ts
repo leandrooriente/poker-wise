@@ -1,4 +1,4 @@
-import { SettlementResult } from "@/lib/settlement";
+import type { SettlementResult } from "@/lib/settlement";
 
 // MatchPlayer now references userId (global user) not playerId (legacy player)
 export interface MatchPlayer {
@@ -11,7 +11,7 @@ export interface Match {
   id: string;
   groupId: string; // added: which group this match belongs to
   title?: string;
-  status?: "live" | "settled";
+  status?: MatchStatus;
   createdAt: string;
   startedAt?: string;
   endedAt?: string;
@@ -23,6 +23,8 @@ export interface Match {
   // Server-computed settlement for settled matches
   settlement?: SettlementResult;
 }
+
+export type MatchStatus = "live" | "settled";
 
 export interface SettlementTransfer {
   fromPlayerId: string; // still userId

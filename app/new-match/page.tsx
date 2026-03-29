@@ -66,6 +66,7 @@ export default function NewMatchPage() {
     const match = {
       groupId: activeGroupId,
       buyInAmount,
+      status: "live" as const,
       players: matchPlayers,
       startedAt: new Date().toISOString(),
     };
@@ -98,9 +99,8 @@ export default function NewMatchPage() {
 
   return (
     <div className="border-retro-gray rounded-retro bg-retro-dark shadow-retro-outset border p-6">
-
       {error && (
-        <div className="mb-4 rounded-retro border-retro-red bg-retro-red/10 border p-4">
+        <div className="rounded-retro border-retro-red bg-retro-red/10 mb-4 border p-4">
           <div className="flex items-center justify-between">
             <span className="font-pixel text-retro-red text-sm">{error}</span>
             <button
