@@ -7,11 +7,21 @@ test.describe("Admin Login", () => {
     await page.goto("/login");
     await expect(page).toHaveURL(/\/login$/);
     await expect(
+      page.getByRole("heading", { name: /POKERWISE/i })
+    ).toBeVisible();
+    await expect(
       page.getByRole("heading", { name: "ADMIN LOGIN" })
     ).toBeVisible();
     await expect(page.getByLabel("EMAIL")).toBeVisible();
     await expect(page.getByLabel("PASSWORD")).toBeVisible();
     await expect(page.getByRole("button", { name: "LOGIN" })).toBeVisible();
+
+    await expect(page.getByRole("link", { name: "Groups" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "New Match" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "History" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Score" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Login" })).toHaveCount(0);
+    await expect(page.locator("#group-select")).toHaveCount(0);
   });
 
   test("invalid credentials show error", async ({ page }) => {
@@ -34,8 +44,8 @@ test.describe("Admin Login", () => {
 
     // Should redirect to home page (groups)
     await expect(page).toHaveURL("/");
-    // Verify session cookie? Not needed for UI test.
-    // Ensure we are logged in by checking header maybe (future)
+    await expect(page.getByRole("button", { name: "Logout" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Login" })).toHaveCount(0);
   });
 
   test("logout redirects to login", async ({ page }) => {
@@ -46,13 +56,8 @@ test.describe("Admin Login", () => {
     await page.getByRole("button", { name: "LOGIN" }).click();
     await expect(page).toHaveURL("/");
 
-    // TODO: add logout button UI (not yet implemented)
-    // For now, call logout API directly
-    const response = await page.request.post("/api/auth/logout");
-    expect(response.status()).toBe(200);
-    // Expect redirect to login page
-    await page.goto("/");
-    // Should redirect to login? Not yet protected.
-    // We'll just ensure logout endpoint works.
+    await page.getByRole("button", { name: "Logout" }).click();
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByRole("button", { name: "LOGIN" })).toBeVisible();
   });
 });
