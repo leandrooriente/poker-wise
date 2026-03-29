@@ -82,8 +82,14 @@ export async function initDatabase() {
       match_id UUID NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
       player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
       buy_ins INTEGER NOT NULL DEFAULT 1,
-      final_value INTEGER NOT NULL DEFAULT 0
+      final_value INTEGER NOT NULL DEFAULT 0,
+      cashed_out_at TIMESTAMP
     )
+  `);
+
+  await db.execute(sql`
+    ALTER TABLE match_entries
+    ADD COLUMN IF NOT EXISTS cashed_out_at TIMESTAMP
   `);
 
   await db.execute(sql`

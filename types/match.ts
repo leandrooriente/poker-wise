@@ -5,6 +5,7 @@ export interface MatchPlayer {
   userId: string; // renamed from playerId to reflect global user reference
   buyIns: number; // number of buy-ins purchased during the match
   finalValue: number; // in cents, total value of chips at cashout
+  cashedOutAt?: string | Date | null; // when player left match early
 }
 
 export interface Match {

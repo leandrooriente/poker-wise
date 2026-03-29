@@ -82,6 +82,7 @@ describe("matches API wrapper", () => {
               },
               buyIns: 2,
               finalValue: 0,
+              cashedOutAt: "2026-03-11T01:00:00.000Z",
             },
           ],
         }),
@@ -90,7 +91,13 @@ describe("matches API wrapper", () => {
 
     await expect(getMatchWithUsers("match-1")).resolves.toMatchObject({
       match: { id: "match-1" },
-      players: [{ user: { name: "Alice" }, buyIns: 2 }],
+      players: [
+        {
+          user: { name: "Alice" },
+          buyIns: 2,
+          cashedOutAt: "2026-03-11T01:00:00.000Z",
+        },
+      ],
     });
 
     expect(fetch).toHaveBeenCalledWith("/api/admin/matches/match-1", {
@@ -157,7 +164,14 @@ describe("matches API wrapper", () => {
         id: "match-1",
         groupId: "test-group",
         buyInAmount: 1000,
-        players: [{ userId: "p1", buyIns: 2, finalValue: 0 }],
+        players: [
+          {
+            userId: "p1",
+            buyIns: 2,
+            finalValue: 0,
+            cashedOutAt: "2026-03-11T01:00:00.000Z",
+          },
+        ],
         createdAt: "2026-03-11T00:00:00.000Z",
         startedAt: "2026-03-11T00:00:00.000Z",
       })
@@ -170,7 +184,14 @@ describe("matches API wrapper", () => {
       body: JSON.stringify({
         groupId: "test-group",
         buyInAmount: 1000,
-        players: [{ userId: "p1", buyIns: 2, finalValue: 0 }],
+        players: [
+          {
+            userId: "p1",
+            buyIns: 2,
+            finalValue: 0,
+            cashedOutAt: "2026-03-11T01:00:00.000Z",
+          },
+        ],
         createdAt: "2026-03-11T00:00:00.000Z",
         startedAt: "2026-03-11T00:00:00.000Z",
       }),

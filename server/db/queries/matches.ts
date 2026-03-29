@@ -14,6 +14,7 @@ export interface MatchEntryInput {
   userId: string;
   buyIns: number;
   finalValue: number;
+  cashedOutAt?: string | Date | null;
 }
 
 export interface MatchRecord {
@@ -39,6 +40,7 @@ export interface MatchPlayerDetails {
   };
   buyIns: number;
   finalValue: number;
+  cashedOutAt: Date | null;
 }
 
 function buildSettlement(match: MatchRecord): SettlementResult {
@@ -86,6 +88,7 @@ async function buildMatchRecord(
       userId: matchEntries.playerId,
       buyIns: matchEntries.buyIns,
       finalValue: matchEntries.finalValue,
+      cashedOutAt: matchEntries.cashedOutAt,
     })
     .from(matchEntries)
     .where(eq(matchEntries.matchId, matchRow.id));
@@ -149,6 +152,7 @@ export async function createMatchForAdmin(
         playerId: player.userId,
         buyIns: player.buyIns,
         finalValue: player.finalValue,
+        cashedOutAt: player.cashedOutAt ? new Date(player.cashedOutAt) : null,
       }))
     );
   });
@@ -212,6 +216,7 @@ export async function getMatchWithPlayersForAdmin(
         user: player,
         buyIns: entry.buyIns,
         finalValue: entry.finalValue,
+        cashedOutAt: entry.cashedOutAt,
       };
     })
     .filter((entry): entry is MatchPlayerDetails => entry !== null);
@@ -301,6 +306,7 @@ export async function updateMatchForAdmin(
           playerId: player.userId,
           buyIns: player.buyIns,
           finalValue: player.finalValue,
+          cashedOutAt: player.cashedOutAt ? new Date(player.cashedOutAt) : null,
         }))
       );
     }
