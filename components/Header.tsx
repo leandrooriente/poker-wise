@@ -167,10 +167,10 @@ export default function Header() {
         <Link
           href={`/live-match?match=${openMatch.id}`}
           data-testid="open-match-banner"
-          className="rounded-retro border-retro-yellow bg-retro-yellow/10 hover:border-retro-green hover:bg-retro-green/10 mt-4 block border p-3 transition-all"
+          className="rounded-retro border-retro-light hover:border-retro-green hover:bg-retro-green mt-4 block border bg-white p-3 text-black transition-all"
         >
-          <p className="font-pixel text-retro-yellow text-sm">OPEN MATCH</p>
-          <p className="text-retro-light mt-1 text-sm">
+          <p className="font-pixel text-sm text-black">OPEN MATCH</p>
+          <p className="mt-1 text-sm text-black">
             Return to your live table
             {openMatch.title ? `: ${openMatch.title}` : ""}
           </p>
