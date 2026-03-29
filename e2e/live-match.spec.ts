@@ -193,6 +193,103 @@ test.describe("Live Match", () => {
     ).toBeVisible();
   });
 
+  test("add player modal lists only players not already in match", async ({
+    page,
+  }) => {
+    const matchId = "test-match-add-modal-list";
+    const { matchIdMap } = await seedViaApi(page, groupSlug, {
+      players: [
+        { id: "p1", name: "Alice", createdAt: new Date().toISOString() },
+        { id: "p2", name: "Bob", createdAt: new Date().toISOString() },
+        { id: "p3", name: "Charlie", createdAt: new Date().toISOString() },
+      ],
+      matches: [
+        {
+          id: matchId,
+          buyInAmount: 1000,
+          players: [
+            { userId: "p1", buyIns: 1, finalValue: 0 },
+            { userId: "p2", buyIns: 1, finalValue: 0 },
+          ],
+          startedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    await page.goto(`/live-match?match=${matchIdMap[matchId]}`);
+
+    await page.getByRole("button", { name: "ADD PLAYER" }).click();
+    const modal = page.getByTestId("add-players-modal");
+    await expect(modal).toBeVisible();
+
+    await expect(modal.getByText("Charlie", { exact: true })).toBeVisible();
+    await expect(modal.getByText("Alice", { exact: true })).toHaveCount(0);
+    await expect(modal.getByText("Bob", { exact: true })).toHaveCount(0);
+
+    await modal.getByRole("button", { name: "CANCEL" }).click();
+    await expect(modal).toBeHidden();
+  });
+
+  test("adding mid-game player keeps existing rebuys and final values", async ({
+    page,
+  }) => {
+    const matchId = "test-match-add-player-preserve-state";
+    const { matchIdMap } = await seedViaApi(page, groupSlug, {
+      players: [
+        { id: "p1", name: "Alice", createdAt: new Date().toISOString() },
+        { id: "p2", name: "Bob", createdAt: new Date().toISOString() },
+        { id: "p3", name: "Charlie", createdAt: new Date().toISOString() },
+      ],
+      matches: [
+        {
+          id: matchId,
+          buyInAmount: 1000,
+          players: [
+            { userId: "p1", buyIns: 3, finalValue: 1500 },
+            { userId: "p2", buyIns: 2, finalValue: 500 },
+          ],
+          startedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    await page.goto(`/live-match?match=${matchIdMap[matchId]}`);
+    expect(await getTotalPotText(page)).toBe("50.00 EUR");
+
+    const aliceRow = page
+      .getByTestId("player-row")
+      .filter({ hasText: "Alice" });
+    await expect(
+      aliceRow.locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveText("3");
+
+    await page.getByRole("button", { name: "ADD PLAYER" }).click();
+    const modal = page.getByTestId("add-players-modal");
+    await modal.locator("label", { hasText: "Charlie" }).click();
+    await modal.getByRole("button", { name: "ADD PLAYERS" }).click();
+
+    const charlieRow = page
+      .getByTestId("player-row")
+      .filter({ hasText: "Charlie" });
+    await expect(charlieRow).toBeVisible();
+    await expect(
+      charlieRow.locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveText("1");
+    expect(await getTotalPotText(page)).toBe("60.00 EUR");
+
+    await expect(
+      aliceRow.locator("span.font-pixel.text-retro-yellow.text-2xl")
+    ).toHaveText("3");
+
+    await page.getByRole("button", { name: "PROCEED TO CASHOUT" }).click();
+    await expect(page.getByRole("heading", { name: "CASHOUT" })).toBeVisible();
+
+    await expect(page.locator('input[value="15.00"]')).toHaveCount(1);
+    await expect(page.locator('input[value="5.00"]')).toHaveCount(1);
+  });
+
   test("early cash-out carries into cashout and stays editable", async ({
     page,
   }) => {
@@ -221,7 +318,6 @@ test.describe("Live Match", () => {
     const aliceRow = page
       .getByTestId("player-row")
       .filter({ hasText: "Alice" });
-
     await aliceRow.getByRole("button", { name: "CASH OUT" }).click();
     await aliceRow.getByTestId("cashout-input").fill("23.75");
     await aliceRow.getByRole("button", { name: "SAVE CASH OUT" }).click();

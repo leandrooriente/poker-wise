@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 
 import MoneyDisplay from "@/components/MoneyDisplay";
 import MoneyInput from "@/components/MoneyInput";
+import PlayerSelectionGrid from "@/components/PlayerSelectionGrid";
 import { addMatch } from "@/db/matches";
 import { getPlayersForGroup } from "@/db/players";
 import { getSettings } from "@/db/settings";
@@ -134,54 +135,11 @@ export default function NewMatchPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-              {players.map((player) => {
-                const isSelected = selectedPlayerIds.includes(player.id);
-                return (
-                  <div key={player.id} className="relative">
-                    <input
-                      type="checkbox"
-                      id={`player-${player.id}`}
-                      checked={isSelected}
-                      onChange={() => togglePlayer(player.id)}
-                      className="absolute h-0 w-0 opacity-0"
-                    />
-                    <label
-                      htmlFor={`player-${player.id}`}
-                      className={`rounded-retro block cursor-pointer border p-4 text-left transition-all ${
-                        isSelected
-                          ? "border-retro-green bg-retro-green/10 text-retro-green"
-                          : "border-retro-gray bg-retro-dark hover:border-retro-blue"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span
-                          data-testid={`player-checkbox-indicator-${player.id}`}
-                          data-state={isSelected ? "checked" : "unchecked"}
-                          aria-hidden="true"
-                          className={`shadow-retro-outset relative inline-flex h-7 w-7 shrink-0 items-center justify-center border-2 transition-all ${
-                            isSelected
-                              ? "border-retro-green bg-retro-green/20"
-                              : "border-retro-gray bg-retro-dark"
-                          }`}
-                        >
-                          <span
-                            className={`h-3.5 w-2 rotate-45 border-r-[3px] border-b-[3px] transition-opacity ${
-                              isSelected
-                                ? "border-retro-green opacity-100"
-                                : "border-transparent opacity-0"
-                            }`}
-                          />
-                        </span>
-                        <span className="font-pixel text-lg">
-                          {player.name}
-                        </span>
-                      </div>
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
+            <PlayerSelectionGrid
+              players={players}
+              selectedPlayerIds={selectedPlayerIds}
+              onTogglePlayer={togglePlayer}
+            />
           )}
         </div>
 
