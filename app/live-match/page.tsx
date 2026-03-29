@@ -92,17 +92,11 @@ function LiveMatchContent() {
     }
   };
 
-  const handleStartCashOut = (userId: string, currentFinalValue: number) => {
-    setCashOutEditorByUserId((prev) => {
-      if (prev[userId] !== undefined) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        [userId]: currentFinalValue,
-      };
-    });
+  const handleStartCashOut = (userId: string) => {
+    setCashOutEditorByUserId((prev) => ({
+      ...prev,
+      [userId]: 0,
+    }));
     setEditingCashOutUserId(userId);
   };
 
@@ -339,9 +333,7 @@ function LiveMatchContent() {
                         </button>
                         {!isCashedOut ? (
                           <button
-                            onClick={() =>
-                              handleStartCashOut(user.id, finalValue)
-                            }
+                            onClick={() => handleStartCashOut(user.id)}
                             className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green border px-4 py-3 transition-colors"
                           >
                             CASH OUT
