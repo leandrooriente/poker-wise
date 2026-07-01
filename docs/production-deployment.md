@@ -28,15 +28,16 @@ If using external PostgreSQL (Neon, Supabase, AWS RDS, etc.):
 
 Add the following environment variables in **Vercel Project Settings** → **Environment Variables**:
 
-| Variable         | Description                               | Example Value                                  | Required |
-| ---------------- | ----------------------------------------- | ---------------------------------------------- | -------- |
-| `POSTGRES_URL`   | PostgreSQL connection URL                 | Auto-set by Vercel Postgres                    | ✅       |
-| `ADMIN_EMAIL`    | Initial admin account email               | `admin@example.com`                            | ✅       |
-| `ADMIN_PASSWORD` | Initial admin account password            | `secure-password-123`                          | ✅       |
-| `AUTH_SECRET`    | Secret for session cookies (min 32 chars) | `auth-secret-01234567890123456789012345678901` | ✅       |
-| `NODE_ENV`       | Environment mode                          | `production` (auto-set by Vercel)              | ✅       |
+| Variable         | Description                                        | Example Value                                  | Required |
+| ---------------- | -------------------------------------------------- | ---------------------------------------------- | -------- |
+| `POSTGRES_URL`   | PostgreSQL connection URL                          | Auto-set by Vercel Postgres                    | ✅       |
+| `ADMIN_EMAIL`    | Initial admin account email                        | `admin@example.com`                            | ✅       |
+| `ADMIN_PASSWORD` | Initial admin account password                     | `secure-password-123`                          | ✅       |
+| `AUTH_SECRET`    | Secret for session cookies (min 32 chars)          | `auth-secret-01234567890123456789012345678901` | ✅       |
+| `CRON_SECRET`    | Bearer token Vercel Cron sends to `/api/keepalive` | Generate a long random string                  | ✅       |
+| `NODE_ENV`       | Environment mode                                   | `production` (auto-set by Vercel)              | ✅       |
 
-**Important**: Set these for **Production** environment (not just Preview).
+**Important**: Set these for **Production** environment (not just Preview). Vercel Cron includes `Authorization: Bearer $CRON_SECRET` automatically when `CRON_SECRET` is configured; keep `/api/keepalive` protected in production by setting it.
 
 ## 3. Database Setup and Migrations
 
