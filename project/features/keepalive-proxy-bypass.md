@@ -6,7 +6,7 @@ Follow-up fix for the Supabase keepalive endpoint: the production auth proxy cur
 
 ## Status
 
-testing
+merged
 
 ## Acceptance Criteria
 
@@ -41,7 +41,7 @@ testing
 
 ## Tester Findings
 
-### Validation Run — 2026-07-01
+### Validation Run 1 — 2026-07-01
 
 **Acceptance Criteria Results:**
 
@@ -63,12 +63,43 @@ testing
 
 **Action Required:** Builder must stage, commit, and push the changes, then create a PR.
 
+### Validation Run 2 — 2026-07-01 (post-rework)
+
+Previous blocking finding resolved: commit `f41fe59` pushed to `fix/keepalive-proxy-bypass`, PR #65 open and mergeable.
+
+**Acceptance Criteria Re-validation:**
+
+1. ✅ **`/api/keepalive` is treated as a public proxy route** — `proxy.ts` line 10 adds `path === "/api/keepalive"` to the public-route conditional. Exact match (not `startsWith`) correctly limits the bypass to the single route. `proxy.test.ts` confirms: unauthenticated request to `/api/keepalive` returns status 200, `x-middleware-next: 1`, no `location` header.
+
+2. ✅ **Keepalive authorization remains enforced by the route handler** — `app/api/keepalive/route.ts` still calls `authorizeCronRequest(request)` as its first action. `route.test.ts` confirms 401 when `CRON_SECRET` is set and no bearer token is provided; `authorization.test.ts` covers 5 allow/reject cases. Proxy bypass does **not** bypass route-level auth.
+
+3. ✅ **Existing authenticated app routes still redirect unauthenticated users to `/login`** — `proxy.test.ts` confirms `/admin` redirects to `/login?from=/admin` (307). Other routes (e.g. `/`, `/dashboard`) are unaffected by the change since only the `/api/keepalive` exact match was added.
+
+4. ✅ **Automated tests cover both behaviors** — `proxy.test.ts` (2 tests: keepalive pass-through + admin redirect), `route.test.ts` (3 tests: no-secret OK, missing token 401, DB failure 500), `authorization.test.ts` (5 tests: no-secret, blank-secret, matching-token, missing-token, wrong-token). All 10 relevant tests pass.
+
+5. ✅ **Lint, typecheck, and tests pass** — `npm run lint`: 0 errors (33 pre-existing warnings); `npm run typecheck`: clean; `npm test -- --run`: 17 files, 78 tests all passing.
+
+6. ⚠️ **Deployed endpoint no longer returns proxy login redirect** — Cannot verify until PR #65 is merged and Vercel deploys. Post-merge verification step required.
+
+**Commit & PR State:**
+- Commit `f41fe59` on branch `fix/keepalive-proxy-bypass` (1 code commit + 1 docs commit ahead of `main`).
+- PR #65 open, mergeable (`MERGEABLE`).
+- No uncommitted or untracked files remaining.
+
+**Verdict:** All locally verifiable acceptance criteria pass. The only remaining item is AC 6 (production endpoint verification), which is inherently a post-merge step. No blocking findings.
+
 ## Resolution Notes
 
 - Addressed the tester's blocking finding by staging and committing the keepalive proxy changes (`f41fe59`), pushing `fix/keepalive-proxy-bypass` to `origin`, and opening PR #65.
 - Preserved route-level `CRON_SECRET` authorization; only the proxy public-route allowlist was changed.
-- Set status back to `testing` for independent re-validation.
+- Independent re-validation passed; status advanced through `ready-for-merge` for PR merge.
 
 ## Merge Evidence
 
+- Branch: `fix/keepalive-proxy-bypass`
+- Implementation commit: `f41fe59` (`fix: bypass auth proxy for keepalive`)
+- Handoff/evidence commit: `c28b9cf` (`docs: update keepalive proxy bypass handoff`)
+- Pull request: https://github.com/leandrooriente/poker-wise/pull/65
+- Local validation: `npm run lint` (0 errors, existing warnings), `npm run typecheck`, `npm test -- --run` (17 files, 78 tests)
+- Merge target: `main`
 
