@@ -6,7 +6,11 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Public routes that don't require authentication
-  if (path.startsWith("/login") || path.startsWith("/api/auth")) {
+  if (
+    path.startsWith("/login") ||
+    path.startsWith("/api/auth") ||
+    path === "/api/keepalive"
+  ) {
     console.log("[middleware] public route, skipping auth:", path);
     return NextResponse.next();
   }

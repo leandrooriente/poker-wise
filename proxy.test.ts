@@ -1,0 +1,37 @@
+import { NextRequest } from "next/server";
+import { describe, expect, it, vi } from "vitest";
+
+import { proxy } from "./proxy";
+
+vi.mock("@/server/auth/session-options", () => ({
+  getSessionOptions: () => ({
+    cookieName: "poker-wise-admin-session",
+  }),
+}));
+
+function proxyRequest(path: string) {
+  return new NextRequest(`https://example.com${path}`);
+}
+
+describe("proxy", () => {
+  it("allows the keepalive API route without a session cookie", async () => {
+    const response = await proxy(proxyRequest("/api/keepalive"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect(response.headers.has("location")).toBe(false);
+  });
+
+  it("redirects unauthenticated app routes to the login page", async () => {
+    const response = await proxy(proxyRequest("/admin"));
+    const location = response.headers.get("location");
+
+    expect(response.status).toBe(307);
+    expect(location).not.toBeNull();
+
+    const redirectUrl = new URL(location!);
+    expect(redirectUrl.origin).toBe("https://example.com");
+    expect(redirectUrl.pathname).toBe("/login");
+    expect(redirectUrl.searchParams.get("from")).toBe("/admin");
+  });
+});
