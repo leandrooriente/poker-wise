@@ -14,7 +14,13 @@ import { Group } from "@/types/group";
 import { Player } from "@/types/player";
 
 export default function GroupsPage() {
-  const { activeGroupId, setActiveGroupId, isLoading: _activeGroupLoading, error, clearError } = useActiveGroup();
+  const {
+    activeGroupId,
+    setActiveGroupId,
+    isLoading: _activeGroupLoading,
+    error,
+    clearError,
+  } = useActiveGroup();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [newGroupId, setNewGroupId] = useState("");
@@ -24,13 +30,21 @@ export default function GroupsPage() {
     matchCount: number;
   } | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [shareLink, setShareLink] = useState<string | null>(null);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   useEffect(() => {
     loadGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    setShareLink(null);
+    setShareCopied(false);
+    setShareError(null);
+
     if (activeGroupId) {
       loadGroupDetails(activeGroupId);
     } else {
@@ -138,6 +152,60 @@ export default function GroupsPage() {
     } catch (err) {
       console.error("Failed to select group:", err);
       // TODO: show error to user
+    }
+  };
+
+  const copyShareLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+    } catch {
+      setShareCopied(false);
+    }
+  };
+
+  const handleCreateShareLink = async () => {
+    if (!activeGroupId) return;
+
+    setShareLoading(true);
+    setShareCopied(false);
+    setShareError(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/groups/${encodeURIComponent(activeGroupId)}/share`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(
+          body.error ?? `Failed to create link (${response.status})`
+        );
+      }
+
+      const body = await response.json();
+      const url = body.shareUrl.startsWith("http")
+        ? body.shareUrl
+        : new URL(body.shareUrl, window.location.origin).toString();
+
+      setShareLink(url);
+      await copyShareLink(url);
+    } catch (err) {
+      setShareError(
+        err instanceof Error ? err.message : "Failed to create share link"
+      );
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handleCopyShareLink = async () => {
+    if (shareLink) {
+      await copyShareLink(shareLink);
     }
   };
 
@@ -281,6 +349,48 @@ export default function GroupsPage() {
                   <p className="font-pixel text-retro-yellow">
                     Matches: {selectedGroupDetails.matchCount}
                   </p>
+                </div>
+                <div className="border-retro-gray mt-6 border-t pt-4">
+                  <h5 className="font-pixel text-retro-yellow mb-2">
+                    Read-only share link
+                  </h5>
+                  <p className="text-retro-gray mb-3 text-sm">
+                    Generate a public link players can open without logging in.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleCreateShareLink}
+                    disabled={shareLoading}
+                    className="rounded-retro border-retro-blue font-pixel text-retro-blue hover:bg-retro-blue hover:text-retro-dark border px-3 py-2 text-sm transition-colors disabled:opacity-50"
+                  >
+                    {shareLoading ? "CREATING..." : "CREATE SHARE LINK"}
+                  </button>
+                  {shareError && (
+                    <p className="font-pixel text-retro-red mt-3 text-xs">
+                      {shareError}
+                    </p>
+                  )}
+                  {shareLink && (
+                    <div className="mt-3 space-y-2">
+                      <input
+                        readOnly
+                        value={shareLink}
+                        className="rounded-retro border-retro-gray bg-retro-dark text-retro-light w-full border px-3 py-2 text-sm"
+                        aria-label="Public read-only share link"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCopyShareLink}
+                        className="rounded-retro border-retro-gray font-pixel text-retro-light hover:border-retro-green border px-3 py-2 text-sm"
+                      >
+                        {shareCopied ? "COPIED" : "COPY LINK"}
+                      </button>
+                      <p className="text-retro-gray text-xs">
+                        The raw link is only shown after creation. Generate a
+                        new link if you need another copy later.
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-6">
                   <h5 className="font-pixel text-retro-yellow mb-2">
