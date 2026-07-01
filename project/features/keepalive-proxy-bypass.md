@@ -79,14 +79,14 @@ Previous blocking finding resolved: commit `f41fe59` pushed to `fix/keepalive-pr
 
 5. ✅ **Lint, typecheck, and tests pass** — `npm run lint`: 0 errors (33 pre-existing warnings); `npm run typecheck`: clean; `npm test -- --run`: 17 files, 78 tests all passing.
 
-6. ⚠️ **Deployed endpoint no longer returns proxy login redirect** — Cannot verify until PR #65 is merged and Vercel deploys. Post-merge verification step required.
+6. ✅ **Deployed endpoint no longer returns proxy login redirect** — Verified after PR #65 merge and production deploy: `curl https://poker.leandrooriente.com/api/keepalive` returned HTTP 200 with `{ "status": "ok", "database": "reachable" }` at 2026-07-01 16:59 UTC.
 
 **Commit & PR State:**
 - Commit `f41fe59` on branch `fix/keepalive-proxy-bypass` (1 code commit + 1 docs commit ahead of `main`).
 - PR #65 open, mergeable (`MERGEABLE`).
 - No uncommitted or untracked files remaining.
 
-**Verdict:** All locally verifiable acceptance criteria pass. The only remaining item is AC 6 (production endpoint verification), which is inherently a post-merge step. No blocking findings.
+**Verdict:** All acceptance criteria pass, including post-merge production endpoint verification. No blocking findings.
 
 ## Resolution Notes
 
@@ -102,4 +102,6 @@ Previous blocking finding resolved: commit `f41fe59` pushed to `fix/keepalive-pr
 - Pull request: https://github.com/leandrooriente/poker-wise/pull/65
 - Local validation: `npm run lint` (0 errors, existing warnings), `npm run typecheck`, `npm test -- --run` (17 files, 78 tests)
 - Merge target: `main`
+- Merge commit: `e4516628a325ffb13e8bebdea845b5167a3e4f40`
+- Production verification: `https://poker.leandrooriente.com/api/keepalive` returned HTTP 200 and JSON `status: ok` at 2026-07-01 16:59 UTC; no `/login` redirect remained.
 
