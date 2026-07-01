@@ -6,7 +6,7 @@ Add a scheduled keepalive endpoint for Poker Wise that Vercel can call regularly
 
 ## Status
 
-ready-for-merge
+merged
 
 ## Acceptance Criteria
 
@@ -35,7 +35,7 @@ ready-for-merge
 - Documented production `CRON_SECRET` setup in `docs/production-deployment.md`.
 - Added Vitest coverage for cron authorization and keepalive route success/unauthorized/failure behavior.
 - Validation: `npm run lint` passes with 33 existing warnings and 0 errors; `npm run typecheck` passes; `npm test -- --run` passes (16 files, 76 tests).
-- Branch: `feat/supabase-keepalive-cron`; commit/PR not created in this builder pass.
+- Branch: `feat/supabase-keepalive-cron`; implementation commit `b19d3d7`; PR #64 created after builder/tester validation.
 
 ## Tester Findings
 
@@ -71,10 +71,16 @@ ready-for-merge
 
 ### Observation (not an AC failure)
 
-- **Changes are not yet committed or pushed.** All new/modified files are uncommitted on branch `feat/supabase-keepalive-cron`. No PR exists yet. This is a process concern for the orchestrator/builder to address before merge, but it does not affect acceptance criteria validation.
+- At tester validation time, changes were not yet committed or pushed. The orchestrator subsequently committed the work, pushed `feat/supabase-keepalive-cron`, and opened PR #64.
 
 ## Resolution Notes
 
 - No tester findings were present for this builder pass.
 
 ## Merge Evidence
+
+- Branch: `feat/supabase-keepalive-cron`
+- Implementation commit: `b19d3d7` (`feat: add Supabase keepalive cron`)
+- Pull request: https://github.com/leandrooriente/poker-wise/pull/64
+- Local validation before PR: `npm run lint` (0 errors, existing warnings), `npm run typecheck`, `npm test -- --run` (16 files, 76 tests)
+- Merge target: `main`
