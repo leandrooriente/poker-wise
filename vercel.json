@@ -4,5 +4,11 @@
   "framework": "nextjs",
   "installCommand": "npm ci --legacy-peer-deps",
   "devCommand": "npm run dev",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "crons": [
+    {
+      "path": "/api/keepalive",
+      "schedule": "0 12 * * *"
+    }
+  ]
 }
