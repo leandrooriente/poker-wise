@@ -1,7 +1,8 @@
-import { hash } from "bcryptjs";
+import { hash as hashPassword } from "bcryptjs";
 
 import { generateId } from "@/lib/uuid";
 import { db } from "@/server/db";
+import { hashShareToken } from "@/server/db/queries/share-tokens";
 import {
   admins,
   groups,
@@ -13,7 +14,7 @@ import {
 } from "@/server/db/schema";
 
 export async function createAdmin(email: string, password: string) {
-  const passwordHash = await hash(password, 10);
+  const passwordHash = await hashPassword(password, 10);
   const [admin] = await db
     .insert(admins)
     .values({ email, passwordHash })
@@ -98,7 +99,7 @@ export async function createMatchEntry(
 
 export async function createShareToken(groupId: string, token?: string) {
   const rawToken = token ?? generateId();
-  const tokenHash = await hash(rawToken, 10);
+  const tokenHash = hashShareToken(rawToken);
   const [shareToken] = await db
     .insert(groupShareTokens)
     .values({ groupId, tokenHash })

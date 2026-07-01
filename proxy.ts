@@ -8,6 +8,8 @@ export async function proxy(request: NextRequest) {
   // Public routes that don't require authentication
   if (
     path.startsWith("/login") ||
+    path === "/share" ||
+    path.startsWith("/share/") ||
     path.startsWith("/api/auth") ||
     path === "/api/keepalive"
   ) {

@@ -27,10 +27,13 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
   const [openMatch, setOpenMatch] = useState<Match | null>(null);
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
+  const isSharePage =
+    pathname === "/share" || (pathname?.startsWith("/share/") ?? false);
+  const hideAdminChrome = isLoginPage || isSharePage;
   const isLiveMatchPage = pathname?.startsWith("/live-match") ?? false;
 
   useEffect(() => {
-    if (isLoginPage) {
+    if (hideAdminChrome) {
       setGroups([]);
       setGroupsLoading(false);
       return;
@@ -47,10 +50,10 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
       }
     }
     loadGroups();
-  }, [isLoginPage]);
+  }, [hideAdminChrome]);
 
   useEffect(() => {
-    if (isLoginPage) {
+    if (hideAdminChrome) {
       return;
     }
 
@@ -66,7 +69,7 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
     activeGroupLoading,
     groups,
     groupsLoading,
-    isLoginPage,
+    hideAdminChrome,
     setActiveGroupId,
   ]);
 
@@ -74,7 +77,7 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
     let cancelled = false;
 
     async function loadOpenMatch() {
-      if (isLoginPage || !activeGroupId || isLiveMatchPage) {
+      if (hideAdminChrome || !activeGroupId || isLiveMatchPage) {
         setOpenMatch(null);
         return;
       }
@@ -99,7 +102,7 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
     return () => {
       cancelled = true;
     };
-  }, [activeGroupId, isLiveMatchPage, isLoginPage]);
+  }, [activeGroupId, isLiveMatchPage, hideAdminChrome]);
 
   const navItems = [
     { label: "Groups", href: "/" },
@@ -118,14 +121,14 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
   };
 
   return (
-    <header className="border-retro-width rounded-retro border-retro bg-retro-dark p-4 shadow-retro-outset">
-      {!isLoginPage && error && (
-        <div className="mb-4 rounded-retro border border-retro-red bg-retro-red/10 p-3">
+    <header className="border-retro-width rounded-retro border-retro bg-retro-dark shadow-retro-outset p-4">
+      {!hideAdminChrome && error && (
+        <div className="rounded-retro border-retro-red bg-retro-red/10 mb-4 border p-3">
           <div className="flex items-center justify-between">
-            <span className="font-pixel text-sm text-retro-red">{error}</span>
+            <span className="font-pixel text-retro-red text-sm">{error}</span>
             <button
               onClick={clearError}
-              className="font-pixel text-xs text-retro-red hover:text-retro-red/80"
+              className="font-pixel text-retro-red hover:text-retro-red/80 text-xs"
             >
               DISMISS
             </button>
@@ -135,15 +138,15 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-retro-green to-retro-blue">
-              <span className="font-pixel text-lg text-retro-dark">P</span>
+            <div className="from-retro-green to-retro-blue flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br">
+              <span className="font-pixel text-retro-dark text-lg">P</span>
             </div>
-            <h1 className="font-pixel text-xl text-retro-green sm:text-2xl">
+            <h1 className="font-pixel text-retro-green text-xl sm:text-2xl">
               POKER<span className="text-retro-yellow">WISE</span>
             </h1>
           </div>
 
-          {!isLoginPage && (
+          {!hideAdminChrome && (
             <div className="ml-0 w-full max-w-xs sm:ml-4 sm:w-auto">
               <label htmlFor="group-select" className="sr-only">
                 Select group
@@ -153,7 +156,7 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
                 value={activeGroupId || ""}
                 onChange={handleGroupChange}
                 disabled={activeGroupLoading || groupsLoading}
-                className="w-full rounded-retro border border-retro-gray bg-retro-dark px-3 py-2 font-pixel text-sm text-retro-light transition-all duration-200 hover:border-retro-green hover:bg-retro-green hover:text-retro-dark"
+                className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light hover:border-retro-green hover:bg-retro-green hover:text-retro-dark w-full border px-3 py-2 text-sm transition-all duration-200"
               >
                 <option value="">Select group</option>
                 {groups.map((group) => (
@@ -166,13 +169,13 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
           )}
         </div>
 
-        {!isLoginPage && (
+        {!hideAdminChrome && (
           <nav className="flex flex-wrap gap-2">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-retro border border-retro-gray bg-retro-dark px-3 py-2 font-pixel text-sm text-retro-light transition-all duration-200 hover:border-retro-green hover:bg-retro-green hover:text-retro-dark"
+                className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light hover:border-retro-green hover:bg-retro-green hover:text-retro-dark border px-3 py-2 text-sm transition-all duration-200"
               >
                 {item.label}
               </Link>
@@ -182,7 +185,7 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
               <form action="/api/auth/logout" method="POST">
                 <button
                   type="submit"
-                  className="rounded-retro border border-retro-red bg-retro-dark px-3 py-2 font-pixel text-sm text-retro-red transition-all duration-200 hover:bg-retro-red hover:text-retro-dark"
+                  className="rounded-retro border-retro-red bg-retro-dark font-pixel text-retro-red hover:bg-retro-red hover:text-retro-dark border px-3 py-2 text-sm transition-all duration-200"
                 >
                   Logout
                 </button>
@@ -190,7 +193,7 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
             ) : (
               <Link
                 href="/login"
-                className="rounded-retro border border-retro-gray bg-retro-dark px-3 py-2 font-pixel text-sm text-retro-light transition-all duration-200 hover:border-retro-green hover:bg-retro-green hover:text-retro-dark"
+                className="rounded-retro border-retro-gray bg-retro-dark font-pixel text-retro-light hover:border-retro-green hover:bg-retro-green hover:text-retro-dark border px-3 py-2 text-sm transition-all duration-200"
               >
                 Login
               </Link>
@@ -199,11 +202,11 @@ export default function Header({ isAuthenticated = false }: HeaderProps) {
         )}
       </div>
 
-      {openMatch && !isLiveMatchPage && !isLoginPage && (
+      {openMatch && !isLiveMatchPage && !hideAdminChrome && (
         <Link
           href={`/live-match?match=${openMatch.id}`}
           data-testid="open-match-banner"
-          className="mt-4 block rounded-retro border border-retro-light bg-white p-3 text-black transition-all hover:border-retro-green hover:bg-retro-green"
+          className="rounded-retro border-retro-light hover:border-retro-green hover:bg-retro-green mt-4 block border bg-white p-3 text-black transition-all"
         >
           <p className="font-pixel text-sm text-black">OPEN MATCH</p>
           <p className="mt-1 text-sm text-black">
