@@ -204,6 +204,7 @@ See `docs/cloudflare-d1-migration-plan.md` for execution gates and rollback proc
 - Login, authenticated reads, maintenance mode, D1 writes, cleanup, and public sharing passed on the custom domain.
 - The original freeze helper exposed stale Supabase session-pool reuse. The cutover used a pool-aware barrier that flushes and verifies both session and transaction endpoints; the production utility was hardened accordingly.
 - Production Cloudflare writes were enabled at 2026-07-11T09:11:31Z, while PostgreSQL remained read-only.
+- The Vercel Git link was disconnected to stop previews and statuses; the last ready deployment at commit `1bf79c9042f97f013f77e811efe58ba4bb7ac687` remains available for rollback.
 
 ## Open Questions / Future Work
 

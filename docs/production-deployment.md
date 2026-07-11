@@ -153,4 +153,6 @@ D1 Time Travel is always enabled, but it does not replace the cutover backup. Be
 3. Export the newly imported D1 database.
 4. Record the cutover timestamp and D1 bookmark.
 
+The retained rollback deployment is https://poker-wise-g0gjqakgb-leandroorientes-projects.vercel.app at commit `1bf79c9042f97f013f77e811efe58ba4bb7ac687`. Its Vercel Git link is intentionally disconnected so it remains unchanged and no longer creates GitHub previews or statuses.
+
 Before writes are enabled, rollback means removing the Cloudflare route and restoring Vercel traffic. After D1 accepts writes, reconcile D1 changes into PostgreSQL before switching back.

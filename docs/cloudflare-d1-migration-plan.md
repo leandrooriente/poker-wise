@@ -28,6 +28,7 @@ All five phases are complete. Production cutover completed on 2026-07-11.
 - PR #68 was squash-merged as `f60a88a23cc425e941bc1d5dc75cd2f2f364d626`; PR #69 was closed.
 - `main` requires the four Cloudflare CI checks: typecheck/lint/unit, D1 integration, OpenNext build, and local-D1 E2E.
 - `CLOUDFLARE_DEPLOY_ENABLED` is `true`; every green merge to `main` deploys automatically through the GitHub `Production` environment.
+- The Vercel Git link is disconnected, preventing new previews and status checks. The last ready production deployment remains available for rollback at https://poker-wise-g0gjqakgb-leandroorientes-projects.vercel.app from commit `1bf79c9042f97f013f77e811efe58ba4bb7ac687`.
 
 ### Validation summary
 
