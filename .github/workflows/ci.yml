@@ -97,6 +97,7 @@ jobs:
         id: await-preview
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           TARGET_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           echo "Looking for Vercel preview deployment matching PR SHA: $TARGET_SHA"
@@ -162,6 +163,14 @@ jobs:
             echo "Checking deployment state..."
             DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --format json --token=$VERCEL_TOKEN 2>/dev/null || echo "{}")
             echo "$DEPLOYMENT_INFO" | jq '.'
+            echo "=== Vercel deployment error ==="
+            DEPLOYMENT_ID=$(echo "$DEPLOYMENT_INFO" | jq -r '.id // empty')
+            if [ -n "$DEPLOYMENT_ID" ]; then
+              curl --fail --silent --show-error \
+                --header "Authorization: Bearer $VERCEL_TOKEN" \
+                "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID?teamId=$VERCEL_TEAM_ID" \
+                | jq '{id, readyState, errorCode, errorMessage, readyStateReason}' || true
+            fi
             echo "=== Vercel build logs ==="
             vercel inspect "$DEPLOYMENT_URL" --logs --token="$VERCEL_TOKEN" || true
             exit 1
