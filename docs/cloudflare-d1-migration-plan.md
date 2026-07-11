@@ -10,6 +10,35 @@ Browser -> Cloudflare Worker (Next.js via OpenNext) -> native D1 binding
 
 D1 is never exposed through a public SQL proxy. Vercel and Supabase remain the production and rollback path until the final cutover.
 
+## Current status
+
+Phases 1–4 are complete. Phase 5 (production cutover) has not started.
+
+### Remote Cloudflare state
+
+- `poker-wise-dev` and `poker-wise-prod` D1 databases exist in WEUR with committed IDs.
+- The initial migration is applied to both databases.
+- Development is seeded and deployed at https://poker-wise-dev.me-fb8.workers.dev.
+- The production candidate is deployed at https://poker-wise-prod.me-fb8.workers.dev with maintenance mode enabled and an empty D1 database.
+- Worker secrets are configured and hidden for both environments.
+- Production uses a newly generated `AUTH_SECRET`; existing Vercel sessions will be intentionally invalidated at cutover.
+
+### GitHub state
+
+- `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` secrets are set.
+- `CLOUDFLARE_DEPLOY_ENABLED` is `true`; CI deploys the development Worker on every PR.
+- The `Production` environment requires approval.
+- PR #68 (`feat/cloudflare-d1-migration`) is open as a draft with all CI checks green.
+- PR #69 (`chore/vercel-maintenance-mode`) adds a maintenance switch to the Vercel deployment but cannot be validated because Vercel previews fail with `BUILD_FAILED: Resource provisioning failed`.
+- `main` branch protection still requires the old Vercel-era checks (`ESLint`, `TypeScript Type Checking`, `Unit Tests (Vitest)`, `Vercel`); these must be replaced with the four Cloudflare CI check names before PR #68 can merge.
+
+### Validation summary
+
+- Typecheck, lint (0 errors), 82 unit tests, 2 D1 integration tests, OpenNext build, and 42 local-D1 E2E tests all pass in CI.
+- Remote development login, authenticated D1 reads, public sharing, row counts, and `PRAGMA foreign_key_check` pass.
+- Two independent production rehearsals exported identical per-table counts and SHA-256 digests and passed the isolated D1 verifier.
+- An initial remote sample of 11 successful requests measured approximately 209 ms CPU p50 / 385 ms p99, far above the Workers Free 10 ms allowance; production needs Workers Paid or a documented higher limit.
+
 ## Target environments
 
 | Purpose                    | Worker            | D1 database        | Binding |
@@ -27,7 +56,7 @@ Workers Free is used for development. An initial remote smoke sample of 11 succe
 
 ## Delivery phases
 
-### 1. Cloudflare runtime foundation
+### 1. Cloudflare runtime foundation ✅
 
 - Upgrade Next.js to a version supported by OpenNext.
 - Add OpenNext, Wrangler, Worker binding types, and workerd tests.
@@ -37,7 +66,7 @@ Workers Free is used for development. An initial remote smoke sample of 11 succe
 
 Exit gate: OpenNext build succeeds and authenticated smoke tests pass locally.
 
-### 2. D1 application port
+### 2. D1 application port ✅
 
 - Convert the Drizzle schema from PostgreSQL to SQLite.
 - Store UUIDs as text and timestamps as integer epoch milliseconds.
@@ -51,7 +80,7 @@ Exit gate: OpenNext build succeeds and authenticated smoke tests pass locally.
 
 Exit gate: unit, D1 integration, OpenNext build, and local E2E tests pass.
 
-### 3. Cloudflare CI/CD and remote development
+### 3. Cloudflare CI/CD and remote development ✅
 
 - Create the two remote D1 databases.
 - Replace placeholder database IDs in `wrangler.jsonc`.
@@ -61,9 +90,9 @@ Exit gate: unit, D1 integration, OpenNext build, and local E2E tests pass.
 - Keep deployments disabled until credentials and remote databases are ready.
 - Require approval through the GitHub `Production` environment.
 
-Exit gate: development migration and deployment complete through GitHub Actions.
+Exit gate: development migration and deployment complete through GitHub Actions. ✅ Complete.
 
-### 4. Data migration rehearsal
+### 4. Data migration rehearsal ✅
 
 - Export PostgreSQL from a read-only repeatable-read transaction.
 - Convert timestamps explicitly from UTC to epoch milliseconds.
@@ -73,9 +102,9 @@ Exit gate: development migration and deployment complete through GitHub Actions.
 - Run `PRAGMA foreign_key_check`.
 - Rehearse development remotely and production locally.
 
-Exit gate: two consecutive rehearsals produce zero differences.
+Exit gate: two consecutive rehearsals produce zero differences. ✅ Complete.
 
-### 5. Production cutover
+### 5. Production cutover ⏳ Not started
 
 1. Deploy the production Worker candidate without a custom-domain route.
 2. Take a final Supabase backup and verify restore access.
@@ -134,4 +163,4 @@ Remote commands require explicit `--remote`; production commands additionally re
 - Migration artifacts are ignored by Git and written with restrictive permissions.
 - Data imports use ordinary `INSERT`, never replace/upsert semantics.
 - Runtime builds never create schemas or bootstrap production admins.
-- GitHub deployment remains disabled through `CLOUDFLARE_DEPLOY_ENABLED=false` until remote setup is complete.
+- GitHub deployment is enabled through `CLOUDFLARE_DEPLOY_ENABLED=true`; production deploy requires approval through the protected `Production` environment.
