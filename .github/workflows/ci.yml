@@ -162,6 +162,8 @@ jobs:
             echo "Checking deployment state..."
             DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --format json --token=$VERCEL_TOKEN 2>/dev/null || echo "{}")
             echo "$DEPLOYMENT_INFO" | jq '.'
+            echo "=== Vercel build logs ==="
+            vercel inspect "$DEPLOYMENT_URL" --logs --token="$VERCEL_TOKEN" || true
             exit 1
           fi
 
