@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { proxy } from "./proxy";
 
@@ -14,6 +14,33 @@ function proxyRequest(path: string, init?: { method?: string }) {
 }
 
 describe("proxy", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("blocks admin writes during maintenance before authentication", async () => {
+    vi.stubEnv("MAINTENANCE_MODE", "true");
+
+    const response = await proxy(
+      proxyRequest("/api/admin/groups", { method: "POST" })
+    );
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("retry-after")).toBe("600");
+    await expect(response.json()).resolves.toEqual({
+      error: "Poker Wise is temporarily read-only for maintenance.",
+    });
+  });
+
+  it("keeps admin reads available during maintenance", async () => {
+    vi.stubEnv("MAINTENANCE_MODE", "true");
+
+    const response = await proxy(proxyRequest("/api/admin/groups"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/login");
+  });
+
   it("allows the keepalive API route without a session cookie", async () => {
     const response = await proxy(proxyRequest("/api/keepalive"));
 
