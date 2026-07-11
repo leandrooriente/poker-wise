@@ -14,7 +14,7 @@
     "preview": "npm run cf:build && opennextjs-cloudflare preview",
     "deploy:dev": "npm run cf:build && opennextjs-cloudflare deploy",
     "deploy:production": "npm run cf:build && opennextjs-cloudflare deploy --env production",
-    "cf:typegen": "wrangler types --env-file .dev.vars.example --env-interface CloudflareEnv --include-runtime false cloudflare-env.d.ts",
+    "cf:typegen": "tsx scripts/generate-cloudflare-types.ts",
     "cf:secrets": "tsx scripts/sync-cloudflare-secrets.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
