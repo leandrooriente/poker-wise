@@ -82,7 +82,7 @@ Production reset and scenario seeding are disabled. Remote development resets re
 
 ## Cloudflare deployment
 
-The remote development Worker is available at [poker-wise-dev.me-fb8.workers.dev](https://poker-wise-dev.me-fb8.workers.dev).
+The remote development Worker is available at [poker-wise-dev.me-fb8.workers.dev](https://poker-wise-dev.me-fb8.workers.dev). The [production candidate](https://poker-wise-prod.me-fb8.workers.dev) remains in maintenance mode with an empty D1 database until the final import.
 
 ```bash
 npm run deploy:dev

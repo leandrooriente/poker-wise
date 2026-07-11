@@ -183,6 +183,7 @@
 - Remove PostgreSQL, Docker, Vercel cron, and database keepalive dependencies.
 - Add workerd/D1 integration tests and run E2E against local D1.
 - Use a repeatable-read PostgreSQL exporter and canonical checksums for the one-time data migration.
+- Rotate the production `AUTH_SECRET` at cutover. Existing Vercel sessions will be invalidated intentionally; password hashes, data, and public share links remain unchanged.
 
 See `docs/cloudflare-d1-migration-plan.md` for execution gates and rollback procedures.
 

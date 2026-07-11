@@ -42,7 +42,7 @@ npm run cf:secrets -- --env=production --source=.env.production.local
 
 Development receives `AUTH_SECRET`, seed admin credentials, and `MAINTENANCE_MODE`. Production receives only `AUTH_SECRET` and `MAINTENANCE_MODE` because admin records are imported from PostgreSQL.
 
-`AUTH_SECRET` must retain the current production value through cutover so existing session cookies remain valid. Production never bootstraps an admin during build or startup.
+Production uses a newly generated `AUTH_SECRET`; the migration intentionally invalidates existing Vercel session cookies, so administrators must sign in again after cutover. Password hashes, application data, and public share links are unaffected. Production never bootstraps an admin during build or startup.
 
 ## Schema migrations
 
