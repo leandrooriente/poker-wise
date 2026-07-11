@@ -181,13 +181,15 @@ export default function GroupsPage() {
       );
 
       if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
+        const body = (await response.json().catch(() => ({}))) as {
+          error?: string;
+        };
         throw new Error(
           body.error ?? `Failed to create link (${response.status})`
         );
       }
 
-      const body = await response.json();
+      const body = (await response.json()) as { shareUrl: string };
       const url = body.shareUrl.startsWith("http")
         ? body.shareUrl
         : new URL(body.shareUrl, window.location.origin).toString();

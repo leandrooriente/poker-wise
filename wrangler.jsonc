@@ -1,0 +1,44 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "poker-wise-dev",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-07-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "vars": {
+    "APP_ENV": "development",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "poker-wise-dev",
+      // Replaced with the remote ID after Cloudflare authentication is refreshed.
+      "database_id": "00000000-0000-0000-0000-000000000001",
+      "migrations_dir": "server/db/migrations",
+    },
+  ],
+  "env": {
+    "production": {
+      "name": "poker-wise-prod",
+      "vars": {
+        "APP_ENV": "production",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "poker-wise-prod",
+          // Replaced with the remote ID after Cloudflare authentication is refreshed.
+          "database_id": "00000000-0000-0000-0000-000000000002",
+          "migrations_dir": "server/db/migrations",
+        },
+      ],
+    },
+  },
+}

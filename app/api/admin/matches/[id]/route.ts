@@ -94,7 +94,14 @@ export async function PUT(
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as {
+      title?: string | null;
+      buyInAmount?: number;
+      players?: matchesQueries.MatchEntryInput[];
+      startedAt?: string;
+      endedAt?: string | null;
+      status?: string;
+    };
 
     if (
       body.status !== undefined &&

@@ -1,22 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { resolvePgSslConfig } from "./index";
+import { getDb, setProcessDatabase, type Database } from "./index";
 
-describe("resolvePgSslConfig", () => {
-  it("disables SSL in non-production environments", () => {
-    expect(resolvePgSslConfig("development", undefined)).toBe(false);
-    expect(resolvePgSslConfig("test", "preview")).toBe(false);
+describe("database context", () => {
+  afterEach(() => {
+    setProcessDatabase(undefined);
   });
 
-  it("uses strict SSL in production by default", () => {
-    expect(resolvePgSslConfig("production", "production")).toEqual({
-      rejectUnauthorized: true,
-    });
-  });
+  it("uses an explicitly installed script or test database", () => {
+    const database = { marker: "test-db" } as unknown as Database;
 
-  it("allows self-signed certificates in Vercel preview", () => {
-    expect(resolvePgSslConfig("production", "preview")).toEqual({
-      rejectUnauthorized: false,
-    });
+    setProcessDatabase(database);
+
+    expect(getDb()).toBe(database);
   });
 });

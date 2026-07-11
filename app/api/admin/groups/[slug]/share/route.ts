@@ -62,7 +62,9 @@ export async function POST(
 export async function DELETE(request: NextRequest) {
   try {
     const session = await requireAdmin();
-    const body = await request.json().catch(() => ({}));
+    const body = (await request.json().catch(() => ({}))) as {
+      tokenId?: unknown;
+    };
     const { tokenId } = body;
 
     if (!tokenId || typeof tokenId !== "string") {

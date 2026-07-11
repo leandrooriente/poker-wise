@@ -7,7 +7,7 @@ import * as groupsQueries from "@/server/db/queries/groups";
  * GET /api/admin/groups
  * Returns all groups where the authenticated admin is a member.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await requireAdmin();
     const adminId = session.adminId;
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     // Convert Date objects to ISO strings for client compatibility
     // Use slug as external ID for backward compatibility
-    const groupsForClient = groups.map(group => ({
+    const groupsForClient = groups.map((group) => ({
       id: group.slug,
       name: group.name,
       createdAt: group.createdAt.toISOString(),
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(groupsForClient, { status: 200 });
   } catch (error) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("GET /api/admin/groups error:", error);
     // If requireAdmin redirects, it will throw a redirect error; we should let it propagate
     if (error instanceof Response) throw error;
@@ -44,7 +44,10 @@ export async function POST(request: NextRequest) {
     const session = await requireAdmin();
     const adminId = session.adminId;
 
-    const body = await request.json();
+    const body = (await request.json()) as {
+      id?: unknown;
+      name?: unknown;
+    };
     const { id, name } = body;
 
     if (!id || typeof id !== "string" || !name || typeof name !== "string") {
@@ -77,11 +80,15 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("POST /api/admin/groups error:", error);
     if (error instanceof Response) throw error;
     // Handle duplicate slug (unique constraint)
-    if (error instanceof Error && error.message.includes("duplicate key")) {
+    if (
+      error instanceof Error &&
+      (error.message.includes("duplicate key") ||
+        error.message.includes("UNIQUE constraint failed"))
+    ) {
       return NextResponse.json(
         { error: "A group with this id already exists" },
         { status: 409 }
@@ -103,7 +110,10 @@ export async function PUT(request: NextRequest) {
     const session = await requireAdmin();
     const adminId = session.adminId;
 
-    const body = await request.json();
+    const body = (await request.json()) as {
+      id?: unknown;
+      name?: unknown;
+    };
     const { id, name } = body;
 
     if (!id || typeof id !== "string" || !name || typeof name !== "string") {
@@ -122,7 +132,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updated = await groupsQueries.updateGroupForAdmin(group.id, adminId, { name });
+    const updated = await groupsQueries.updateGroupForAdmin(group.id, adminId, {
+      name,
+    });
     if (!updated) {
       return NextResponse.json(
         { error: "Group not found or you do not have permission" },
@@ -136,7 +148,7 @@ export async function PUT(request: NextRequest) {
       createdAt: updated.createdAt.toISOString(),
     });
   } catch (error) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("PUT /api/admin/groups error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(
@@ -146,55 +158,55 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-  /**
-   * DELETE /api/admin/groups
-   * Deletes a group (cascading) if the authenticated admin is an admin member.
-   */
-  export async function DELETE(request: NextRequest) {
-    try {
-      const session = await requireAdmin();
-      const adminId = session.adminId;
+/**
+ * DELETE /api/admin/groups
+ * Deletes a group (cascading) if the authenticated admin is an admin member.
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await requireAdmin();
+    const adminId = session.adminId;
 
-      const { searchParams } = new URL(request.url);
-      const id = searchParams.get("id");
-      if (!id) {
-        return NextResponse.json(
-          { error: "Group id is required as query parameter" },
-          { status: 400 }
-        );
-      }
-
-      // Look up group by slug to get UUID
-      const group = await groupsQueries.getGroupBySlugForAdmin(id, adminId);
-      if (!group) {
-        return NextResponse.json(
-          { error: "Group not found or you do not have admin permission" },
-          { status: 404 }
-        );
-      }
-
-      const deleted = await groupsQueries.deleteGroupForAdmin(group.id, adminId);
-      if (!deleted) {
-        return NextResponse.json(
-          { error: "Group not found or you do not have admin permission" },
-          { status: 404 }
-        );
-      }
-
-      // If the deleted group was the active group, clear it from session
-      if (session.activeGroupSlug === id) {
-        session.activeGroupSlug = null;
-        await session.save();
-      }
-
-      return NextResponse.json({ success: true }, { status: 200 });
-    } catch (error) {
-  // eslint-disable-next-line no-console
-      console.error("DELETE /api/admin/groups error:", error);
-      if (error instanceof Response) throw error;
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) {
       return NextResponse.json(
-        { error: "Internal server error" },
-        { status: 500 }
+        { error: "Group id is required as query parameter" },
+        { status: 400 }
       );
     }
+
+    // Look up group by slug to get UUID
+    const group = await groupsQueries.getGroupBySlugForAdmin(id, adminId);
+    if (!group) {
+      return NextResponse.json(
+        { error: "Group not found or you do not have admin permission" },
+        { status: 404 }
+      );
+    }
+
+    const deleted = await groupsQueries.deleteGroupForAdmin(group.id, adminId);
+    if (!deleted) {
+      return NextResponse.json(
+        { error: "Group not found or you do not have admin permission" },
+        { status: 404 }
+      );
+    }
+
+    // If the deleted group was the active group, clear it from session
+    if (session.activeGroupSlug === id) {
+      session.activeGroupSlug = null;
+      await session.save();
+    }
+
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("DELETE /api/admin/groups error:", error);
+    if (error instanceof Response) throw error;
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
+}

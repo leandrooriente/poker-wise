@@ -6,12 +6,13 @@ export interface ParsedCreateAdminArgs {
 }
 
 const HELP_TEXT = [
-  "Usage: npm run admin:create -- <email> <password> [--group <slug> ...] [--all-groups]",
+  "Usage: npm run admin:create -- <email> <password> [--group <slug> ...] [--all-groups] [--remote] [--env=production]",
   "",
   "Examples:",
   "  npm run admin:create -- owner@example.com 'super-secret'",
   "  npm run admin:create -- owner@example.com 'super-secret' --group club-night --group cash-game",
   "  npm run admin:create -- owner@example.com 'super-secret' --all-groups",
+  "  npm run admin:create -- owner@example.com 'super-secret' --all-groups --remote --env=production",
 ].join("\n");
 
 export function getCreateAdminHelpText() {

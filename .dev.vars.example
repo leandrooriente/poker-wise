@@ -1,0 +1,4 @@
+AUTH_SECRET=replace-with-at-least-32-characters
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=replace-for-local-development
+MAINTENANCE_MODE=false

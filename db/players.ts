@@ -27,7 +27,7 @@ export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
       // This allows non‑admin pages (e.g., public share) to still load players
       // once we have read-only endpoints (PR 8).
       if (res.status === 401 || res.status === 403) {
-  // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console
         console.warn(
           `No admin permission to fetch players for group ${groupId}; returning empty list.`
         );
@@ -36,16 +36,21 @@ export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
       throw new Error(`Failed to fetch players: ${res.status}`);
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as Array<{
+      id: string;
+      name: string;
+      notes: string | null;
+      createdAt: string;
+    }>;
     // API returns notes, but not preferredBuyIn.
-    return data.map((p: any) => ({
+    return data.map((p) => ({
       id: p.id,
       name: p.name,
       notes: p.notes ?? undefined,
       createdAt: p.createdAt,
     }));
   } catch (err) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("getPlayersForGroup failed:", err);
     // No longer falling back to localStorage; re-throw the error
     throw err;
@@ -91,7 +96,12 @@ export async function addPlayer(
       throw new Error(`Failed to add player: ${res.status}`);
     }
 
-    const data = await res.json();
+    const data = (await res.json()) as {
+      id: string;
+      name: string;
+      notes: string | null;
+      createdAt: string;
+    };
     return {
       id: data.id,
       name: data.name,
@@ -99,7 +109,7 @@ export async function addPlayer(
       createdAt: data.createdAt,
     };
   } catch (err) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("addPlayer failed:", err);
     // Re‑throw to let UI handle the error.
     throw err;
@@ -132,7 +142,7 @@ export async function updatePlayer(updatedPlayer: Player): Promise<void> {
       throw new Error(`Failed to update player: ${res.status}`);
     }
   } catch (err) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("updatePlayer failed:", err);
     throw err;
   }
@@ -158,7 +168,7 @@ export async function deletePlayer(id: string): Promise<void> {
       throw new Error(`Failed to delete player: ${res.status}`);
     }
   } catch (err) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("deletePlayer failed:", err);
     throw err;
   }

@@ -1,11 +1,11 @@
 import { createHash, randomBytes } from "node:crypto";
 
 import { compare } from "bcryptjs";
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { buildScoreRows, type ScoreRow } from "@/lib/score";
 import { calculateSettlement, type SettlementResult } from "@/lib/settlement";
-import { db } from "@/server/db";
+import { getDb } from "@/server/db";
 import {
   groupAdmins,
   groupShareTokens,
@@ -116,6 +116,7 @@ export async function findMatchingShareTokenRecord<
 }
 
 async function verifyAdminCanManageGroup(groupId: string, adminId: string) {
+  const db = getDb();
   const membership = await db.query.groupAdmins.findFirst({
     where: and(
       eq(groupAdmins.groupId, groupId),
@@ -144,6 +145,7 @@ export async function createGroupShareTokenForAdmin(
 
   const rawToken = generateRawShareToken();
   const tokenHash = hashShareToken(rawToken);
+  const db = getDb();
 
   const [shareToken] = await db
     .insert(groupShareTokens)
@@ -164,6 +166,7 @@ export async function revokeGroupShareTokenForAdmin(
   tokenId: string,
   adminId: string
 ): Promise<boolean> {
+  const db = getDb();
   const shareToken = await db.query.groupShareTokens.findFirst({
     where: eq(groupShareTokens.id, tokenId),
   });
@@ -188,6 +191,7 @@ export async function revokeGroupShareTokenForAdmin(
 }
 
 async function getGroupIdForShareToken(rawToken: string) {
+  const db = getDb();
   const normalizedToken = rawToken.trim();
   if (!normalizedToken) {
     return undefined;
@@ -262,6 +266,7 @@ function toScorePlayer(player: PublicSharePlayer): Player {
 }
 
 async function listPublicMatchesForGroup(groupId: string) {
+  const db = getDb();
   const matchRows = await db
     .select()
     .from(matches)
@@ -282,16 +287,9 @@ async function listPublicMatchesForGroup(groupId: string) {
       cashedOutAt: matchEntries.cashedOutAt,
     })
     .from(matchEntries)
+    .innerJoin(matches, eq(matchEntries.matchId, matches.id))
     .innerJoin(players, eq(matchEntries.playerId, players.id))
-    .where(
-      and(
-        inArray(
-          matchEntries.matchId,
-          matchRows.map((match) => match.id)
-        ),
-        eq(players.groupId, groupId)
-      )
-    );
+    .where(and(eq(matches.groupId, groupId), eq(players.groupId, groupId)));
 
   const entriesByMatchId = new Map<string, typeof entries>();
   for (const entry of entries) {
@@ -342,6 +340,7 @@ export async function getPublicGroupShareDataByToken(
     return null;
   }
 
+  const db = getDb();
   const [group] = await db
     .select({
       id: groups.id,

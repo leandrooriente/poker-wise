@@ -1,7 +1,7 @@
 import { eq, and, desc } from "drizzle-orm";
 
 import { generateId } from "@/lib/uuid";
-import { db } from "@/server/db";
+import { getDb } from "@/server/db";
 import { players, groupAdmins } from "@/server/db/schema";
 
 export interface CreatePlayerInput {
@@ -25,6 +25,7 @@ async function verifyAdminMembership(
   groupId: string,
   adminId: string
 ): Promise<boolean> {
+  const db = getDb();
   const membership = await db.query.groupAdmins.findFirst({
     where: and(
       eq(groupAdmins.groupId, groupId),
@@ -38,6 +39,7 @@ async function verifyAdminMembership(
  * Get a player's group ID.
  */
 async function getPlayerGroupId(playerId: string): Promise<string | undefined> {
+  const db = getDb();
   const player = await db.query.players.findFirst({
     where: eq(players.id, playerId),
     columns: { groupId: true },
@@ -56,6 +58,7 @@ export async function createPlayer(
     return undefined;
   }
 
+  const db = getDb();
   const [player] = await db
     .insert(players)
     .values({
@@ -80,6 +83,7 @@ export async function getPlayersForGroup(
     return [];
   }
 
+  const db = getDb();
   const result = await db
     .select()
     .from(players)
@@ -103,6 +107,7 @@ export async function getPlayerForAdmin(
     return undefined;
   }
 
+  const db = getDb();
   const player = await db.query.players.findFirst({
     where: eq(players.id, playerId),
   });
@@ -124,6 +129,7 @@ export async function updatePlayerForAdmin(
     return undefined;
   }
 
+  const db = getDb();
   const [updated] = await db
     .update(players)
     .set({
@@ -150,6 +156,7 @@ export async function deletePlayerForAdmin(
     return false;
   }
 
+  const db = getDb();
   await db.delete(players).where(eq(players.id, playerId));
   return true;
 }
