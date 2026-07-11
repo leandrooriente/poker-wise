@@ -1,105 +1,112 @@
-# Poker Wise – Local-first Poker Match Organizer
+# Poker Wise
 
-A 16-bit retro-styled PWA for organizing Texas Hold'em poker matches with automatic settlement. Designed to run on a single shared device (no backend, no sync). Stores all data locally in the browser.
+A retro-styled poker match organizer with player management, live rebuy tracking, cashout validation, automatic settlement, history, and read-only group sharing.
 
 ## Features
 
-- **Player Management**: Add, edit, delete recurring players.
-- **Match Flow**: 
-  1. Select players and set buy‑in (default 10 EUR, configurable per app & per match)
-  2. Live match tracking with rebuys **anytime** (not just when busted)
-  3. Cashout: enter final chip values in euros (including cents)
-  4. Automatic settlement: calculates net results and generates minimized “who pays whom” transfers
-  5. Match history with detailed summaries
-- **16-bit Retro Aesthetic**: Pixel fonts, CRT scanlines, chunky borders, retro color palette (green/teal/blue/yellow).
-- **Local‑first PWA**: Works offline, installable, no backend, no tracking, no export/import needed for MVP.
+- Manage poker groups and recurring players
+- Track live matches, buy-ins, rebuys, and early cashouts
+- Validate final chip values and minimize settlement transfers
+- Review and delete match history
+- Create revocable, read-only public share links
+- Authenticate multiple group administrators
 
-## Tech Stack
+## Tech stack
 
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **Tailwind CSS** (with custom 16‑bit theme)
-- **Vitest** (unit tests) + **Playwright** (E2E tests)
-- **PWA** (next‑pwa, service worker)
-- **LocalStorage** persistence (no external database)
+- Next.js 16 and React 19
+- TypeScript and Tailwind CSS
+- Drizzle ORM with Cloudflare D1
+- OpenNext on Cloudflare Workers
+- Vitest, Cloudflare's Workers Vitest pool, and Playwright
 
-## Getting Started
+The application is being migrated from Vercel and Supabase PostgreSQL. See [the migration plan](docs/cloudflare-d1-migration-plan.md).
 
-### Prerequisites
+## Prerequisites
 
-- Node.js 18+ and npm/yarn/pnpm/bun
+- Node.js 20 or newer
+- npm
+- Wrangler authentication for remote Cloudflare operations
 
-### Installation
+## Setup
 
 ```bash
 git clone https://github.com/leandrooriente/poker-wise.git
 cd poker-wise
 npm install
+cp .dev.vars.example .dev.vars
+npm run db:migrate:local
+npm run db:reset
 ```
 
-### Development
+Set development values in `.dev.vars`. Never commit that file.
 
-Run the development server:
+## Development
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000).
 
-### Testing
-
-- Unit tests: `npm run test`
-- E2E tests (requires dev server running): `npm run e2e`
-- Lint: `npm run lint`
-- Type check: `npm run typecheck`
-
-### Building for Production
+`next dev` uses OpenNext's local Cloudflare context and a local D1 database. To exercise the built Worker instead:
 
 ```bash
-npm run build
-npm start
+npm run preview
 ```
 
-The built app is a fully functional PWA that can be installed on supported devices.
+## Validation
 
-### Deployment
-
-This project is set up for automatic deployment to **Vercel** on every push to the `main` branch.
-
-**CI/CD Pipeline**:
-- GitHub Actions runs lint, type checking, unit tests, build, and E2E tests on every push and pull request.
-- All checks must pass before merging into `main`.
-- The `main` branch is protected; direct pushes are blocked.
-
-**Vercel Integration**:
-- Connect your GitHub repository to Vercel for automatic deployments.
-- The project includes `next.config.ts` with PWA configuration and `public/manifest.json` for installability.
-- Ensure environment variables (if any) are set in the Vercel project settings.
-
-**Node Version**: The project requires Node.js >=20 (specified in `.nvmrc` and `package.json` engines).
-
-## Project Structure
-
-```
-app/                  # Next.js app router pages
-  page.tsx            # Players management
-  new-match/          # Match creation
-  live-match/         # Rebuy tracking
-  cashout/            # Final chip value entry
-  results/            # Settlement results
-  history/            # Past matches
-components/           # React components (Header, PlayerCard, …)
-types/                # TypeScript interfaces (Player, Match, …)
-db/                   # LocalStorage CRUD operations (players, matches, settings)
-lib/                  # Business logic (settlement engine)
-public/               # Static assets, PWA manifest
-e2e/                  # Playwright end‑to‑end tests
+```bash
+npm run typecheck
+npm run lint
+npm run test -- --run
+npm run test:d1 -- --run
+npm run e2e:local
+npm run cf:build
 ```
 
-## Design Decisions
+The D1 suite runs inside workerd with isolated database state. Local E2E startup applies committed migrations and bootstraps a development admin.
 
-See [docs/decisions.md](docs/decisions.md) for a timeline of architectural and implementation choices.
+## Database commands
+
+```bash
+npm run db:generate          # generate a reviewed migration
+npm run db:migrate:local     # migrate local D1
+npm run db:migrate:dev       # migrate remote development D1
+npm run db:migrate:production
+npm run db:reset             # local only by default
+npm run db:seed -- full-demo
+```
+
+Production reset and scenario seeding are disabled. Remote development resets require an explicit confirmation flag.
+
+## Cloudflare deployment
+
+```bash
+npm run deploy:dev
+npm run deploy:production
+```
+
+Remote deployments remain disabled in GitHub Actions until `CLOUDFLARE_DEPLOY_ENABLED` is set to `true`. See [the Cloudflare deployment guide](docs/production-deployment.md) for resource, secret, migration, and rollback requirements.
+
+## Project structure
+
+```text
+app/                  Next.js pages and API routes
+components/           React components
+server/auth/          Session authentication
+server/db/            D1 schema, migrations, and queries
+db/                   Browser-facing API clients
+lib/                  Settlement and scoring logic
+scripts/              Database administration and migration tooling
+test/d1/              Workerd and D1 integration tests
+e2e/                  Playwright end-to-end tests
+docs/                 Decisions, deployment, and migration runbooks
+```
+
+## Design decisions
+
+See [docs/decisions.md](docs/decisions.md).
 
 ## License
 
