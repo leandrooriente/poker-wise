@@ -128,6 +128,24 @@ npm run cf:secrets -- --env=production --maintenance=false
 
 Maintenance mode rejects mutating `/api/admin` requests with HTTP 503 while preserving reads, login, and public shares.
 
+## Source write freeze
+
+The source database freeze is the authoritative cutover barrier, even if Vercel maintenance mode is available. It changes the PostgreSQL database and application-role defaults to read-only, terminates existing application connections so pooled sessions cannot continue writing, and verifies the setting using a new connection:
+
+```bash
+npm run db:writes:freeze -- \
+  --confirm=FREEZE_PRODUCTION_WRITES \
+  --ssl-no-verify
+```
+
+Do not run this before the scheduled cutover. If cutover is aborted before D1 accepts writes, restore PostgreSQL and recycle pooled connections with:
+
+```bash
+npm run db:writes:unfreeze -- \
+  --confirm=UNFREEZE_PRODUCTION_WRITES \
+  --ssl-no-verify
+```
+
 ## Backups and rollback
 
 D1 Time Travel is always enabled, but it does not replace the cutover backup. Before routing production traffic:

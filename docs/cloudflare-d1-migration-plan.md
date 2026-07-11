@@ -79,21 +79,22 @@ Exit gate: two consecutive rehearsals produce zero differences.
 
 1. Deploy the production Worker candidate without a custom-domain route.
 2. Take a final Supabase backup and verify restore access.
-3. Enable maintenance mode on the Vercel deployment.
-4. Confirm source writes have stopped.
-5. Export a final PostgreSQL snapshot.
-6. Import it into the empty production D1 database.
-7. Verify every table, checksum, foreign key, login, and share flow.
-8. Capture a D1 export and Time Travel bookmark.
-9. Route `poker.leandrooriente.com` to the production Worker.
-10. Smoke test while writes remain disabled.
-11. Enable writes and monitor Worker and D1 errors.
+3. Enable maintenance mode on the Vercel deployment if Vercel can provision the preparatory deployment.
+4. Freeze PostgreSQL writes with `npm run db:writes:freeze -- --confirm=FREEZE_PRODUCTION_WRITES --ssl-no-verify`; this also recycles existing application connections.
+5. Confirm a new source connection defaults to read-only and application writes have stopped.
+6. Export a final PostgreSQL snapshot.
+7. Import it into the empty production D1 database.
+8. Verify every table, checksum, foreign key, login, and share flow.
+9. Capture a D1 export and Time Travel bookmark.
+10. Route `poker.leandrooriente.com` to the production Worker.
+11. Smoke test while writes remain disabled.
+12. Enable Cloudflare writes and monitor Worker and D1 errors.
 
 Expected write freeze: up to 10 minutes.
 
 ## Rollback
 
-Before D1 writes are enabled, remove the Cloudflare route and re-enable the unchanged Vercel/Supabase deployment.
+Before D1 writes are enabled, remove the Cloudflare route, run `npm run db:writes:unfreeze -- --confirm=UNFREEZE_PRODUCTION_WRITES --ssl-no-verify`, and restore Vercel traffic.
 
 After D1 accepts writes, do not switch back blindly. Freeze writes, export D1, compare it with the cutover manifest, reconcile changes into PostgreSQL, and only then restore the old route.
 
@@ -128,6 +129,7 @@ Remote commands require explicit `--remote`; production commands additionally re
 ## Operational safeguards
 
 - Production resets and scenario seeds are disabled in code.
+- Source freeze/unfreeze commands require distinct, explicit production confirmations and verify the default on a new connection.
 - Remote development resets require `--confirm-remote-dev`.
 - Migration artifacts are ignored by Git and written with restrictive permissions.
 - Data imports use ordinary `INSERT`, never replace/upsert semantics.

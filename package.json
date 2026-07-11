@@ -32,6 +32,8 @@
     "db:generate": "drizzle-kit generate",
     "db:export:postgres": "tsx scripts/export-postgres-to-d1.ts",
     "db:verify:d1": "tsx scripts/verify-d1-migration.ts",
+    "db:writes:freeze": "tsx scripts/set-postgres-write-freeze.ts freeze",
+    "db:writes:unfreeze": "tsx scripts/set-postgres-write-freeze.ts unfreeze",
     "db:migrate": "npm run db:migrate:local",
     "db:migrate:local": "wrangler d1 migrations apply poker-wise-dev --local",
     "db:migrate:dev": "wrangler d1 migrations apply poker-wise-dev --remote",
