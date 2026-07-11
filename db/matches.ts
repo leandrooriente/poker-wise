@@ -35,7 +35,7 @@ export async function addMatch(
     throw new Error(`Failed to create match: ${res.status}`);
   }
 
-  return normalizeMatch(await res.json());
+  return normalizeMatch((await res.json()) as Match);
 }
 
 export async function updateMatch(updatedMatch: Match): Promise<void> {
@@ -79,8 +79,8 @@ export async function getMatchesByGroup(
     throw new Error(`Failed to fetch matches: ${res.status}`);
   }
 
-  const data = await res.json();
-  return data.map((match: any) => normalizeMatch(match));
+  const data = (await res.json()) as Match[];
+  return data.map(normalizeMatch);
 }
 
 export async function getMatchWithUsers(id: string): Promise<{
@@ -105,7 +105,16 @@ export async function getMatchWithUsers(id: string): Promise<{
     throw new Error(`Failed to fetch match: ${res.status}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as {
+    match: Match;
+    players: Array<{
+      user: any;
+      buyIns: number;
+      finalValue: number;
+      cashedOutAt?: string;
+    }>;
+    settlement?: SettlementResult;
+  };
   return {
     match: normalizeMatch(data.match),
     players: data.players,
@@ -134,11 +143,22 @@ export async function settleMatch(
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({}));
+    const error = (await res.json().catch(() => ({}))) as {
+      error?: string;
+    };
     throw new Error(error.error || `Failed to settle match: ${res.status}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as {
+    match: Match;
+    players: Array<{
+      user: any;
+      buyIns: number;
+      finalValue: number;
+      cashedOutAt?: string;
+    }>;
+    settlement: SettlementResult;
+  };
   return {
     match: normalizeMatch(data.match),
     players: data.players,

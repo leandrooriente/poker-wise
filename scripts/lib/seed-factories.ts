@@ -1,7 +1,7 @@
 import { hash as hashPassword } from "bcryptjs";
 
 import { generateId } from "@/lib/uuid";
-import { db } from "@/server/db";
+import { getDb } from "@/server/db";
 import { hashShareToken } from "@/server/db/queries/share-tokens";
 import {
   admins,
@@ -14,6 +14,7 @@ import {
 } from "@/server/db/schema";
 
 export async function createAdmin(email: string, password: string) {
+  const db = getDb();
   const passwordHash = await hashPassword(password, 10);
   const [admin] = await db
     .insert(admins)
@@ -27,6 +28,7 @@ export async function createGroup(
   slug: string,
   createdByAdminId: string
 ) {
+  const db = getDb();
   const [group] = await db
     .insert(groups)
     .values({ name, slug, createdByAdminId })
@@ -39,6 +41,7 @@ export async function addGroupAdmin(
   adminId: string,
   role = "admin"
 ) {
+  const db = getDb();
   const [groupAdmin] = await db
     .insert(groupAdmins)
     .values({ groupId, adminId, role })
@@ -51,6 +54,7 @@ export async function createPlayer(
   name: string,
   notes?: string
 ) {
+  const db = getDb();
   const [player] = await db
     .insert(players)
     .values({ groupId, name, notes })
@@ -69,6 +73,7 @@ export async function createMatch(
     endedAt?: Date;
   }
 ) {
+  const db = getDb();
   const [match] = await db
     .insert(matches)
     .values({
@@ -90,6 +95,7 @@ export async function createMatchEntry(
   buyIns = 1,
   finalValue = 0
 ) {
+  const db = getDb();
   const [entry] = await db
     .insert(matchEntries)
     .values({ matchId, playerId, buyIns, finalValue })
@@ -98,6 +104,7 @@ export async function createMatchEntry(
 }
 
 export async function createShareToken(groupId: string, token?: string) {
+  const db = getDb();
   const rawToken = token ?? generateId();
   const tokenHash = hashShareToken(rawToken);
   const [shareToken] = await db

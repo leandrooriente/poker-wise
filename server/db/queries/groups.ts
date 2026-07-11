@@ -1,7 +1,7 @@
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 import { generateId } from "@/lib/uuid";
-import { db } from "@/server/db";
+import { getDb } from "@/server/db";
 import { groups, groupAdmins } from "@/server/db/schema";
 
 export interface CreateGroupInput {
@@ -26,27 +26,26 @@ export async function createGroup(
   input: CreateGroupInput
 ): Promise<GroupWithAdminRole> {
   const { id: slug, name, createdByAdminId } = input;
-
-  // Generate UUID for primary key
+  const db = getDb();
   const groupId = generateId();
 
-  // Insert group
-  const [group] = await db
-    .insert(groups)
-    .values({
-      id: groupId,
-      name,
-      slug,
-      createdByAdminId,
-    })
-    .returning();
-
-  // Add creating admin to group_admins
-  await db.insert(groupAdmins).values({
-    groupId,
-    adminId: createdByAdminId,
-    role: "admin",
-  });
+  const [createdGroups] = await db.batch([
+    db
+      .insert(groups)
+      .values({
+        id: groupId,
+        name,
+        slug,
+        createdByAdminId,
+      })
+      .returning(),
+    db.insert(groupAdmins).values({
+      groupId,
+      adminId: createdByAdminId,
+      role: "admin",
+    }),
+  ]);
+  const [group] = createdGroups;
 
   return {
     ...group,
@@ -60,6 +59,7 @@ export async function createGroup(
 export async function getGroupsForAdmin(
   adminId: string
 ): Promise<GroupWithAdminRole[]> {
+  const db = getDb();
   const result = await db
     .select({
       id: groups.id,
@@ -84,6 +84,7 @@ export async function getGroupForAdmin(
   groupId: string,
   adminId: string
 ): Promise<GroupWithAdminRole | undefined> {
+  const db = getDb();
   const [result] = await db
     .select({
       id: groups.id,
@@ -108,6 +109,7 @@ export async function updateGroupForAdmin(
   adminId: string,
   updates: { name?: string; slug?: string }
 ): Promise<GroupWithAdminRole | undefined> {
+  const db = getDb();
   // First verify admin is a member (and optionally check role)
   const membership = await db.query.groupAdmins.findFirst({
     where: and(
@@ -142,6 +144,7 @@ export async function deleteGroupForAdmin(
   groupId: string,
   adminId: string
 ): Promise<boolean> {
+  const db = getDb();
   const membership = await db.query.groupAdmins.findFirst({
     where: and(
       eq(groupAdmins.groupId, groupId),
@@ -166,6 +169,7 @@ export async function addAdminToGroup(
   targetAdminId: string,
   role: string = "member"
 ): Promise<boolean> {
+  const db = getDb();
   const membership = await db.query.groupAdmins.findFirst({
     where: and(
       eq(groupAdmins.groupId, groupId),
@@ -198,6 +202,7 @@ export async function getGroupBySlugForAdmin(
   slug: string,
   adminId: string
 ): Promise<GroupWithAdminRole | undefined> {
+  const db = getDb();
   const [result] = await db
     .select({
       id: groups.id,

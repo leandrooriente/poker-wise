@@ -21,8 +21,13 @@ export async function getPlayersForGroup(groupId: string): Promise<Player[]> {
     throw new Error(`Failed to fetch players: ${response.status}`);
   }
 
-  const data = await response.json();
-  return data.map((p: any) => ({
+  const data = (await response.json()) as Array<{
+    id: string;
+    name: string;
+    notes: string | null;
+    createdAt: string;
+  }>;
+  return data.map((p) => ({
     id: p.id,
     name: p.name,
     notes: p.notes ?? undefined,
@@ -54,7 +59,12 @@ export async function addPlayerToGroup(
     throw new Error(`Failed to add player: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as {
+    id: string;
+    name: string;
+    notes: string | null;
+    createdAt: string;
+  };
   return {
     id: data.id,
     name: data.name,
@@ -89,7 +99,12 @@ export async function updatePlayerInGroup(
     throw new Error(`Failed to update player: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as {
+    id: string;
+    name: string;
+    notes: string | null;
+    createdAt: string;
+  };
   return {
     id: data.id,
     name: data.name,

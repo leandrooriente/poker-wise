@@ -1,7 +1,7 @@
+/* eslint-disable no-console */
 import * as f from "./seed-factories";
 
-/* eslint-disable no-console */import { db } from "@/server/db";
-import { admins } from "@/server/db/schema";
+import { getDb } from "@/server/db";
 
 export async function seedEmpty() {
   console.log("Seeding empty scenario (admin only)...");
@@ -10,10 +10,15 @@ export async function seedEmpty() {
 
 export async function seedBasicGroup() {
   console.log("Seeding basic-group scenario...");
+  const db = getDb();
   const admin = await db.query.admins.findFirst();
   if (!admin) throw new Error("No admin found. Run bootstrap first.");
 
-  const group = await f.createGroup("Friday Night Poker", "friday-night", admin.id);
+  const group = await f.createGroup(
+    "Friday Night Poker",
+    "friday-night",
+    admin.id
+  );
   await f.addGroupAdmin(group.id, admin.id);
 
   const players = [
@@ -144,10 +149,21 @@ export async function seedFullDemo() {
   await f.createMatchEntry(pastMatch2.id, players[2].id, 2, 2200);
   await f.createMatchEntry(pastMatch2.id, players[3].id, 1, 800);
 
-  return { admin, group, players, liveMatch, pastMatches: [pastMatch1, pastMatch2] };
+  return {
+    admin,
+    group,
+    players,
+    liveMatch,
+    pastMatches: [pastMatch1, pastMatch2],
+  };
 }
 
-export type ScenarioName = "empty" | "basic-group" | "live-match" | "history" | "full-demo";
+export type ScenarioName =
+  | "empty"
+  | "basic-group"
+  | "live-match"
+  | "history"
+  | "full-demo";
 
 export async function seedScenario(name: ScenarioName) {
   switch (name) {

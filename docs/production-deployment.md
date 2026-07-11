@@ -1,193 +1,158 @@
-# Production Deployment Guide
+# Cloudflare Deployment Guide
 
-This guide covers configuring and deploying the Poker Wise application to Vercel production environment.
+Poker Wise runs as a Next.js application on Cloudflare Workers through OpenNext and uses a native D1 binding.
+
+See [Cloudflare and D1 migration plan](./cloudflare-d1-migration-plan.md) for the staged migration and rollback strategy.
 
 ## Prerequisites
 
-- Vercel account connected to GitHub repository
-- Vercel project created (auto-created when repository is connected)
+- Node.js 22 or newer (Node.js 24 is used in CI)
+- Cloudflare account with Workers and D1 enabled
+- Wrangler authenticated with `npx wrangler login`
+- GitHub repository access for CI/CD
 
-## 1. Database Setup
+Workers Free is suitable for development. An initial remote sample of 11 successful invocations measured approximately 209 ms CPU at p50 and 385 ms at p99. This small sample is not a load test, but it is far above the 10 ms Free allowance. Production cutover requires Workers Paid or a documented Cloudflare limit that safely covers this workload.
 
-### Option A: Vercel Postgres (Recommended)
+## Resources
 
-1. In Vercel dashboard, go to **Storage** → **Create Database** → **Postgres**
-2. Name your database (e.g., `poker-wise-prod`)
-3. Choose region closest to your users
-4. Once created, Vercel will automatically add `POSTGRES_URL` environment variable
+The committed Wrangler configuration expects:
 
-### Option B: External PostgreSQL
+| Environment | Worker            | D1 database       |
+| ----------- | ----------------- | ----------------- |
+| Development | `poker-wise-dev`  | `poker-wise-dev`  |
+| Production  | `poker-wise-prod` | `poker-wise-prod` |
 
-If using external PostgreSQL (Neon, Supabase, AWS RDS, etc.):
-
-1. Create database and obtain connection string
-2. Format: `postgresql://user:password@host:port/database`
-3. Add as `POSTGRES_URL` environment variable
-
-## 2. Environment Variables
-
-Add the following environment variables in **Vercel Project Settings** → **Environment Variables**:
-
-| Variable         | Description                                        | Example Value                                  | Required |
-| ---------------- | -------------------------------------------------- | ---------------------------------------------- | -------- |
-| `POSTGRES_URL`   | PostgreSQL connection URL                          | Auto-set by Vercel Postgres                    | ✅       |
-| `ADMIN_EMAIL`    | Initial admin account email                        | `admin@example.com`                            | ✅       |
-| `ADMIN_PASSWORD` | Initial admin account password                     | `secure-password-123`                          | ✅       |
-| `AUTH_SECRET`    | Secret for session cookies (min 32 chars)          | `auth-secret-01234567890123456789012345678901` | ✅       |
-| `CRON_SECRET`    | Bearer token Vercel Cron sends to `/api/keepalive` | Generate a long random string                  | ✅       |
-| `NODE_ENV`       | Environment mode                                   | `production` (auto-set by Vercel)              | ✅       |
-
-**Important**: Set these for **Production** environment (not just Preview). Vercel Cron includes `Authorization: Bearer $CRON_SECRET` automatically when `CRON_SECRET` is configured; keep `/api/keepalive` protected in production by setting it.
-
-## 3. Database Setup and Migrations
-
-The application uses Drizzle ORM. For production, you need to initialize the database schema.
-
-### First Deployment (Fresh Database)
-
-If this is your first deployment and the database is empty:
-
-1. After setting environment variables, deploy to production
-2. Connect to your Vercel Postgres database via CLI or GUI
-3. Run the database reset script **once** to create tables and seed admin:
+Create the databases once:
 
 ```bash
-# Set POSTGRES_URL environment variable first
-export POSTGRES_URL="your-production-postgres-url"
+npx wrangler d1 create poker-wise-dev
+npx wrangler d1 create poker-wise-prod
+```
+
+Commit the returned database IDs in `wrangler.jsonc`. D1 IDs are resource identifiers, not secrets.
+
+## Worker secrets
+
+Synchronize secrets from the ignored Vercel environment files without printing their values:
+
+```bash
+npm run cf:secrets -- --env=development --source=.env.local
+npm run cf:secrets -- --env=production --source=.env.production.local
+```
+
+Development receives `AUTH_SECRET`, seed admin credentials, and `MAINTENANCE_MODE`. Production receives only `AUTH_SECRET` and `MAINTENANCE_MODE` because admin records are imported from PostgreSQL.
+
+Production uses a newly generated `AUTH_SECRET`; the migration intentionally invalidates existing Vercel session cookies, so administrators must sign in again after cutover. Password hashes, application data, and public share links are unaffected. Production never bootstraps an admin during build or startup.
+
+## Schema migrations
+
+Generate migrations after changing `server/db/schema.ts`:
+
+```bash
+npm run db:generate
+```
+
+Review and commit every generated SQL file. Apply migrations explicitly:
+
+```bash
+npm run db:migrate:local
+npm run db:migrate:dev
+npm run db:migrate:production
+```
+
+Never run a production reset. `npm run db:reset` targets local D1 by default, permanently rejects production, and requires `--confirm-remote-dev` for remote development.
+
+## Local verification
+
+```bash
+npm run db:migrate:local
 npm run db:reset
+npm run test -- --run
+npm run test:d1 -- --run
+npm run e2e:local
+npm run cf:build
 ```
 
-**⚠️ Warning**: The `db:reset` script **drops all tables** before creating them. Only run this on a fresh/empty database or when you want to wipe all data.
+Use `npm run preview` to inspect the built application in the workerd runtime.
 
-### Safe Initialization (No Data Loss)
+## Manual deployment
 
-If you want to initialize tables without risking data loss (e.g., if database might have other data):
-
-1. Generate SQL schema from the current Drizzle schema:
+Development:
 
 ```bash
-npx drizzle-kit generate
+npm run db:migrate:dev
+npm run deploy:dev
 ```
 
-2. Review the generated SQL in `server/db/migrations/` folder
-3. Apply only the CREATE TABLE statements (skip DROP TABLE if they exist)
-
-### Future Schema Updates
-
-When you make changes to `server/db/schema.ts`:
-
-1. Generate migrations locally against a test database:
+Production candidate:
 
 ```bash
-# Set up a local test database with same schema as production
-# Generate migration
-npx drizzle-kit generate
+npm run db:migrate:production
+npm run deploy:production
 ```
 
-2. Apply migrations to production:
+The production Worker should remain on its workers.dev hostname until the migration verification and cutover runbook are complete.
+
+## GitHub Actions
+
+Create a Cloudflare API token from the **Edit Cloudflare Workers** template, scoped to only the required account and zone. Add these repository secrets with GitHub CLI:
 
 ```bash
-npx drizzle-kit migrate
+gh secret set CLOUDFLARE_ACCOUNT_ID
+gh secret set CLOUDFLARE_API_TOKEN
 ```
 
-**Note**: Always backup production database before running migrations.
-
-## 4. Verifying Deployment
-
-After deployment:
-
-1. **Visit your production URL** (e.g., `https://poker-wise.vercel.app`)
-2. **Log in as admin** using the `ADMIN_EMAIL` and `ADMIN_PASSWORD` set in environment variables
-3. **Create a test group** to verify server-backed groups work
-4. **Add players** to verify basic functionality
-
-## 5. Troubleshooting
-
-### Common Issues
-
-#### "Failed to connect to database"
-
-- Verify `POSTGRES_URL` is correctly set in Vercel environment variables
-- Check database is running and accessible
-- For Vercel Postgres, ensure database is in same region as deployment
-
-#### "Authentication failed" or login issues
-
-- Verify `AUTH_SECRET` is at least 32 characters
-- Ensure `ADMIN_EMAIL` and `ADMIN_PASSWORD` match what you're using to login
-- Check browser console for errors
-
-#### "Tables don't exist"
-
-- Database migrations haven't been run
-- Run `db:reset` or apply migrations as described above
-
-### Checking Logs
-
-- Vercel dashboard → Project → Functions → Edge/Serverless Functions logs
-- Check for runtime errors
-
-## 6. Maintenance
-
-### Adding New Admins
-
-Use the CLI script instead of inserting rows manually.
-
-1. Link the local repo to the Vercel project:
+Deployments are gated by this repository variable:
 
 ```bash
-vercel link
+gh variable set CLOUDFLARE_DEPLOY_ENABLED --body true
 ```
 
-2. Pull the production environment variables locally:
+Leave it `false` until both remote D1 IDs, Worker secrets, and Cloudflare credentials are configured. Production deployments use the protected GitHub `Production` environment and require approval.
+
+## Planned domains
+
+After workers.dev verification:
+
+- `poker-dev.leandrooriente.com` → `poker-wise-dev`
+- `poker.leandrooriente.com` → `poker-wise-prod`
+
+Do not attach the production domain until the final PostgreSQL export has been imported and verified while the Vercel application is in maintenance mode.
+
+Toggle the Cloudflare candidate between read-only and writable mode by updating its secret:
 
 ```bash
-vercel env pull .env.production.local --environment=production
+npm run cf:secrets -- --env=production --maintenance=true
+npm run cf:secrets -- --env=production --maintenance=false
 ```
 
-3. Run the script against the production database:
+Maintenance mode rejects mutating `/api/admin` requests with HTTP 503 while preserving reads, login, and public shares.
+
+## Source write freeze
+
+The source database freeze is the authoritative cutover barrier, even if Vercel maintenance mode is available. It changes the PostgreSQL database and application-role defaults to read-only, terminates existing application connections so pooled sessions cannot continue writing, and verifies the setting using a new connection:
 
 ```bash
-NODE_ENV=production npm run admin:create -- newadmin@example.com 'strong-password'
+npm run db:writes:freeze -- \
+  --confirm=FREEZE_PRODUCTION_WRITES \
+  --ssl-no-verify
 ```
 
-Grant access to specific groups:
+Do not run this before the scheduled cutover. If cutover is aborted before D1 accepts writes, restore PostgreSQL and recycle pooled connections with:
 
 ```bash
-NODE_ENV=production npm run admin:create -- newadmin@example.com 'strong-password' --group friday-night --group cash-game
+npm run db:writes:unfreeze -- \
+  --confirm=UNFREEZE_PRODUCTION_WRITES \
+  --ssl-no-verify
 ```
 
-Grant access to all existing groups:
+## Backups and rollback
 
-```bash
-NODE_ENV=production npm run admin:create -- newadmin@example.com 'strong-password' --all-groups
-```
+D1 Time Travel is always enabled, but it does not replace the cutover backup. Before routing production traffic:
 
-Notes:
+1. Save a final Supabase `pg_dump` outside the repository.
+2. Save the migration SQL and checksum manifest securely.
+3. Export the newly imported D1 database.
+4. Record the cutover timestamp and D1 bookmark.
 
-- The script reads `POSTGRES_URL` from the env file pulled from Vercel, so it connects directly to the production database.
-- For this CLI, only `POSTGRES_URL` is required locally; missing app-only vars like `AUTH_SECRET` or `ADMIN_PASSWORD` will not block the command.
-- Creating an admin account and granting group access happen in a single transaction.
-- If you omit `--group` and `--all-groups`, the admin can log in but will not manage any groups until access is granted.
-- The script fails if the email already exists.
-
-### Backup Database
-
-- Vercel Postgres: Use Vercel dashboard → Storage → Database → Backups
-- External PostgreSQL: Use provider's backup tools
-
-## 7. Security Notes
-
-1. **Never commit environment variables** to git
-2. **Use strong passwords** for admin accounts
-3. **Rotate `AUTH_SECRET`** periodically
-4. **Enable Vercel Security** features if available
-5. **Monitor access logs** for suspicious activity
-
-## 8. Next Steps After Deployment
-
-Once production is verified working:
-
-- Continue with PR 4: Group Players migration
-- Test all user flows in production
-- Set up monitoring and alerts
+Before writes are enabled, rollback means removing the Cloudflare route and restoring Vercel traffic. After D1 accepts writes, reconcile D1 changes into PostgreSQL before switching back.

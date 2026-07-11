@@ -1,10 +1,9 @@
 import { hash } from "bcryptjs";
 import { eq, inArray } from "drizzle-orm";
 
-import { createAdminDb } from "./admin-create-db";
-
+import { generateId } from "@/lib/uuid";
+import { getDb, type Database } from "@/server/db";
 import { admins, groupAdmins, groups } from "@/server/db/schema";
-
 
 export interface CreateAdminOptions {
   email: string;
@@ -19,72 +18,88 @@ export interface CreateAdminResult {
   grantedGroupSlugs: string[];
 }
 
-const { db, pool } = createAdminDb(process.env);
+const GROUP_SLUG_CHUNK_SIZE = 90;
 
-type Transaction = Parameters<typeof db.transaction>[0] extends (
-  tx: infer T,
-  ...args: never[]
-) => Promise<unknown>
-  ? T
-  : never;
+async function findTargetGroups(
+  database: Database,
+  options: CreateAdminOptions
+): Promise<Array<{ id: string; slug: string }>> {
+  if (options.grantAllGroups) {
+    return database.select({ id: groups.id, slug: groups.slug }).from(groups);
+  }
+
+  const targetGroups: Array<{ id: string; slug: string }> = [];
+  for (
+    let offset = 0;
+    offset < options.groupSlugs.length;
+    offset += GROUP_SLUG_CHUNK_SIZE
+  ) {
+    const slugs = options.groupSlugs.slice(
+      offset,
+      offset + GROUP_SLUG_CHUNK_SIZE
+    );
+    targetGroups.push(
+      ...(await database
+        .select({ id: groups.id, slug: groups.slug })
+        .from(groups)
+        .where(inArray(groups.slug, slugs)))
+    );
+  }
+
+  const foundSlugs = new Set(targetGroups.map((group) => group.slug));
+  const missingSlugs = options.groupSlugs.filter(
+    (slug) => !foundSlugs.has(slug)
+  );
+  if (missingSlugs.length > 0) {
+    throw new Error(`Unknown group slug(s): ${missingSlugs.join(", ")}`);
+  }
+
+  return targetGroups;
+}
 
 export async function createAdminWithAccess(
-  options: CreateAdminOptions
+  options: CreateAdminOptions,
+  database: Database = getDb()
 ): Promise<CreateAdminResult> {
-  try {
-    return await db.transaction(async (tx: Transaction) => {
-      const existingAdmin = await tx.query.admins.findFirst({
-        where: eq(admins.email, options.email),
-      });
-      if (existingAdmin) {
-        throw new Error(`Admin already exists for ${options.email}`);
-      }
-
-      const passwordHash = await hash(options.password, 10);
-      const [admin] = await tx
-        .insert(admins)
-        .values({
-          email: options.email,
-          passwordHash,
-        })
-        .returning();
-
-      let targetGroups: Array<{ id: string; slug: string }> = [];
-      if (options.grantAllGroups) {
-        targetGroups = await tx
-          .select({ id: groups.id, slug: groups.slug })
-          .from(groups);
-      } else if (options.groupSlugs.length > 0) {
-        targetGroups = await tx
-          .select({ id: groups.id, slug: groups.slug })
-          .from(groups)
-          .where(inArray(groups.slug, options.groupSlugs));
-
-        const foundSlugs = new Set(targetGroups.map((group) => group.slug));
-        const missingSlugs = options.groupSlugs.filter(
-          (slug) => !foundSlugs.has(slug)
-        );
-        if (missingSlugs.length > 0) {
-          throw new Error(`Unknown group slug(s): ${missingSlugs.join(", ")}`);
-        }
-      }
-
-      if (targetGroups.length > 0) {
-        await tx.insert(groupAdmins).values(
-          targetGroups.map((group) => ({
-            groupId: group.id,
-            adminId: admin.id,
-            role: options.role,
-          }))
-        );
-      }
-
-      return {
-        email: admin.email,
-        grantedGroupSlugs: targetGroups.map((group) => group.slug),
-      };
-    });
-  } finally {
-    await pool.end();
+  const existingAdmin = await database.query.admins.findFirst({
+    where: eq(admins.email, options.email),
+  });
+  if (existingAdmin) {
+    throw new Error(`Admin already exists for ${options.email}`);
   }
+
+  const targetGroups = await findTargetGroups(database, options);
+  const adminId = generateId();
+  const passwordHash = await hash(options.password, 10);
+  const insertAdmin = database
+    .insert(admins)
+    .values({
+      id: adminId,
+      email: options.email,
+      passwordHash,
+    })
+    .returning({ email: admins.email });
+
+  let email: string;
+  if (targetGroups.length === 0) {
+    const [admin] = await insertAdmin;
+    email = admin.email;
+  } else {
+    const [createdAdmins] = await database.batch([
+      insertAdmin,
+      database.insert(groupAdmins).values(
+        targetGroups.map((group) => ({
+          groupId: group.id,
+          adminId,
+          role: options.role,
+        }))
+      ),
+    ]);
+    email = createdAdmins[0].email;
+  }
+
+  return {
+    email,
+    grantedGroupSlugs: targetGroups.map((group) => group.slug),
+  };
 }

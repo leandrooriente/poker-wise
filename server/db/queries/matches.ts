@@ -2,7 +2,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 
 import { calculateSettlement, SettlementResult } from "@/lib/settlement";
 import { generateId } from "@/lib/uuid";
-import { db } from "@/server/db";
+import { getDb } from "@/server/db";
 import {
   groupAdmins,
   matchEntries,
@@ -47,7 +47,18 @@ function buildSettlement(match: MatchRecord): SettlementResult {
   return calculateSettlement(match.players, match.buyInAmount);
 }
 
+const PLAYER_ID_CHUNK_SIZE = 90;
+
+type MatchEntryRow = {
+  matchId: string;
+  userId: string;
+  buyIns: number;
+  finalValue: number;
+  cashedOutAt: Date | null;
+};
+
 async function verifyAdminMembership(groupId: string, adminId: string) {
+  const db = getDb();
   const membership = await db.query.groupAdmins.findFirst({
     where: and(
       eq(groupAdmins.groupId, groupId),
@@ -63,28 +74,68 @@ async function getPlayerRows(groupId: string, playerIds: string[]) {
     return [];
   }
 
-  return db
-    .select({
-      id: players.id,
-      name: players.name,
-      notes: players.notes,
-      createdAt: players.createdAt,
-    })
-    .from(players)
-    .where(and(eq(players.groupId, groupId), inArray(players.id, playerIds)));
+  const db = getDb();
+  const rows: Array<{
+    id: string;
+    name: string;
+    notes: string | null;
+    createdAt: Date;
+  }> = [];
+
+  // D1 accepts at most 100 bound parameters per query. Reserve one for the
+  // group ID and keep chunks comfortably below that limit.
+  for (
+    let offset = 0;
+    offset < playerIds.length;
+    offset += PLAYER_ID_CHUNK_SIZE
+  ) {
+    const chunk = playerIds.slice(offset, offset + PLAYER_ID_CHUNK_SIZE);
+    rows.push(
+      ...(await db
+        .select({
+          id: players.id,
+          name: players.name,
+          notes: players.notes,
+          createdAt: players.createdAt,
+        })
+        .from(players)
+        .where(and(eq(players.groupId, groupId), inArray(players.id, chunk))))
+    );
+  }
+
+  return rows;
 }
 
 async function getMatchBase(matchId: string) {
+  const db = getDb();
   return db.query.matches.findFirst({
     where: eq(matches.id, matchId),
   });
 }
 
+function toMatchRecord(
+  matchRow: typeof matches.$inferSelect,
+  entries: MatchEntryRow[]
+): MatchRecord {
+  const record: MatchRecord = {
+    ...matchRow,
+    players: entries.map(({ matchId: _matchId, ...entry }) => entry),
+  };
+
+  if (matchRow.status === "settled") {
+    record.settlement = buildSettlement(record);
+  }
+
+  return record;
+}
+
 async function buildMatchRecord(
   matchRow: typeof matches.$inferSelect
 ): Promise<MatchRecord> {
+  const db = getDb();
   const entries = await db
     .select({
+      matchId: matchEntries.matchId,
       userId: matchEntries.playerId,
       buyIns: matchEntries.buyIns,
       finalValue: matchEntries.finalValue,
@@ -93,17 +144,7 @@ async function buildMatchRecord(
     .from(matchEntries)
     .where(eq(matchEntries.matchId, matchRow.id));
 
-  const record: MatchRecord = {
-    ...matchRow,
-    players: entries,
-  };
-
-  // Include settlement for settled matches
-  if (matchRow.status === "settled") {
-    record.settlement = buildSettlement(record);
-  }
-
-  return record;
+  return toMatchRecord(matchRow, entries);
 }
 
 export async function createMatchForAdmin(
@@ -130,32 +171,37 @@ export async function createMatchForAdmin(
     return undefined;
   }
 
+  const db = getDb();
   const matchId = generateId();
-
-  await db.transaction(async (tx: any) => {
-    await tx.insert(matches).values({
-      id: matchId,
-      groupId: input.groupId,
-      title: input.title,
-      buyInAmount: input.buyInAmount,
-      status: input.status ?? "live",
-      startedAt: input.startedAt ? new Date(input.startedAt) : new Date(),
-      createdAt: input.createdAt ? new Date(input.createdAt) : new Date(),
-      endedAt: input.endedAt ? new Date(input.endedAt) : null,
-      createdByAdminId: adminId,
-    });
-
-    await tx.insert(matchEntries).values(
-      input.players.map((player) => ({
-        id: generateId(),
-        matchId,
-        playerId: player.userId,
-        buyIns: player.buyIns,
-        finalValue: player.finalValue,
-        cashedOutAt: player.cashedOutAt ? new Date(player.cashedOutAt) : null,
-      }))
-    );
+  const insertMatch = db.insert(matches).values({
+    id: matchId,
+    groupId: input.groupId,
+    title: input.title,
+    buyInAmount: input.buyInAmount,
+    status: input.status ?? "live",
+    startedAt: input.startedAt ? new Date(input.startedAt) : new Date(),
+    createdAt: input.createdAt ? new Date(input.createdAt) : new Date(),
+    endedAt: input.endedAt ? new Date(input.endedAt) : null,
+    createdByAdminId: adminId,
   });
+
+  if (input.players.length === 0) {
+    await insertMatch;
+  } else {
+    await db.batch([
+      insertMatch,
+      db.insert(matchEntries).values(
+        input.players.map((player) => ({
+          id: generateId(),
+          matchId,
+          playerId: player.userId,
+          buyIns: player.buyIns,
+          finalValue: player.finalValue,
+          cashedOutAt: player.cashedOutAt ? new Date(player.cashedOutAt) : null,
+        }))
+      ),
+    ]);
+  }
 
   const created = await getMatchBase(matchId);
   if (!created) {
@@ -236,14 +282,35 @@ export async function listMatchesForGroupForAdmin(
     return [];
   }
 
-  const rows = await db
-    .select()
-    .from(matches)
-    .where(eq(matches.groupId, groupId))
-    .orderBy(desc(matches.createdAt));
+  const db = getDb();
+  const [rows, entryRows] = await Promise.all([
+    db
+      .select()
+      .from(matches)
+      .where(eq(matches.groupId, groupId))
+      .orderBy(desc(matches.createdAt)),
+    db
+      .select({
+        matchId: matchEntries.matchId,
+        userId: matchEntries.playerId,
+        buyIns: matchEntries.buyIns,
+        finalValue: matchEntries.finalValue,
+        cashedOutAt: matchEntries.cashedOutAt,
+      })
+      .from(matchEntries)
+      .innerJoin(matches, eq(matchEntries.matchId, matches.id))
+      .where(eq(matches.groupId, groupId)),
+  ]);
 
-  return Promise.all(
-    rows.map((row: typeof matches.$inferSelect) => buildMatchRecord(row))
+  const entriesByMatchId = new Map<string, MatchEntryRow[]>();
+  for (const entry of entryRows) {
+    const entries = entriesByMatchId.get(entry.matchId) ?? [];
+    entries.push(entry);
+    entriesByMatchId.set(entry.matchId, entries);
+  }
+
+  return rows.map((row) =>
+    toMatchRecord(row, entriesByMatchId.get(row.id) ?? [])
   );
 }
 
@@ -279,38 +346,54 @@ export async function updateMatchForAdmin(
     }
   }
 
-  await db.transaction(async (tx: any) => {
-    await tx
-      .update(matches)
-      .set({
-        ...(updates.title !== undefined ? { title: updates.title } : {}),
-        ...(updates.buyInAmount !== undefined
-          ? { buyInAmount: updates.buyInAmount }
-          : {}),
-        ...(updates.startedAt !== undefined
-          ? { startedAt: new Date(updates.startedAt) }
-          : {}),
-        ...(updates.endedAt !== undefined
-          ? { endedAt: updates.endedAt ? new Date(updates.endedAt) : null }
-          : {}),
-        ...(updates.status !== undefined ? { status: updates.status } : {}),
-      })
-      .where(eq(matches.id, matchId));
+  const db = getDb();
+  const matchUpdates = {
+    ...(updates.title !== undefined ? { title: updates.title } : {}),
+    ...(updates.buyInAmount !== undefined
+      ? { buyInAmount: updates.buyInAmount }
+      : {}),
+    ...(updates.startedAt !== undefined
+      ? { startedAt: new Date(updates.startedAt) }
+      : {}),
+    ...(updates.endedAt !== undefined
+      ? { endedAt: updates.endedAt ? new Date(updates.endedAt) : null }
+      : {}),
+    ...(updates.status !== undefined ? { status: updates.status } : {}),
+  };
+  const hasMatchUpdates = Object.keys(matchUpdates).length > 0;
+  const updateMatch = () =>
+    db.update(matches).set(matchUpdates).where(eq(matches.id, matchId));
+  const deleteEntries = () =>
+    db.delete(matchEntries).where(eq(matchEntries.matchId, matchId));
 
-    if (updates.players) {
-      await tx.delete(matchEntries).where(eq(matchEntries.matchId, matchId));
-      await tx.insert(matchEntries).values(
-        updates.players.map((player) => ({
-          id: generateId(),
-          matchId,
-          playerId: player.userId,
-          buyIns: player.buyIns,
-          finalValue: player.finalValue,
-          cashedOutAt: player.cashedOutAt ? new Date(player.cashedOutAt) : null,
-        }))
-      );
+  if (updates.players === undefined) {
+    if (hasMatchUpdates) {
+      await updateMatch();
     }
-  });
+  } else if (updates.players.length === 0) {
+    if (hasMatchUpdates) {
+      await db.batch([updateMatch(), deleteEntries()]);
+    } else {
+      await deleteEntries();
+    }
+  } else {
+    const insertEntries = db.insert(matchEntries).values(
+      updates.players.map((player) => ({
+        id: generateId(),
+        matchId,
+        playerId: player.userId,
+        buyIns: player.buyIns,
+        finalValue: player.finalValue,
+        cashedOutAt: player.cashedOutAt ? new Date(player.cashedOutAt) : null,
+      }))
+    );
+
+    if (hasMatchUpdates) {
+      await db.batch([updateMatch(), deleteEntries(), insertEntries]);
+    } else {
+      await db.batch([deleteEntries(), insertEntries]);
+    }
+  }
 
   const updated = await getMatchBase(matchId);
   if (!updated) {
@@ -383,6 +466,7 @@ export async function deleteMatchForAdmin(
     return false;
   }
 
+  const db = getDb();
   await db.delete(matches).where(eq(matches.id, matchId));
   return true;
 }

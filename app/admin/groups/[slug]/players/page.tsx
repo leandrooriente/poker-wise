@@ -33,9 +33,14 @@ export default function GroupPlayersPage() {
         setPlayers([]);
         return;
       }
-      const data = await res.json();
+      const data = (await res.json()) as Array<{
+        id: string;
+        name: string;
+        notes: string | null;
+        createdAt: string;
+      }>;
       // Map API response to Player type
-      const mapped = data.map((p: any) => ({
+      const mapped = data.map((p) => ({
         id: p.id,
         name: p.name,
         notes: p.notes ?? undefined,

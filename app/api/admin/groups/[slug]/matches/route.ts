@@ -77,7 +77,15 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as {
+      title?: unknown;
+      buyInAmount?: unknown;
+      players?: unknown;
+      startedAt?: string;
+      createdAt?: string;
+      endedAt?: string;
+      status?: string;
+    };
     const {
       title,
       buyInAmount,

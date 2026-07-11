@@ -1,6 +1,5 @@
-/* eslint-disable no-console */import { spawn } from "node:child_process";
-
-import { Client } from "pg";
+/* eslint-disable no-console */
+import { spawn } from "node:child_process";
 
 import { getE2ELocalEnv } from "../lib/e2e-local-config";
 
@@ -31,59 +30,16 @@ async function runCommand(command: string, args: string[]) {
   });
 }
 
-async function waitForPostgres(connectionString: string) {
-  const startedAt = Date.now();
-
-  while (Date.now() - startedAt < 60_000) {
-    const client = new Client({ connectionString });
-
-    try {
-      await client.connect();
-      await client.query("select 1");
-      await client.end();
-      return;
-    } catch {
-      await client.end().catch(() => undefined);
-      await new Promise((resolve) => setTimeout(resolve, 1_000));
-    }
-  }
-
-  throw new Error("Postgres did not become ready within 60 seconds");
-}
-
-async function isPostgresReady(connectionString: string) {
-  const client = new Client({ connectionString });
-
-  try {
-    await client.connect();
-    await client.query("select 1");
-    await client.end();
-    return true;
-  } catch {
-    await client.end().catch(() => undefined);
-    return false;
-  }
-}
-
 async function main() {
-  const postgresReady = await isPostgresReady(env.POSTGRES_URL);
-
-  if (!postgresReady) {
-    try {
-      await runCommand("docker", ["compose", "up", "-d", "postgres"]);
-      await waitForPostgres(env.POSTGRES_URL);
-    } catch (error) {
-      throw new Error(
-        [
-          `Postgres is not reachable at ${env.POSTGRES_URL}.`,
-          "Start your local Postgres instance manually or grant Docker access, then retry `npm run e2e:local`.",
-          `Bootstrap failure: ${error instanceof Error ? error.message : String(error)}`,
-        ].join(" ")
-      );
-    }
-  }
-
-  await runCommand("npx", ["tsx", "scripts/db-init.ts"]);
+  await runCommand("npx", [
+    "wrangler",
+    "d1",
+    "migrations",
+    "apply",
+    "poker-wise-dev",
+    "--local",
+  ]);
+  await runCommand("npx", ["tsx", "scripts/db-reset.ts"]);
 
   const server = spawn("npx", ["next", "dev", "-p", env.PORT], {
     env,

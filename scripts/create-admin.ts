@@ -1,25 +1,33 @@
-/* eslint-disable no-console */import dotenv from "dotenv";
-
+/* eslint-disable no-console */
+import { createAdminWithAccess } from "./lib/admin-create";
 import {
   getCreateAdminHelpText,
   parseCreateAdminArgs,
 } from "./lib/admin-create-args";
-
-dotenv.config({ path: ".env.production.local" });
-dotenv.config({ path: ".env.local", override: false });
-dotenv.config({ override: false });
+import { parseScriptDatabaseOptions, withScriptDatabase } from "./lib/d1";
 
 async function main() {
-  const { createAdminWithAccess } = await import("./lib/admin-create");
+  const args = process.argv.slice(2);
+  const databaseOptions = parseScriptDatabaseOptions(args);
+  const adminArgs = args.filter(
+    (arg) => arg !== "--remote" && arg !== "--env=production"
+  );
+  const parsed = parseCreateAdminArgs(adminArgs);
 
-  const parsed = parseCreateAdminArgs(process.argv.slice(2));
-  const result = await createAdminWithAccess({
-    email: parsed.email,
-    password: parsed.password,
-    groupSlugs: parsed.groupSlugs,
-    grantAllGroups: parsed.grantAllGroups,
-    role: "admin",
-  });
+  const result = await withScriptDatabase(
+    (database) =>
+      createAdminWithAccess(
+        {
+          email: parsed.email,
+          password: parsed.password,
+          groupSlugs: parsed.groupSlugs,
+          grantAllGroups: parsed.grantAllGroups,
+          role: "admin",
+        },
+        database
+      ),
+    databaseOptions
+  );
 
   console.log(`Admin created: ${result.email}`);
   if (result.grantedGroupSlugs.length === 0) {

@@ -1,0 +1,43 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "poker-wise-dev",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-07-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+  },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "vars": {
+    "APP_ENV": "development",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "poker-wise-dev",
+      "database_id": "594d61a8-b3b8-48de-abb5-7f82fe785f89",
+      "migrations_dir": "server/db/migrations",
+    },
+  ],
+  "env": {
+    "production": {
+      "name": "poker-wise-prod",
+      "vars": {
+        "APP_ENV": "production",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "poker-wise-prod",
+          "database_id": "3c0d1a23-e428-4769-9f5b-0928b65294c2",
+          "migrations_dir": "server/db/migrations",
+        },
+      ],
+    },
+  },
+}

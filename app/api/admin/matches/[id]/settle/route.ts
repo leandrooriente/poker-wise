@@ -31,7 +31,9 @@ export async function POST(
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as {
+      finalValues?: Record<string, number>;
+    };
     const result = await matchesQueries.settleMatchForAdmin(
       id,
       session.adminId,
@@ -63,7 +65,7 @@ export async function POST(
       settlement: result.settlement,
     });
   } catch (error) {
-  // eslint-disable-next-line no-console
+    // eslint-disable-next-line no-console
     console.error("POST /api/admin/matches/[id]/settle error:", error);
     if (error instanceof Response) throw error;
     return NextResponse.json(

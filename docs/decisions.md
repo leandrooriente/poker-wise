@@ -163,6 +163,30 @@
 - `e2e/db-helpers.ts` – E2E test database helpers
 - `docker-compose.yml` – local PostgreSQL container
 
+## 2026-07-10 – Cloudflare Workers and D1 Migration
+
+### Decision
+
+- Move the Next.js application from Vercel to Cloudflare Workers through OpenNext.
+- Replace Supabase PostgreSQL with two native D1 databases: development and production.
+- Use ephemeral local D1 databases for CI rather than sharing persistent development state.
+- Keep Vercel and Supabase unchanged as the rollback path until production cutover.
+- Use Workers Free initially, with a required CPU benchmark before production because bcrypt authentication may exceed the 10 ms free limit.
+
+### Technical consequences
+
+- Upgrade Next.js to a version supported by OpenNext.
+- Convert the Drizzle schema from PostgreSQL types to SQLite types while preserving IDs and relationships.
+- Replace unsupported D1 transactions with atomic batches.
+- Generate and apply committed migrations explicitly; builds must never mutate database schema or bootstrap admins.
+- Replace Node-runtime proxy code with Edge middleware because OpenNext does not support Node middleware.
+- Remove PostgreSQL, Docker, Vercel cron, and database keepalive dependencies.
+- Add workerd/D1 integration tests and run E2E against local D1.
+- Use a repeatable-read PostgreSQL exporter and canonical checksums for the one-time data migration.
+- Rotate the production `AUTH_SECRET` at cutover. Existing Vercel sessions will be invalidated intentionally; password hashes, data, and public share links remain unchanged.
+
+See `docs/cloudflare-d1-migration-plan.md` for execution gates and rollback procedures.
+
 ## Open Questions / Future Work
 
 - **Export/import**: Not in MVP, but could be added later via JSON download/upload.

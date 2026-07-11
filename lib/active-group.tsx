@@ -45,7 +45,9 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      const data = await response.json();
+      const data = (await response.json()) as {
+        activeGroupSlug: string | null;
+      };
       return data.activeGroupSlug ?? null;
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -70,7 +72,9 @@ export function ActiveGroupProvider({ children }: { children: ReactNode }) {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        const data = await response.json();
+        const data = (await response.json()) as {
+          activeGroupSlug: string | null;
+        };
         return data.activeGroupSlug ?? null;
       } catch (err) {
         // eslint-disable-next-line no-console

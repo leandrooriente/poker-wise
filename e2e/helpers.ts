@@ -171,7 +171,7 @@ export async function seedNamespacedLocalStorage(
       .evaluate(
         (select) =>
           (
-            select as HTMLSelectElement
+            select as unknown as HTMLSelectElement
           ).selectedOptions[0]?.textContent?.trim() || ""
       );
     if (activeGroupSlug) {
