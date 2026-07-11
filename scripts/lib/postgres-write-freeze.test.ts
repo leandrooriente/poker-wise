@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   parsePostgresWriteFreezeArgs,
   quotePostgresIdentifier,
+  resolvePostgresWriteFreezeConnectionStrings,
 } from "./postgres-write-freeze";
 
 describe("PostgreSQL write-freeze arguments", () => {
@@ -43,6 +44,31 @@ describe("PostgreSQL write-freeze arguments", () => {
       envFile: "/secure/production.env",
       sslNoVerify: false,
     });
+  });
+
+  it("verifies both Supabase session and transaction pool endpoints", () => {
+    expect(
+      resolvePostgresWriteFreezeConnectionStrings({
+        POSTGRES_URL_NON_POOLING: "postgres://session",
+        POSTGRES_URL: "postgres://transaction",
+      })
+    ).toEqual({
+      session: "postgres://session",
+      transaction: "postgres://transaction",
+    });
+
+    expect(
+      resolvePostgresWriteFreezeConnectionStrings({
+        POSTGRES_URL: "postgres://fallback",
+      })
+    ).toEqual({
+      session: "postgres://fallback",
+      transaction: "postgres://fallback",
+    });
+
+    expect(() => resolvePostgresWriteFreezeConnectionStrings({})).toThrow(
+      "POSTGRES_URL_NON_POOLING or POSTGRES_URL"
+    );
   });
 
   it("quotes server-provided identifiers", () => {

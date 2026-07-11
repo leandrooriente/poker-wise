@@ -187,6 +187,23 @@
 
 See `docs/cloudflare-d1-migration-plan.md` for execution gates and rollback procedures.
 
+## 2026-07-11 – Cloudflare Production Cutover
+
+### Decision
+
+- Route `poker.leandrooriente.com` to `poker-wise-prod` and make native D1 the production system of record.
+- Keep Supabase PostgreSQL frozen for 30 days as the rollback source; do not switch back after D1 writes without reconciliation.
+- Proceed on Workers Free by explicit owner acceptance despite the initial CPU sample exceeding the documented Free allowance; monitor and upgrade if required.
+- Close the optional Vercel maintenance-mode PR because the database-level barrier is authoritative.
+
+### Cutover outcome
+
+- A final PostgreSQL archive passed an isolated restore test.
+- The final frozen source snapshot matched all rehearsal digests and the imported production D1 database.
+- Login, authenticated reads, maintenance mode, D1 writes, cleanup, and public sharing passed on the custom domain.
+- The original freeze helper exposed stale Supabase session-pool reuse. The cutover used a pool-aware barrier that flushes and verifies both session and transaction endpoints; the production utility was hardened accordingly.
+- Production Cloudflare writes were enabled at 2026-07-11T09:11:31Z, while PostgreSQL remained read-only.
+
 ## Open Questions / Future Work
 
 - **Export/import**: Not in MVP, but could be added later via JSON download/upload.

@@ -30,6 +30,12 @@
       "vars": {
         "APP_ENV": "production",
       },
+      "routes": [
+        {
+          "pattern": "poker.leandrooriente.com",
+          "custom_domain": true,
+        },
+      ],
       "d1_databases": [
         {
           "binding": "DB",

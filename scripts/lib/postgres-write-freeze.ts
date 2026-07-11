@@ -38,6 +38,27 @@ export function parsePostgresWriteFreezeArgs(
   };
 }
 
+export interface PostgresWriteFreezeConnectionStrings {
+  session: string;
+  transaction: string;
+}
+
+export function resolvePostgresWriteFreezeConnectionStrings(
+  env: Record<string, string>
+): PostgresWriteFreezeConnectionStrings {
+  const session = env.POSTGRES_URL_NON_POOLING ?? env.POSTGRES_URL;
+  if (!session) {
+    throw new Error(
+      "POSTGRES_URL_NON_POOLING or POSTGRES_URL is required in the production env file."
+    );
+  }
+
+  return {
+    session,
+    transaction: env.POSTGRES_URL ?? session,
+  };
+}
+
 export function quotePostgresIdentifier(value: string): string {
   return `"${value.replaceAll('"', '""')}"`;
 }
