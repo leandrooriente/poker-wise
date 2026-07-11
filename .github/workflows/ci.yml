@@ -152,7 +152,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
   deploy-production:
-    name: Deploy production Worker candidate
+    name: Deploy production Worker
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
     needs: [quality, d1-integration, cloudflare-build, e2e-local]
     runs-on: ubuntu-latest

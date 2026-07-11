@@ -27,7 +27,7 @@ All five phases are complete. Production cutover completed on 2026-07-11.
 
 - PR #68 was squash-merged as `f60a88a23cc425e941bc1d5dc75cd2f2f364d626`; PR #69 was closed.
 - `main` requires the four Cloudflare CI checks: typecheck/lint/unit, D1 integration, OpenNext build, and local-D1 E2E.
-- `CLOUDFLARE_DEPLOY_ENABLED` is `true`; production deployment remains protected by environment approval.
+- `CLOUDFLARE_DEPLOY_ENABLED` is `true`; every green merge to `main` deploys automatically through the GitHub `Production` environment.
 
 ### Validation summary
 
@@ -87,7 +87,7 @@ Exit gate: unit, D1 integration, OpenNext build, and local E2E tests pass.
 - Store Worker secrets without committing them.
 - Configure GitHub Actions with Cloudflare account credentials.
 - Keep deployments disabled until credentials and remote databases are ready.
-- Require approval through the GitHub `Production` environment.
+- Scope production deployments through the GitHub `Production` environment.
 
 Exit gate: development migration and deployment complete through GitHub Actions. ✅ Complete.
 
@@ -162,4 +162,4 @@ Remote commands require explicit `--remote`; production commands additionally re
 - Migration artifacts are ignored by Git and written with restrictive permissions.
 - Data imports use ordinary `INSERT`, never replace/upsert semantics.
 - Runtime builds never create schemas or bootstrap production admins.
-- GitHub deployment is enabled through `CLOUDFLARE_DEPLOY_ENABLED=true`; production deploy requires approval through the protected `Production` environment.
+- GitHub deployment is enabled through `CLOUDFLARE_DEPLOY_ENABLED=true`; production deploys automatically only after the required CI jobs pass on `main`.

@@ -89,7 +89,7 @@ npm run deploy:dev
 npm run deploy:production
 ```
 
-GitHub Actions deployments are enabled through `CLOUDFLARE_DEPLOY_ENABLED=true`; production deployments require approval through the protected `Production` environment. See [the Cloudflare deployment guide](docs/production-deployment.md) for resource, secret, migration, and rollback requirements.
+GitHub Actions deployments are enabled through `CLOUDFLARE_DEPLOY_ENABLED=true`; every green merge to `main` deploys automatically through the GitHub `Production` environment. See [the Cloudflare deployment guide](docs/production-deployment.md) for resource, secret, migration, and rollback requirements.
 
 ## Project structure
 
