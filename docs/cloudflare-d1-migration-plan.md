@@ -8,36 +8,35 @@ Poker Wise will move from Vercel and Supabase PostgreSQL to a Cloudflare-native 
 Browser -> Cloudflare Worker (Next.js via OpenNext) -> native D1 binding
 ```
 
-D1 is never exposed through a public SQL proxy. Vercel and Supabase remain the production and rollback path until the final cutover.
+D1 is never exposed through a public SQL proxy. Supabase PostgreSQL remains frozen as the rollback source for 30 days after cutover; Vercel no longer serves production traffic.
 
 ## Current status
 
-Phases 1–4 are complete. Phase 5 (production cutover) has not started.
+All five phases are complete. Production cutover completed on 2026-07-11.
 
 ### Remote Cloudflare state
 
-- `poker-wise-dev` and `poker-wise-prod` D1 databases exist in WEUR with committed IDs.
-- The initial migration is applied to both databases.
-- Development is seeded and deployed at https://poker-wise-dev.me-fb8.workers.dev.
-- The production candidate is deployed at https://poker-wise-prod.me-fb8.workers.dev with maintenance mode enabled and an empty D1 database.
-- Worker secrets are configured and hidden for both environments.
-- Production uses a newly generated `AUTH_SECRET`; existing Vercel sessions will be intentionally invalidated at cutover.
+- `poker-wise-dev` and `poker-wise-prod` D1 databases exist in WEUR with committed IDs and migrations.
+- Development remains seeded at https://poker-wise-dev.me-fb8.workers.dev.
+- Production is live at https://poker.leandrooriente.com through `poker-wise-prod`; the workers.dev hostname remains available for direct diagnostics.
+- Production D1 contains the verified PostgreSQL snapshot: 2 admins, 1 group, 2 group-admin memberships, 9 players, 3 matches, 14 entries, and 1 share token.
+- Cloudflare maintenance mode is disabled, application writes are enabled, and Supabase PostgreSQL defaults remain read-only through both pool endpoints.
+- Production uses the rotated `AUTH_SECRET`; existing Vercel sessions were intentionally invalidated.
 
 ### GitHub state
 
-- `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` secrets are set.
-- `CLOUDFLARE_DEPLOY_ENABLED` is `true`; CI deploys the development Worker on every PR.
-- The `Production` environment requires approval.
-- PR #68 (`feat/cloudflare-d1-migration`) is open as a draft with all CI checks green.
-- PR #69 (`chore/vercel-maintenance-mode`) adds a maintenance switch to the Vercel deployment but cannot be validated because Vercel previews fail with `BUILD_FAILED: Resource provisioning failed`.
-- `main` branch protection still requires the old Vercel-era checks (`ESLint`, `TypeScript Type Checking`, `Unit Tests (Vitest)`, `Vercel`); these must be replaced with the four Cloudflare CI check names before PR #68 can merge.
+- PR #68 was squash-merged as `f60a88a23cc425e941bc1d5dc75cd2f2f364d626`; PR #69 was closed.
+- `main` requires the four Cloudflare CI checks: typecheck/lint/unit, D1 integration, OpenNext build, and local-D1 E2E.
+- `CLOUDFLARE_DEPLOY_ENABLED` is `true`; production deployment remains protected by environment approval.
 
 ### Validation summary
 
-- Typecheck, lint (0 errors), 82 unit tests, 2 D1 integration tests, OpenNext build, and 42 local-D1 E2E tests all pass in CI.
-- Remote development login, authenticated D1 reads, public sharing, row counts, and `PRAGMA foreign_key_check` pass.
-- Two independent production rehearsals exported identical per-table counts and SHA-256 digests and passed the isolated D1 verifier.
-- An initial remote sample of 11 successful requests measured approximately 209 ms CPU p50 / 385 ms p99, far above the Workers Free 10 ms allowance; production needs Workers Paid or a documented higher limit.
+- Typecheck, lint, 82 unit tests, 2 D1 integration tests, OpenNext build, and 42 local-D1 E2E tests passed before merge.
+- Three pre-cutover production exports and the final frozen export produced identical per-table counts and SHA-256 digests.
+- The final D1 verifier passed every table checksum and `PRAGMA foreign_key_check`.
+- Production login, authenticated reads, maintenance behavior, application writes, temporary-group cleanup, and public sharing passed on the custom domain.
+- A final D1 SQL export and Time Travel bookmark were captured after the write/share smoke test.
+- An initial sample measured approximately 209 ms CPU p50 / 385 ms p99. The owner explicitly accepted proceeding on Workers Free and will upgrade if observed limits require it.
 
 ## Target environments
 
@@ -47,12 +46,12 @@ Phases 1–4 are complete. Phase 5 (production cutover) has not started.
 | Development and PR preview | `poker-wise-dev`  | `poker-wise-dev`   | `DB`    |
 | Production                 | `poker-wise-prod` | `poker-wise-prod`  | `DB`    |
 
-Planned custom domains after the Workers deployments are stable:
+Custom domains:
 
-- Production: `poker.leandrooriente.com`
-- Development: `poker-dev.leandrooriente.com`
+- Production (active): `poker.leandrooriente.com`
+- Development (planned): `poker-dev.leandrooriente.com`
 
-Workers Free is used for development. An initial remote smoke sample of 11 successful invocations measured approximately 209 ms CPU at p50 and 385 ms at p99 in Cloudflare analytics. The sample is not a load test, but it is far above the 10 ms Free allowance; production cutover therefore requires Workers Paid or a documented Cloudflare limit that safely covers this workload.
+Workers Free is currently used for both environments. An initial remote smoke sample of 11 successful invocations measured approximately 209 ms CPU at p50 and 385 ms at p99 in Cloudflare analytics. The owner explicitly accepted this risk for cutover; monitor Worker limits and upgrade production if required.
 
 ## Delivery phases
 
@@ -104,22 +103,22 @@ Exit gate: development migration and deployment complete through GitHub Actions.
 
 Exit gate: two consecutive rehearsals produce zero differences. ✅ Complete.
 
-### 5. Production cutover ⏳ Not started
+### 5. Production cutover ✅
 
-1. Deploy the production Worker candidate without a custom-domain route.
-2. Take a final Supabase backup and verify restore access.
-3. Enable maintenance mode on the Vercel deployment if Vercel can provision the preparatory deployment.
-4. Freeze PostgreSQL writes with `npm run db:writes:freeze -- --confirm=FREEZE_PRODUCTION_WRITES --ssl-no-verify`; this also recycles existing application connections.
-5. Confirm a new source connection defaults to read-only and application writes have stopped.
-6. Export a final PostgreSQL snapshot.
-7. Import it into the empty production D1 database.
-8. Verify every table, checksum, foreign key, login, and share flow.
-9. Capture a D1 export and Time Travel bookmark.
-10. Route `poker.leandrooriente.com` to the production Worker.
-11. Smoke test while writes remain disabled.
-12. Enable Cloudflare writes and monitor Worker and D1 errors.
+Completed on 2026-07-11:
 
-Expected write freeze: up to 10 minutes.
+1. Created a permission-restricted final PostgreSQL archive and proved it with an isolated restore.
+2. Captured the empty production D1 export and pre-import Time Travel bookmark.
+3. Froze PostgreSQL database/role defaults and recycled both Supabase session and transaction pool backends.
+4. Exported the final read-only snapshot and imported 32 statements into production D1.
+5. Verified all table counts, canonical SHA-256 digests, and foreign keys.
+6. Captured post-import and post-cutover D1 exports and bookmarks.
+7. Replaced the Vercel CNAME with the `poker-wise-prod` custom domain.
+8. Verified login, authenticated reads, and the maintenance write barrier on the production hostname.
+9. Enabled Cloudflare writes and verified create, public share, read, cleanup, and exact post-cleanup checksums.
+10. Confirmed PostgreSQL remains frozen and observed no Worker errors during post-cutover health traffic.
+
+The final cutover write-unavailability window ran from 09:04:08Z until Cloudflare writes were confirmed at 09:11:31Z (7 minutes 23 seconds). PostgreSQL remains frozen as the rollback source.
 
 ## Rollback
 

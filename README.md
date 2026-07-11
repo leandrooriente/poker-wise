@@ -82,14 +82,14 @@ Production reset and scenario seeding are disabled. Remote development resets re
 
 ## Cloudflare deployment
 
-The remote development Worker is available at [poker-wise-dev.me-fb8.workers.dev](https://poker-wise-dev.me-fb8.workers.dev). The [production candidate](https://poker-wise-prod.me-fb8.workers.dev) remains in maintenance mode with an empty D1 database until the final import.
+The remote development Worker is available at [poker-wise-dev.me-fb8.workers.dev](https://poker-wise-dev.me-fb8.workers.dev). Production runs on Cloudflare at [poker.leandrooriente.com](https://poker.leandrooriente.com) with the native `poker-wise-prod` D1 binding.
 
 ```bash
 npm run deploy:dev
 npm run deploy:production
 ```
 
-Remote deployments remain disabled in GitHub Actions until `CLOUDFLARE_DEPLOY_ENABLED` is set to `true`. See [the Cloudflare deployment guide](docs/production-deployment.md) for resource, secret, migration, and rollback requirements.
+GitHub Actions deployments are enabled through `CLOUDFLARE_DEPLOY_ENABLED=true`; production deployments require approval through the protected `Production` environment. See [the Cloudflare deployment guide](docs/production-deployment.md) for resource, secret, migration, and rollback requirements.
 
 ## Project structure
 

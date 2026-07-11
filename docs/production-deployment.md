@@ -11,7 +11,7 @@ See [Cloudflare and D1 migration plan](./cloudflare-d1-migration-plan.md) for th
 - Wrangler authenticated with `npx wrangler login`
 - GitHub repository access for CI/CD
 
-Workers Free is suitable for development. An initial remote sample of 11 successful invocations measured approximately 209 ms CPU at p50 and 385 ms at p99. This small sample is not a load test, but it is far above the 10 ms Free allowance. Production cutover requires Workers Paid or a documented Cloudflare limit that safely covers this workload.
+Workers Free is suitable for development. An initial remote sample of 11 successful invocations measured approximately 209 ms CPU at p50 and 385 ms at p99. This small sample is not a load test, but it is far above the documented 10 ms Free allowance. Production currently runs on Workers Free by explicit owner acceptance; monitor limits and upgrade if required.
 
 ## Resources
 
@@ -84,14 +84,14 @@ npm run db:migrate:dev
 npm run deploy:dev
 ```
 
-Production candidate:
+Production:
 
 ```bash
 npm run db:migrate:production
 npm run deploy:production
 ```
 
-The production Worker should remain on its workers.dev hostname until the migration verification and cutover runbook are complete.
+The production Worker is available on workers.dev for direct diagnostics and at its configured custom domain for user traffic.
 
 ## GitHub Actions
 
@@ -110,16 +110,14 @@ gh variable set CLOUDFLARE_DEPLOY_ENABLED --body true
 
 Leave it `false` until both remote D1 IDs, Worker secrets, and Cloudflare credentials are configured. Production deployments use the protected GitHub `Production` environment and require approval.
 
-## Planned domains
+## Domains
 
-After workers.dev verification:
+- `poker.leandrooriente.com` → `poker-wise-prod` (active)
+- `poker-dev.leandrooriente.com` → `poker-wise-dev` (planned)
 
-- `poker-dev.leandrooriente.com` → `poker-wise-dev`
-- `poker.leandrooriente.com` → `poker-wise-prod`
+The production custom domain is committed in `wrangler.jsonc` so subsequent deployments retain it.
 
-Do not attach the production domain until the final PostgreSQL export has been imported and verified while the Vercel application is in maintenance mode.
-
-Toggle the Cloudflare candidate between read-only and writable mode by updating its secret:
+Toggle production between read-only and writable mode by updating its secret:
 
 ```bash
 npm run cf:secrets -- --env=production --maintenance=true
@@ -130,7 +128,7 @@ Maintenance mode rejects mutating `/api/admin` requests with HTTP 503 while pres
 
 ## Source write freeze
 
-The source database freeze is the authoritative cutover barrier, even if Vercel maintenance mode is available. It changes the PostgreSQL database and application-role defaults to read-only, terminates existing application connections so pooled sessions cannot continue writing, and verifies the setting using a new connection:
+The source database freeze is the authoritative rollback barrier. It changes the PostgreSQL database and application-role defaults to read-only, flushes stale Supabase backends, and verifies both the session and transaction pool endpoints before returning:
 
 ```bash
 npm run db:writes:freeze -- \
@@ -138,7 +136,7 @@ npm run db:writes:freeze -- \
   --ssl-no-verify
 ```
 
-Do not run this before the scheduled cutover. If cutover is aborted before D1 accepts writes, restore PostgreSQL and recycle pooled connections with:
+PostgreSQL remains frozen after cutover as the rollback source. Only unfreeze it as part of an approved rollback after reconciling any D1 writes:
 
 ```bash
 npm run db:writes:unfreeze -- \
