@@ -5,14 +5,15 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  typecheck:
-    name: TypeScript Type Checking
+  quality:
+    name: Typecheck, lint, and unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,38 +26,23 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
-      - name: Run TypeScript type check
+      - name: Check generated Cloudflare types
+        run: npm run cf:typegen -- --check
+
+      - name: Typecheck
         run: npm run typecheck
 
-  lint:
-    name: ESLint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Run ESLint
+      - name: Lint
         run: npm run lint
 
-  unit-tests:
-    name: Unit Tests (Vitest)
+      - name: Unit tests
+        run: npm run test -- --run
+
+  d1-integration:
+    name: D1 integration tests
     runs-on: ubuntu-latest
-    env:
-      POSTGRES_URL: postgresql://user:pass@localhost:5432/db
-      ADMIN_EMAIL: admin@example.com
-      ADMIN_PASSWORD: changeme
-      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,18 +54,14 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
-      - name: Run unit tests
-        run: npm run test
+      - name: Run tests in workerd with isolated D1
+        run: npm run test:d1 -- --run
 
-  await-vercel-preview:
-    name: Await Vercel Preview
+  cloudflare-build:
+    name: OpenNext Cloudflare build
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    outputs:
-      preview_url: ${{ steps.await-preview.outputs.preview_url }}
-      project_id: ${{ steps.await-preview.outputs.project_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,100 +72,16 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Find and await Vercel preview deployment matching PR SHA
-        id: await-preview
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          TARGET_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          echo "Looking for Vercel preview deployment matching PR SHA: $TARGET_SHA"
+      - name: Build the Worker bundle
+        run: npm run cf:build
 
-          # Validate required environment variables
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "❌ ERROR: VERCEL_TOKEN is not set. Please add it as a GitHub Secret."
-            echo "   You can set it in your repository settings under Settings > Secrets and variables > Actions"
-            exit 1
-          fi
-
-          # Get preview deployments matching the PR commit SHA
-          echo "Looking for Vercel preview deployments for commit SHA: $TARGET_SHA..."
-
-          # Use the commit SHA metadata to locate the exact preview deployment
-          VERCEL_CMD="vercel ls -m githubCommitSha=$TARGET_SHA --environment preview --format json --token=$VERCEL_TOKEN"
-
-          echo "Running filtered preview lookup"
-          RESPONSE=$($VERCEL_CMD 2>/dev/null || echo '{"deployments":[]}')
-          DEPLOYMENTS=$(echo "$RESPONSE" | jq '.deployments // []')
-          DEPLOYMENT_COUNT=$(echo "$DEPLOYMENTS" | jq '. | length')
-          echo "Found $DEPLOYMENT_COUNT preview deployment(s) matching SHA $TARGET_SHA"
-          if [ "$DEPLOYMENT_COUNT" -gt 0 ]; then
-            echo "Debug first deployment keys:"
-            echo "$DEPLOYMENTS" | jq '.[0] | keys' || true
-            echo "Debug first deployment projectId:"
-            echo "$DEPLOYMENTS" | jq '.[0].projectId' || true
-          fi
-
-          # Find deployment with matching SHA
-          echo "Searching for deployment with SHA $TARGET_SHA..."
-          DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
-            '.[] | select(.meta.githubCommitSha == $sha) | .url' | head -n1)
-          PROJECT_ID=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
-            '.[] | select(.meta.githubCommitSha == $sha) | .projectId' | head -n1)
-
-          if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "❌ No Vercel preview deployment found for SHA $TARGET_SHA"
-            echo "$RESPONSE" | jq '.'
-
-            # Wait and retry once (deployment might still be queued)
-            echo "Waiting 30 seconds and retrying..."
-            sleep 30
-            RESPONSE=$($VERCEL_CMD 2>/dev/null || echo '{"deployments":[]}')
-            DEPLOYMENTS=$(echo "$RESPONSE" | jq '.deployments // []')
-            DEPLOYMENT_URL=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$TARGET_SHA" \
-              '.[] | select(.meta.githubCommitSha == $sha) | .url' | head -n1)
-            
-            if [ -z "$DEPLOYMENT_URL" ]; then
-              echo "❌ Still no deployment found after waiting. Exiting."
-              exit 1
-            fi
-          fi
-
-          echo "✅ Found deployment: $DEPLOYMENT_URL"
-          echo "Waiting for deployment to be ready..."
-
-          INSPECT_CMD="vercel inspect $DEPLOYMENT_URL --wait --timeout 300 --token=$VERCEL_TOKEN"
-
-          echo "Running deployment readiness check"
-          if ! $INSPECT_CMD; then
-            echo "❌ Failed to wait for deployment $DEPLOYMENT_URL"
-            echo "Checking deployment state..."
-            DEPLOYMENT_INFO=$(vercel inspect $DEPLOYMENT_URL --format json --token=$VERCEL_TOKEN 2>/dev/null || echo "{}")
-            echo "$DEPLOYMENT_INFO" | jq '.'
-            exit 1
-          fi
-
-          echo "✅ Deployment is ready: $DEPLOYMENT_URL"
-          echo "preview_url=https://$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
-          if [ -z "$PROJECT_ID" ]; then
-            PROJECT_ID=$(jq -r .projectId .vercel/project.json 2>/dev/null || echo "")
-          fi
-          if [ -n "$PROJECT_ID" ]; then
-            echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
-          fi
-
-  e2e-preview:
-    name: E2E Tests (Preview)
+  e2e-local:
+    name: E2E tests with local D1
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    needs: await-vercel-preview
     timeout-minutes: 15
-    env:
-      BASE_URL: ${{ needs.await-vercel-preview.outputs.preview_url }}
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      PROJECT_ID: ${{ needs.await-vercel-preview.outputs.project_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -195,32 +93,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Wait for preview app content
-        run: npm run preview:wait
-
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
-      - name: Link Vercel project
-        run: vercel link --yes --token=$VERCEL_TOKEN
-
-      - name: Pull preview environment variables
-        run: vercel env pull .env.preview --environment=preview --token=$VERCEL_TOKEN
-
-      - name: List preview environment variables
-        run: vercel env ls --environment=preview --token=$VERCEL_TOKEN 2>&1 | grep -E "(ADMIN|AUTH|POSTGRES)" || true
-
-      # Database initialization is now handled by the prebuild script in package.json
-      # which runs automatically during Vercel deployment build.
-      # Skipping seeding step because database connection is not accessible from CI.
-      # - name: Seed preview database
-      #   run: |
-      #     set -a
-      #     source .env.preview
-      #     set +a
-      #     npm run db:init
+        run: npm ci
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -231,35 +104,80 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Run E2E tests against preview
-        run: npm run e2e -- --project=chromium --workers=1 --max-failures=1
+      - name: Run E2E tests
+        run: npm run e2e:local
+        env:
+          CI: "true"
+          ADMIN_EMAIL: admin@example.com
+          ADMIN_PASSWORD: changeme
+          AUTH_SECRET: auth-secret-01234567890123456789012345678901
 
-      - name: Capture Vercel logs on failure
-        if: failure()
-        run: |
-          echo "Capturing Vercel logs for deployment: $BASE_URL"
-          # Extract domain from BASE_URL (remove https://)
-          DOMAIN="${BASE_URL#https://}"
-          echo "=== Error logs ==="
-          vercel logs "$DOMAIN" --since 5m --no-follow --level error --token=$VERCEL_TOKEN > vercel-error.logs 2>&1 || echo "Failed to fetch error logs"
-          cat vercel-error.logs
-          echo "=== Info logs (last 20) ==="
-          vercel logs "$DOMAIN" --since 5m --no-follow --level info --token=$VERCEL_TOKEN 2>&1 | tail -20 > vercel-info.logs || echo "Failed to fetch info logs"
-          cat vercel-info.logs
-          echo "=== End of logs ==="
-
-      - name: Upload Vercel logs artifact
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vercel-logs-preview
-          path: vercel-*.logs
-          retention-days: 7
-
-      - name: Upload Playwright HTML report
+      - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-preview
+          name: playwright-report-local-d1
           path: playwright-report/
           retention-days: 7
+
+  deploy-development:
+    name: Deploy development Worker
+    if: github.event_name == 'pull_request' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    needs: [quality, d1-integration, cloudflare-build, e2e-local]
+    runs-on: ubuntu-latest
+    environment: Preview
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply development D1 migrations
+        run: npm run db:migrate:dev
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Deploy development Worker
+        run: npm run deploy:dev
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+  deploy-production:
+    name: Deploy production Worker candidate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    needs: [quality, d1-integration, cloudflare-build, e2e-local]
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply production D1 migrations
+        run: npm run db:migrate:production
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Deploy production Worker
+        run: npm run deploy:production
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
