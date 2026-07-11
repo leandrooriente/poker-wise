@@ -23,7 +23,7 @@ The application is being migrated from Vercel and Supabase PostgreSQL. See [the 
 
 ## Prerequisites
 
-- Node.js 20 or newer
+- Node.js 22 or newer (Node.js 24 is used in CI)
 - npm
 - Wrangler authentication for remote Cloudflare operations
 

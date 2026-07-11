@@ -14,8 +14,10 @@ export default defineConfig(async () => {
   return {
     plugins: [
       cloudflareTest({
-        wrangler: { configPath: "./wrangler.jsonc" },
         miniflare: {
+          compatibilityDate: "2026-07-10",
+          compatibilityFlags: ["nodejs_compat"],
+          d1Databases: ["DB"],
           bindings: { TEST_MIGRATIONS: migrations },
         },
       }),

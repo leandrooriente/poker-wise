@@ -6,7 +6,7 @@ See [Cloudflare and D1 migration plan](./cloudflare-d1-migration-plan.md) for th
 
 ## Prerequisites
 
-- Node.js 20 or newer
+- Node.js 22 or newer (Node.js 24 is used in CI)
 - Cloudflare account with Workers and D1 enabled
 - Wrangler authenticated with `npx wrangler login`
 - GitHub repository access for CI/CD
