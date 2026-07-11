@@ -11,7 +11,7 @@ See [Cloudflare and D1 migration plan](./cloudflare-d1-migration-plan.md) for th
 - Wrangler authenticated with `npx wrangler login`
 - GitHub repository access for CI/CD
 
-Workers Free is suitable for initial development. Its 10 ms CPU limit may be too low for SSR and bcrypt authentication, so production must be benchmarked before cutover.
+Workers Free is suitable for development. An initial remote sample of 11 successful invocations measured approximately 209 ms CPU at p50 and 385 ms at p99. This small sample is not a load test, but it is far above the 10 ms Free allowance. Production cutover requires Workers Paid or a documented Cloudflare limit that safely covers this workload.
 
 ## Resources
 

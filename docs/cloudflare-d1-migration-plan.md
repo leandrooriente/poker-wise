@@ -23,7 +23,7 @@ Planned custom domains after the Workers deployments are stable:
 - Production: `poker.leandrooriente.com`
 - Development: `poker-dev.leandrooriente.com`
 
-Workers Free will be used initially. The 10 ms CPU limit must be validated against production traffic. Authentication uses bcrypt and may require Workers Paid before production cutover.
+Workers Free is used for development. An initial remote smoke sample of 11 successful invocations measured approximately 209 ms CPU at p50 and 385 ms at p99 in Cloudflare analytics. The sample is not a load test, but it is far above the 10 ms Free allowance; production cutover therefore requires Workers Paid or a documented Cloudflare limit that safely covers this workload.
 
 ## Delivery phases
 
