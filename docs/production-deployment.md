@@ -108,7 +108,7 @@ Deployments are gated by this repository variable:
 gh variable set CLOUDFLARE_DEPLOY_ENABLED --body true
 ```
 
-Leave it `false` until both remote D1 IDs, Worker secrets, and Cloudflare credentials are configured. Production deployments use the protected GitHub `Production` environment and require approval.
+Leave it `false` until both remote D1 IDs, Worker secrets, and Cloudflare credentials are configured. Production deployments use the GitHub `Production` environment and run automatically after the required CI jobs pass on `main`.
 
 ## Domains
 

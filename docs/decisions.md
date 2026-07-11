@@ -195,6 +195,7 @@ See `docs/cloudflare-d1-migration-plan.md` for execution gates and rollback proc
 - Keep Supabase PostgreSQL frozen for 30 days as the rollback source; do not switch back after D1 writes without reconciliation.
 - Proceed on Workers Free by explicit owner acceptance despite the initial CPU sample exceeding the documented Free allowance; monitor and upgrade if required.
 - Close the optional Vercel maintenance-mode PR because the database-level barrier is authoritative.
+- After the successful cutover, remove the `Production` environment reviewer gate so every green merge to `main` deploys automatically.
 
 ### Cutover outcome
 
