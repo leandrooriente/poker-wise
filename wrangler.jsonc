@@ -5,6 +5,7 @@
   "compatibility_date": "2026-07-10",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "preview_urls": false,
   "observability": {
     "enabled": true,
   },
@@ -19,8 +20,7 @@
     {
       "binding": "DB",
       "database_name": "poker-wise-dev",
-      // Replaced with the remote ID after Cloudflare authentication is refreshed.
-      "database_id": "00000000-0000-0000-0000-000000000001",
+      "database_id": "594d61a8-b3b8-48de-abb5-7f82fe785f89",
       "migrations_dir": "server/db/migrations",
     },
   ],
@@ -34,8 +34,7 @@
         {
           "binding": "DB",
           "database_name": "poker-wise-prod",
-          // Replaced with the remote ID after Cloudflare authentication is refreshed.
-          "database_id": "00000000-0000-0000-0000-000000000002",
+          "database_id": "3c0d1a23-e428-4769-9f5b-0928b65294c2",
           "migrations_dir": "server/db/migrations",
         },
       ],

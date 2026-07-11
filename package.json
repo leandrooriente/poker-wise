@@ -12,7 +12,7 @@
     "start": "next start",
     "cf:build": "opennextjs-cloudflare build",
     "preview": "npm run cf:build && opennextjs-cloudflare preview",
-    "deploy:dev": "npm run cf:build && opennextjs-cloudflare deploy",
+    "deploy:dev": "npm run cf:build && opennextjs-cloudflare deploy --env=\"\"",
     "deploy:production": "npm run cf:build && opennextjs-cloudflare deploy --env production",
     "cf:typegen": "tsx scripts/generate-cloudflare-types.ts",
     "cf:secrets": "tsx scripts/sync-cloudflare-secrets.ts",

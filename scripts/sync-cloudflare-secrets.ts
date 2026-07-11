@@ -45,10 +45,13 @@ async function main() {
     secrets.ADMIN_PASSWORD = source.ADMIN_PASSWORD;
   }
 
-  const wranglerArgs = ["wrangler", "secret", "bulk"];
-  if (environment === "production") {
-    wranglerArgs.push("--env", "production");
-  }
+  const wranglerArgs = [
+    "wrangler",
+    "secret",
+    "bulk",
+    "--env",
+    environment === "production" ? "production" : "",
+  ];
 
   await new Promise<void>((resolve, reject) => {
     const child = spawn("npx", wranglerArgs, {
